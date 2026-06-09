@@ -1,0 +1,8 @@
+.wrapper { overflow-x: auto; }
+.table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+.table thead tr { border-bottom: 2px solid var(--border-color); }
+.table th { text-align: left; padding: 0.75rem 1rem; color: var(--text-muted); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; }
+.table tbody tr { border-bottom: 1px solid var(--border-color); transition: background var(--transition-fast); cursor: pointer; }
+.table tbody tr:hover { background: #f8fafc; }
+.table td { padding: 0.875rem 1rem; color: var(--text-primary); }
+.empty { text-align: center; padding: 3rem; color: var(--text-muted); }
