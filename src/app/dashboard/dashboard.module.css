@@ -28,9 +28,14 @@
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 1rem 1.25rem;
-  transition: box-shadow 0.2s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
-.metricCard:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+.metricCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06), 0 8px 24px rgba(37, 99, 235, 0.05);
+  background-color: #f8fafc;
+  border-color: #bfdbfe;
+}
 .metricLabel {
   font-size: 0.775rem;
   color: #6b7280;
