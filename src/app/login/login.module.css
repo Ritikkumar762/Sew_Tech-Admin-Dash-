@@ -1,0 +1,252 @@
+.container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: white;
+}
+
+/* ── Left Side Image ── */
+.imageSection {
+  flex: 1;
+  position: relative;
+  background-color: #111827; /* Fallback */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.imageSection img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Optional overlay to make logo pop if image is bright */
+.imageOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.1) 30%, transparent 100%);
+}
+
+.logoTopLeft {
+  position: absolute;
+  top: 2rem;
+  left: 2.5rem;
+  z-index: 10;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 800;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.logoTopLeft span {
+  font-weight: 400;
+}
+
+/* ── Right Side Form ── */
+.formSection {
+  width: 480px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 4rem;
+  background: white;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 2rem;
+}
+
+.inputGroup {
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s;
+  color: #111827;
+}
+
+.input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.eyeIcon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+  cursor: pointer;
+}
+
+.primaryBtn {
+  width: 100%;
+  background-color: #2563eb;
+  color: white;
+  font-weight: 500;
+  font-size: 0.95rem;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-bottom: 1.5rem;
+}
+
+.primaryBtn:hover:not(:disabled) {
+  background-color: #1d4ed8;
+}
+
+.primaryBtn:disabled {
+  background-color: #93c5fd;
+  cursor: not-allowed;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  color: #111827;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+/* ── Or Sign In Using ── */
+.dividerRow {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.dividerLine {
+  flex: 1;
+  height: 1px;
+  background-color: #f3f4f6;
+}
+
+.dividerText {
+  font-size: 0.8rem;
+  color: #9ca3af;
+}
+
+.socialRow {
+  display: flex;
+  gap: 1rem;
+}
+
+.socialBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.65rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+  transition: background 0.2s;
+}
+
+.socialBtn:hover {
+  background: #f9fafb;
+}
+
+/* ── OTP Inputs ── */
+.otpContainer {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  justify-content: space-between;
+}
+
+.otpInput {
+  width: 45px;
+  height: 50px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.otpInput:focus {
+  border-color: #3b82f6;
+}
+
+.otpInputError {
+  border-color: #ef4444;
+  color: #ef4444;
+}
+
+.otpSubRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  font-size: 0.8rem;
+}
+
+.resendLink {
+  color: #3b82f6;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-weight: 500;
+}
+
+.errorText {
+  color: #ef4444;
+  font-weight: 500;
+}
+
+/* ── Global Error Alert ── */
+.globalError {
+  color: #ef4444;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  background: #fef2f2;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+@media (max-width: 1024px) {
+  .formSection { width: 400px; padding: 2.5rem; }
+}
+
+@media (max-width: 768px) {
+  .container { flex-direction: column; }
+  .imageSection { display: none; } /* Hide image on mobile to save space */
+  .formSection { width: 100%; height: 100%; justify-content: flex-start; padding-top: 4rem; }
+}
