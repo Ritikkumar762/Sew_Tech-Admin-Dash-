@@ -1,28 +1,34 @@
 'use client';
 import { useState } from 'react';
 import { useDashboard } from './_hooks/useDashboard';
-import OrderInsights from './_components/OrderInsights';
-import RevenueInsights from './_components/RevenueInsights';
+import ModuleHealthKPIs from './_components/ModuleHealthKPIs';
 import PerformanceInsights from './_components/PerformanceInsights';
+import UserInsights from './_components/UserInsights';
 import styles from './dashboard.module.css';
 
 const TABS = [
-  { key: 'request', label: 'Request Insights' },
-  { key: 'revenue', label: 'Revenue Insights' },
+  { key: 'module_health', label: 'Module Health KPIs' },
   { key: 'performance', label: 'Performance Insights' },
+  { key: 'user', label: 'User Insights' },
 ] as const;
 
 type TabKey = (typeof TABS)[number]['key'];
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<TabKey>('request');
-  const { metrics, funnel, pie, trend, breakup, cancellations, revenue, performance, loading, error, refetch } = useDashboard();
+  const [activeTab, setActiveTab] = useState<TabKey>('module_health');
+  
+  const { 
+    topMetrics, sparesKpis, mechanicKpis, 
+    perfDonuts, trendModule, trendUserType, trendCity,
+    userDonuts, newRepeat,
+    loading, error, refetch 
+  } = useDashboard();
 
   if (loading) {
     return (
       <div className={styles.loadingWrapper}>
         <div className={styles.spinner} />
-        <p className="text-muted">Loading dashboard data...</p>
+        <p style={{ color: '#6b7280' }}>Loading dashboard data...</p>
       </div>
     );
   }
@@ -32,19 +38,20 @@ export default function DashboardPage() {
       <div className={styles.errorWrapper}>
         <div style={{ fontSize: '2rem' }}>⚠️</div>
         <p style={{ color: '#ef4444', fontWeight: 600 }}>{error}</p>
-        <button onClick={refetch} className="btn btn-dark">Retry</button>
+        <button onClick={refetch} className={styles.retryBtn}>Retry</button>
       </div>
     );
   }
 
   return (
     <div className={styles.dashboard}>
-      {/* ── Metrics Row ──────────────────────────────────────── */}
+      
+      {/* ── Top Metrics Row ──────────────────────────────────────── */}
       <div className={styles.metricsGrid}>
-        {metrics.map((m) => (
+        {topMetrics.map((m) => (
           <div key={m.label} className={styles.metricCard}>
             <div className={styles.metricLabel}>
-              <span style={{ color: m.iconColor }}>{m.icon}</span>
+              <span className={styles.metricIcon} style={{ color: m.iconColor, background: `${m.iconColor}15` }}>{m.icon}</span>
               {m.label}
             </div>
             <div className={styles.metricValueRow}>
@@ -70,12 +77,25 @@ export default function DashboardPage() {
 
       {/* ── Tab Content ──────────────────────────────────────── */}
       <div className={styles.tabContent}>
-        {activeTab === 'request' && (
-          <OrderInsights funnel={funnel} pie={pie} trend={trend} breakup={breakup} cancellations={cancellations} />
+        {activeTab === 'module_health' && (
+          <ModuleHealthKPIs sparesKpis={sparesKpis} mechanicKpis={mechanicKpis} />
         )}
-        {activeTab === 'revenue' && <RevenueInsights revenue={revenue} />}
-        {activeTab === 'performance' && <PerformanceInsights performance={performance} />}
+        {activeTab === 'performance' && (
+          <PerformanceInsights 
+            perfDonuts={perfDonuts} 
+            trendModule={trendModule} 
+            trendUserType={trendUserType} 
+            trendCity={trendCity} 
+          />
+        )}
+        {activeTab === 'user' && (
+          <UserInsights 
+            userDonuts={userDonuts} 
+            newRepeat={newRepeat} 
+          />
+        )}
       </div>
+      
     </div>
   );
 }

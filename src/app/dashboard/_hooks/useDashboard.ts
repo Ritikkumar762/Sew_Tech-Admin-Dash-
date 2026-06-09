@@ -3,92 +3,124 @@ import { useState, useEffect, useCallback } from 'react';
 import { apiClient, ENDPOINTS } from '@/lib';
 
 // ─── Types ──────────────────────────────────────────────────────
-export type MetricCard = { label: string; value: string; icon: string; iconColor: string };
-export type FunnelStage = { name: string; value: number; rateLabel?: string; linkLabel?: string; onSchedule?: string; onScheduleColor?: string };
-export type TrendPoint = { date: string; TotalRequests: number; Escalated: number; Cancelled: number };
-export type PieSlice = { name: string; value: number; color: string };
-export type BreakupPoint = { date: string; InstantSmart: number; Assisted: number; InviteQuotes: number; VideoAssist: number; DirectBooking: number };
-export type CancellationReason = { label: string; count: number; percent: number };
-export type RevenuePoint = { month: string; revenue: number; refunds: number; netRevenue: number };
-export type PerformanceStat = { label: string; value: string; target: string; achieved: boolean };
+export type TopMetric = { label: string; value: string; icon: string; iconColor: string };
+export type KpiMetric = { label: string; value: string | number; subValue?: string; trendLabel?: string; trendUp?: boolean; icon: string; iconColor: string; iconBg: string };
+export type DonutMetric = { label: string; centerValue: string; centerLabel: string; data: { name: string; value: number; color: string }[] };
+export type LineChartData = { name: string; [key: string]: string | number };
+export type BarChartData = { name: string; [key: string]: string | number; color?: string };
 
-// ─── Mock Data (replace fetch calls with real API) ───────────────
-
-const MOCK_METRICS: MetricCard[] = [
-  { label: 'Total Service Requests', value: '200', icon: '📋', iconColor: '#3b82f6' },
-  { label: 'Active Service Requests', value: '₹15,000', icon: '🔵', iconColor: '#3b82f6' },
-  { label: 'First-Visit Fix Rate (%)', value: '15', icon: '⚠️', iconColor: '#f59e0b' },
-  { label: 'Repeat Service Rate (%)', value: '10', icon: '🔴', iconColor: '#ef4444' },
+// ─── Mock Data ──────────────────────────────────────────────────
+const MOCK_TOP_METRICS: TopMetric[] = [
+  { label: 'WAU', value: '200', icon: '👤', iconColor: '#3b82f6' },
+  { label: 'Avg Time/ User', value: '20 min', icon: '⏱️', iconColor: '#3b82f6' },
+  { label: 'Avg NPS', value: '9', icon: '✅', iconColor: '#10b981' },
+  { label: 'Open Reports', value: '10', icon: '🚨', iconColor: '#ef4444' },
 ];
 
-const MOCK_FUNNEL: FunnelStage[] = [
-  { name: 'Requests Received', value: 1000, rateLabel: '▲5% (L7D)' },
-  { name: 'Assigned', value: 200, linkLabel: 'View Unassigned ↗' },
-  { name: 'In Progress', value: 150, onSchedule: '80%', onScheduleColor: '#10b981' },
-  { name: 'Completed', value: 50, onSchedule: '70%', onScheduleColor: '#f59e0b' },
+const MOCK_SPARES_KPIS: KpiMetric[] = [
+  { label: 'Total Orders (Today)', value: '12', icon: '📦', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'Revenue (Today)', value: '₹15,000', icon: '💰', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'Refund Rate %', value: '15', icon: '⚠️', iconColor: '#f59e0b', iconBg: '#fffbeb' },
+  { label: 'Open Issues', value: '10', icon: '🚨', iconColor: '#ef4444', iconBg: '#fef2f2' },
 ];
 
-const MOCK_PIE: PieSlice[] = [
-  { name: 'Completed', value: 240, color: '#10b981' },
-  { name: 'Escalated', value: 80, color: '#ef4444' },
-  { name: 'Cancelled', value: 80, color: '#111827' },
+const MOCK_MECHANIC_KPIS: KpiMetric[] = [
+  { label: 'New Requests', value: '140', subValue: '10 Assigned', trendLabel: '▲5% (L7D)', trendUp: true, icon: '⚡', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'Open Requests', value: '140', trendLabel: '▲5% (L7D)', trendUp: true, icon: '🔧', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'AMC Visits Due', value: '140', subValue: '110 Assigned', trendLabel: '▲5% (L7D)', trendUp: true, icon: '📅', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'Mechanics Online', value: '10 (10%)', trendLabel: '▼5% (L7D)', trendUp: false, icon: '👷', iconColor: '#3b82f6', iconBg: '#eff6ff' },
 ];
 
-const MOCK_TREND: TrendPoint[] = [
-  { date: '1 Feb', TotalRequests: 85, Escalated: 25, Cancelled: 5 },
-  { date: '2 Feb', TotalRequests: 90, Escalated: 20, Cancelled: 8 },
-  { date: '3 Feb', TotalRequests: 70, Escalated: 15, Cancelled: 6 },
-  { date: '4 Feb', TotalRequests: 80, Escalated: 22, Cancelled: 4 },
-  { date: '5 Feb', TotalRequests: 55, Escalated: 10, Cancelled: 3 },
-  { date: '6 Feb', TotalRequests: 75, Escalated: 18, Cancelled: 5 },
-  { date: '7 Feb', TotalRequests: 95, Escalated: 30, Cancelled: 7 },
+const MOCK_PERF_DONUTS: DonutMetric[] = [
+  { label: 'Active Users', centerValue: '15,000', centerLabel: 'DAU', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
+  { label: 'Revenue Contribution', centerValue: '₹1.5 L', centerLabel: 'Total Revenue', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
+  { label: 'Disputes / Reports', centerValue: '400', centerLabel: 'Reports', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
+  { label: 'Avg Time spent by user', centerValue: '30', centerLabel: 'min', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
 ];
 
-const MOCK_BREAKUP: BreakupPoint[] = [
-  { date: '1 Feb', InstantSmart: 70, Assisted: 25, InviteQuotes: 20, VideoAssist: 15, DirectBooking: 10 },
-  { date: '2 Feb', InstantSmart: 65, Assisted: 30, InviteQuotes: 18, VideoAssist: 12, DirectBooking: 8 },
-  { date: '3 Feb', InstantSmart: 80, Assisted: 20, InviteQuotes: 22, VideoAssist: 18, DirectBooking: 12 },
-  { date: '4 Feb', InstantSmart: 75, Assisted: 28, InviteQuotes: 25, VideoAssist: 14, DirectBooking: 9 },
-  { date: '5 Feb', InstantSmart: 60, Assisted: 22, InviteQuotes: 15, VideoAssist: 10, DirectBooking: 7 },
-  { date: '6 Feb', InstantSmart: 85, Assisted: 35, InviteQuotes: 28, VideoAssist: 20, DirectBooking: 14 },
-  { date: '7 Feb', InstantSmart: 90, Assisted: 32, InviteQuotes: 30, VideoAssist: 22, DirectBooking: 16 },
+const MOCK_TREND_MODULE: LineChartData[] = [
+  { name: '1 Feb', Spares: 5000, Mechanic: 8000 },
+  { name: '2 Feb', Spares: 4000, Mechanic: 7000 },
+  { name: '3 Feb', Spares: 6000, Mechanic: 9000 },
+  { name: '4 Feb', Spares: 6000, Mechanic: 9000 },
+  { name: '5 Feb', Spares: 5000, Mechanic: 8000 },
+  { name: '6 Feb', Spares: 4000, Mechanic: 6800 },
+  { name: '7 Feb', Spares: 6000, Mechanic: 8800 },
 ];
 
-const MOCK_CANCELLATIONS: CancellationReason[] = [
-  { label: 'Requested by mistake', count: 25, percent: 30 },
-  { label: 'Change in schedule / plans', count: 25, percent: 30 },
-  { label: 'Found a better deal', count: 25, percent: 30 },
-  { label: 'Need to reschedule', count: 25, percent: 30 },
+const MOCK_TREND_USER_TYPE: LineChartData[] = [
+  { name: '1 Feb', Customer: 5000, Mechanic: 7800 },
+  { name: '2 Feb', Customer: 4000, Mechanic: 6000 },
+  { name: '3 Feb', Customer: 6000, Mechanic: 8900 },
+  { name: '4 Feb', Customer: 6000, Mechanic: 8900 },
+  { name: '5 Feb', Customer: 5000, Mechanic: 7800 },
+  { name: '6 Feb', Customer: 4000, Mechanic: 6800 },
+  { name: '7 Feb', Customer: 6000, Mechanic: 8900 },
 ];
 
-const MOCK_REVENUE: RevenuePoint[] = [
-  { month: 'Jan', revenue: 82000, refunds: 8000, netRevenue: 74000 },
-  { month: 'Feb', revenue: 95000, refunds: 5000, netRevenue: 90000 },
-  { month: 'Mar', revenue: 110000, refunds: 12000, netRevenue: 98000 },
-  { month: 'Apr', revenue: 88000, refunds: 7000, netRevenue: 81000 },
-  { month: 'May', revenue: 130000, refunds: 10000, netRevenue: 120000 },
-  { month: 'Jun', revenue: 105000, refunds: 6000, netRevenue: 99000 },
+const MOCK_TREND_CITY: BarChartData[] = [
+  { name: 'Delhi', value: 7800, color: '#3b82f6' },
+  { name: 'Bangalore', value: 5500, color: '#3b82f6' },
+  { name: 'Hyderabad', value: 1000, color: '#ef4444' },
+  { name: 'Uttar Pradesh', value: 7800, color: '#3b82f6' },
+  { name: 'Madhya Pradesh', value: 7800, color: '#3b82f6' },
+  { name: 'Delhi ', value: 5800, color: '#3b82f6' },
+  { name: 'Bangalore ', value: 5800, color: '#3b82f6' },
+  { name: 'Hyderabad ', value: 5800, color: '#3b82f6' },
 ];
 
-const MOCK_PERFORMANCE: PerformanceStat[] = [
-  { label: 'First-Visit Fix Rate', value: '87%', target: '90%', achieved: false },
-  { label: 'On-time Completion Rate', value: '92%', target: '90%', achieved: true },
-  { label: 'Customer Satisfaction Score', value: '4.6/5', target: '4.5/5', achieved: true },
-  { label: 'Repeat Service Rate', value: '20%', target: '15%', achieved: false },
-  { label: 'Mechanic Response Time', value: '2.4 hrs', target: '3 hrs', achieved: true },
-  { label: 'Escalation Rate', value: '18%', target: '10%', achieved: false },
+const MOCK_USER_DONUTS: DonutMetric[] = [
+  {
+    label: 'User Type', centerValue: '15,000', centerLabel: 'DAU',
+    data: [
+      { name: 'Mechanic', value: 30, color: '#10b981' },
+      { name: 'Customer (Individual)', value: 40, color: '#3b82f6' },
+      { name: 'Customer (Business Owner)', value: 25, color: '#6366f1' },
+      { name: 'Admin', value: 5, color: '#ec4899' }
+    ]
+  },
+  {
+    label: 'Mechanic Experience Level', centerValue: '400', centerLabel: 'Reports',
+    data: [
+      { name: 'Junior (0-2 yr exp.)', value: 40, color: '#3b82f6' },
+      { name: 'Expert (5-10 yr exp.)', value: 60, color: '#10b981' },
+      { name: 'Master (>10 yr exp.)', value: 0, color: '#8b5cf6' }
+    ]
+  },
+  {
+    label: 'Business size', centerValue: '400', centerLabel: 'Reports',
+    data: [
+      { name: '<100 employees', value: 40, color: '#3b82f6' },
+      { name: '100-1,500 employees', value: 60, color: '#10b981' },
+      { name: '500-1,500 employees', value: 0, color: '#8b5cf6' }
+    ]
+  },
+];
+
+const MOCK_NEW_REPEAT: LineChartData[] = [
+  { name: '1 Feb', New: 8000, Repeat: 5000 },
+  { name: '2 Feb', New: 6500, Repeat: 4000 },
+  { name: '3 Feb', New: 9000, Repeat: 6000 },
+  { name: '4 Feb', New: 9000, Repeat: 6000 },
+  { name: '5 Feb', New: 8000, Repeat: 5000 },
+  { name: '6 Feb', New: 6800, Repeat: 4000 },
+  { name: '7 Feb', New: 9000, Repeat: 6000 },
 ];
 
 // ─── Hook ────────────────────────────────────────────────────────
 export function useDashboard() {
-  const [metrics, setMetrics] = useState<MetricCard[]>([]);
-  const [funnel, setFunnel] = useState<FunnelStage[]>([]);
-  const [pie, setPie] = useState<PieSlice[]>([]);
-  const [trend, setTrend] = useState<TrendPoint[]>([]);
-  const [breakup, setBreakup] = useState<BreakupPoint[]>([]);
-  const [cancellations, setCancellations] = useState<CancellationReason[]>([]);
-  const [revenue, setRevenue] = useState<RevenuePoint[]>([]);
-  const [performance, setPerformance] = useState<PerformanceStat[]>([]);
+  const [topMetrics, setTopMetrics] = useState<TopMetric[]>([]);
+  const [sparesKpis, setSparesKpis] = useState<KpiMetric[]>([]);
+  const [mechanicKpis, setMechanicKpis] = useState<KpiMetric[]>([]);
+  
+  const [perfDonuts, setPerfDonuts] = useState<DonutMetric[]>([]);
+  const [trendModule, setTrendModule] = useState<LineChartData[]>([]);
+  const [trendUserType, setTrendUserType] = useState<LineChartData[]>([]);
+  const [trendCity, setTrendCity] = useState<BarChartData[]>([]);
+  
+  const [userDonuts, setUserDonuts] = useState<DonutMetric[]>([]);
+  const [newRepeat, setNewRepeat] = useState<LineChartData[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,37 +128,38 @@ export function useDashboard() {
     setLoading(true);
     setError(null);
 
-    // ── Toggle this flag to switch between mock and real API ──────
     const USE_MOCK = true;
-    // Set USE_MOCK = false when your backend is ready.
-    // Make sure NEXT_PUBLIC_API_URL is set in .env.local
-    // ─────────────────────────────────────────────────────────────
 
     try {
       if (USE_MOCK) {
         await new Promise((r) => setTimeout(r, 500));
-        setMetrics(MOCK_METRICS);
-        setFunnel(MOCK_FUNNEL);
-        setPie(MOCK_PIE);
-        setTrend(MOCK_TREND);
-        setBreakup(MOCK_BREAKUP);
-        setCancellations(MOCK_CANCELLATIONS);
-        setRevenue(MOCK_REVENUE);
-        setPerformance(MOCK_PERFORMANCE);
+        setTopMetrics(MOCK_TOP_METRICS);
+        setSparesKpis(MOCK_SPARES_KPIS);
+        setMechanicKpis(MOCK_MECHANIC_KPIS);
+        
+        setPerfDonuts(MOCK_PERF_DONUTS);
+        setTrendModule(MOCK_TREND_MODULE);
+        setTrendUserType(MOCK_TREND_USER_TYPE);
+        setTrendCity(MOCK_TREND_CITY);
+
+        setUserDonuts(MOCK_USER_DONUTS);
+        setNewRepeat(MOCK_NEW_REPEAT);
       } else {
-        // ── Real API calls — all run in parallel ────────────────
-        const [m, f, p, t, br, ca, rev, perf] = await Promise.all([
-          apiClient.get<MetricCard[]>(ENDPOINTS.dashboard.metrics),
-          apiClient.get<FunnelStage[]>(ENDPOINTS.dashboard.funnel),
-          apiClient.get<PieSlice[]>(ENDPOINTS.dashboard.pie),
-          apiClient.get<TrendPoint[]>(ENDPOINTS.dashboard.trend),
-          apiClient.get<BreakupPoint[]>(ENDPOINTS.dashboard.inventory),
-          apiClient.get<CancellationReason[]>(ENDPOINTS.dashboard.inventory),
-          apiClient.get<RevenuePoint[]>(ENDPOINTS.dashboard.revenue),
-          apiClient.get<PerformanceStat[]>(ENDPOINTS.dashboard.performance),
+        // Example real API fetching structure
+        const [tm, sk, mk, pd, trm, tru, trc, ud, nr] = await Promise.all([
+          apiClient.get<TopMetric[]>(ENDPOINTS.dashboard.metrics),
+          apiClient.get<KpiMetric[]>(`${ENDPOINTS.dashboard.metrics}/spares`),
+          apiClient.get<KpiMetric[]>(`${ENDPOINTS.dashboard.metrics}/mechanic`),
+          apiClient.get<DonutMetric[]>(`${ENDPOINTS.dashboard.performance}/donuts`),
+          apiClient.get<LineChartData[]>(`${ENDPOINTS.dashboard.performance}/trend-module`),
+          apiClient.get<LineChartData[]>(`${ENDPOINTS.dashboard.performance}/trend-user`),
+          apiClient.get<BarChartData[]>(`${ENDPOINTS.dashboard.performance}/trend-city`),
+          apiClient.get<DonutMetric[]>(`${ENDPOINTS.dashboard.performance}/user-donuts`),
+          apiClient.get<LineChartData[]>(`${ENDPOINTS.dashboard.performance}/new-repeat`),
         ]);
-        setMetrics(m); setFunnel(f); setPie(p); setTrend(t);
-        setBreakup(br); setCancellations(ca); setRevenue(rev); setPerformance(perf);
+        setTopMetrics(tm); setSparesKpis(sk); setMechanicKpis(mk);
+        setPerfDonuts(pd); setTrendModule(trm); setTrendUserType(tru); setTrendCity(trc);
+        setUserDonuts(ud); setNewRepeat(nr);
       }
     } catch {
       setError('Failed to load dashboard data. Please try again.');
@@ -137,5 +170,10 @@ export function useDashboard() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  return { metrics, funnel, pie, trend, breakup, cancellations, revenue, performance, loading, error, refetch: fetchAll };
+  return { 
+    topMetrics, sparesKpis, mechanicKpis, 
+    perfDonuts, trendModule, trendUserType, trendCity,
+    userDonuts, newRepeat,
+    loading, error, refetch: fetchAll 
+  };
 }
