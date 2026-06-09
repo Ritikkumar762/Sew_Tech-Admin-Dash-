@@ -1,37 +1,155 @@
-.container { display: flex; flex-direction: column; gap: 1.5rem; }
+.container { display: flex; flex-direction: column; gap: 1.25rem; }
 
-/* Funnel Card */
-.funnelCard { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; }
-.cardHeader { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
-.cardTitle { font-size: 1.05rem; font-weight: 700; color: #111827; }
-.select { padding: 0.3rem 0.6rem; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 0.8rem; color: #374151; cursor: pointer; }
+/* Shared Card */
+.chartCard {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
 
-.funnelLabels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-bottom: 0.5rem; border-bottom: 1px solid #f3f4f6; padding-bottom: 0.75rem; }
-.funnelLabel { display: flex; flex-direction: column; gap: 0.15rem; }
-.funnelStageName { font-size: 0.7rem; color: #6b7280; font-weight: 500; }
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.cardTitle { font-size: 0.95rem; font-weight: 700; color: #111827; }
+.select {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #374151;
+  cursor: pointer;
+  background: white;
+}
+
+/* ── Funnel ──────────────────────────────────────────────────── */
+.funnelCard {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+}
+
+.funnelLabels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.funnelLabel { display: flex; flex-direction: column; gap: 0.15rem; border-right: 1px solid #f3f4f6; padding-right: 0.75rem; }
+.funnelLabel:last-child { border-right: none; }
+.funnelStageName { font-size: 0.72rem; color: #6b7280; font-weight: 500; }
 .rateLabel { font-size: 0.7rem; color: #10b981; font-weight: 600; }
-.onSchedule { font-size: 0.65rem; font-weight: 600; }
-.funnelValue { font-size: 1.5rem; font-weight: 800; color: #111827; margin-top: 0.1rem; }
+.linkLabel { font-size: 0.7rem; color: #3b82f6; cursor: pointer; font-weight: 600; }
+.onSchedule { font-size: 0.65rem; font-weight: 700; }
+.funnelValue { font-size: 1.625rem; font-weight: 800; color: #111827; margin-top: 0.15rem; line-height: 1; }
 
 .funnelChart { border-radius: 8px; overflow: hidden; }
 
-/* Bottom Grid */
-.bottomGrid { display: grid; grid-template-columns: 1fr 2fr; gap: 1.5rem; }
-.chartCard { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; }
+/* ── Bottom 2-col ───────────────────────────────────────────── */
+.bottomGrid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1.25rem;
+}
 
-/* Donut */
-.donutWrapper { position: relative; display: flex; justify-content: center; align-items: center; height: 200px; }
-.donutCenter { position: absolute; text-align: center; }
-.donutTotal { font-size: 1.75rem; font-weight: 800; color: #111827; }
+/* ── Donut ───────────────────────────────────────────────────── */
+.donutWrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  margin: 0 auto;
+}
+.donutCenter { position: absolute; text-align: center; pointer-events: none; }
+.donutTotal { font-size: 1.75rem; font-weight: 800; color: #111827; line-height: 1; }
 .donutLabel { font-size: 0.75rem; color: #9ca3af; }
 
-.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 1rem; }
-.legendItem { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: #374151; }
-.legendDot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.returnRate { text-align: center; font-weight: 700; font-size: 0.875rem; margin-top: 1rem; color: #111827; }
-.returnLink { text-align: center; font-size: 0.8rem; color: #3b82f6; cursor: pointer; margin-top: 0.25rem; }
+.piePcts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+  margin-top: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+}
 
-/* Trend Legend */
-.trendLegend { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; }
-.trendLegendItem { display: flex; align-items: center; gap: 0.35rem; font-size: 0.7rem; color: #6b7280; }
+.returnRate { text-align: center; font-weight: 700; font-size: 0.8rem; margin-top: 0.75rem; color: #111827; }
+.returnLink { text-align: center; font-size: 0.78rem; color: #3b82f6; cursor: pointer; margin-top: 0.3rem; }
+
+/* ── Trend Legend ────────────────────────────────────────────── */
+.trendLegend {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.trendLegendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: #6b7280;
+  white-space: nowrap;
+}
 .trendDot { width: 10px; height: 6px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── Tooltip ─────────────────────────────────────────────────── */
+.tooltip {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+  font-size: 0.8rem;
+  min-width: 180px;
+}
+.tooltipDate { font-weight: 700; color: #111827; margin-bottom: 0.5rem; font-size: 0.85rem; }
+.tooltipRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #374151;
+  padding: 0.1rem 0;
+}
+.tooltipLink { color: #3b82f6; cursor: pointer; margin-top: 0.5rem; font-size: 0.78rem; }
+
+/* ── Cancellation Reasons ────────────────────────────────────── */
+.reasonsRow { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+.reasonChip {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 99px;
+  padding: 0.45rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+}
+.reasonLabel { color: #374151; font-weight: 500; }
+.reasonCount { font-weight: 700; color: #111827; }
+.reasonPct { color: #6b7280; }
+
+/* ── Responsive ─────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .bottomGrid { grid-template-columns: 1fr; }
+  .funnelLabels { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .funnelLabels { grid-template-columns: repeat(2, 1fr); }
+  .funnelValue { font-size: 1.2rem; }
+  .trendLegend { gap: 0.4rem; }
+  .trendLegendItem { font-size: 0.65rem; }
+  .cardHeader { flex-direction: column; }
+  .reasonsRow { gap: 0.5rem; }
+  .reasonChip { font-size: 0.72rem; padding: 0.35rem 0.75rem; }
+}

@@ -156,7 +156,7 @@ h1, h2, h3, h4, h5, h6 {
 .app-container {
   display: flex;
   min-height: 100vh;
-  background-color: #f1f5f9; /* Match image's slightly darker main background vs white cards */
+  background-color: #f1f5f9;
 }
 
 .main-wrapper {
@@ -164,9 +164,34 @@ h1, h2, h3, h4, h5, h6 {
   margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .main-content {
   padding: 2rem;
   flex: 1;
+  min-width: 0;
 }
+
+/* ── Responsive Layout ─────────────────────── */
+@media (max-width: 768px) {
+  .main-wrapper {
+    margin-left: 0;
+  }
+  .main-content {
+    padding: 1rem;
+  }
+}
+
+/* ── Responsive Grid Helpers ───────────────── */
+@media (max-width: 1024px) {
+  .grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+  .grid-3 { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+@media (max-width: 640px) {
+  .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr !important; }
+}
+
+/* ── Responsive Table ──────────────────────── */
+.table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
