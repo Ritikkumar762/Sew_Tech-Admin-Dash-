@@ -22,16 +22,16 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
             <div style={{ flex: 1 }}>
               <h3 className={styles.cardTitle}>{donut.label}</h3>
               <div className={styles.donutWrapper}>
+                <div className={styles.donutCenter}>
+                  <div className={styles.donutTotal}>{donut.centerValue}</div>
+                  <div className={styles.donutSub}>{donut.centerLabel}</div>
+                </div>
                 <PieChart width={160} height={160}>
                   <Pie data={donut.data} cx={80} cy={80} innerRadius={50} outerRadius={70} dataKey="value" startAngle={90} endAngle={-270}>
                     {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip />
                 </PieChart>
-                <div className={styles.donutCenter}>
-                  <div className={styles.donutTotal}>{donut.centerValue}</div>
-                  <div className={styles.donutSub}>{donut.centerLabel}</div>
-                </div>
               </div>
             </div>
             

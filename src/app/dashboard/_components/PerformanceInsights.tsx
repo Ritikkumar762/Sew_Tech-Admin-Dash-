@@ -27,6 +27,10 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
           <div key={donut.label} className={styles.chartCard}>
             <h3 className={styles.cardTitle}>{donut.label}</h3>
             <div className={styles.donutWrapper}>
+              <div className={styles.donutCenter}>
+                <div className={styles.donutTotal}>{donut.centerValue}</div>
+                <div className={styles.donutSub}>{donut.centerLabel}</div>
+              </div>
               <PieChart width={160} height={160}>
                 <Pie data={donut.data} cx={80} cy={80} innerRadius={55} outerRadius={70} dataKey="value" startAngle={90} endAngle={-270}>
                   {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
@@ -34,10 +38,6 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
                 {/* Labels outside */}
                 <Tooltip />
               </PieChart>
-              <div className={styles.donutCenter}>
-                <div className={styles.donutTotal}>{donut.centerValue}</div>
-                <div className={styles.donutSub}>{donut.centerLabel}</div>
-              </div>
               <div className={styles.donutPcts}>
                 <div style={{ position: 'absolute', top: '10px', right: '20px', fontSize: '0.7rem', color: '#6b7280' }}>40%</div>
                 <div style={{ position: 'absolute', bottom: '10px', left: '20px', fontSize: '0.7rem', color: '#6b7280' }}>60%</div>
