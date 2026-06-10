@@ -55,6 +55,7 @@ export type Alert = {
   title: string;
   message: string;
   type: 'warning' | 'error' | 'info' | 'success';
+  module: 'ST Spares' | 'ST Mechanics' | 'Other';
   createdAt: string;
   read: boolean;
 };

@@ -4,11 +4,17 @@ import { Alert } from '@/types';
 
 // ─── Mock Data ─── Replace with real API calls ───────────────────
 const MOCK_ALERTS: Alert[] = [
-  { id: 'a1', title: 'Low Inventory Alert', message: 'SKU-102 stock is below threshold (5 units remaining)', type: 'warning', createdAt: '2026-06-09T08:00:00Z', read: false },
-  { id: 'a2', title: 'Payment Failure', message: 'Order #ORD-884 payment failed. Customer notified.', type: 'error', createdAt: '2026-06-09T07:30:00Z', read: false },
-  { id: 'a3', title: 'New Mechanic Registered', message: 'Ramesh Kumar has registered as a mechanic in Delhi.', type: 'info', createdAt: '2026-06-08T15:00:00Z', read: true },
-  { id: 'a4', title: 'Refund Approved', message: 'Refund of ₹1,200 approved for Order #ORD-820.', type: 'success', createdAt: '2026-06-08T12:00:00Z', read: true },
-  { id: 'a5', title: 'Server Response Slow', message: 'API latency exceeded 2s for /api/orders endpoint.', type: 'error', createdAt: '2026-06-07T11:00:00Z', read: true },
+  { id: 'a1', title: 'Stock-out Industrial Sewing Needle', message: 'SKU-102 stock is at 0.', type: 'error', module: 'ST Spares', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: false },
+  { id: 'a2', title: 'Stock-out Industrial Sewing Needle', message: 'SKU-105 stock is at 0.', type: 'error', module: 'ST Spares', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: false },
+  { id: 'a3', title: 'Stock-out Industrial Sewing Needle', message: 'SKU-109 stock is at 0.', type: 'error', module: 'ST Spares', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: false },
+  { id: 'a4', title: 'Stock-out Industrial Sewing Needle', message: 'SKU-202 stock is at 0.', type: 'error', module: 'ST Spares', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: false },
+  { id: 'a5', title: 'Low stock approaching threshold', message: 'Mechanic toolkit running low.', type: 'warning', module: 'ST Mechanics', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: false },
+  { id: 'a6', title: 'Low stock approaching threshold', message: 'Oil bottles running low.', type: 'warning', module: 'ST Mechanics', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: false },
+  { id: 'a7', title: 'Low stock approaching threshold', message: 'Belts running low.', type: 'warning', module: 'ST Spares', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: false },
+  { id: 'a8', title: 'Stock healthy but trending down', message: 'Bobbin cases selling fast.', type: 'info', module: 'ST Spares', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: true },
+  { id: 'a9', title: 'Stock healthy but trending down', message: 'Needle plates selling fast.', type: 'info', module: 'ST Spares', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: true },
+  { id: 'a10', title: 'Stock healthy but trending down', message: 'Presser feet selling fast.', type: 'info', module: 'ST Mechanics', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: true },
+  { id: 'a11', title: 'Server Response Slow', message: 'API latency high.', type: 'error', module: 'Other', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: false },
 ];
 // ──────────────────────────────────────────────────────────────────
 
