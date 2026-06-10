@@ -50,22 +50,7 @@ export default function SparesOverviewPage() {
   return (
     <div className={styles.dashboard}>
       
-      {/* ── Header ─────────────────────────────────────────────── */}
-      <div className={styles.headerRow}>
-        <div className={styles.titleGroup}>
-          <h1>Smart View Dashboard</h1>
-          <div className={styles.breadcrumb}>Sewtech Spare • <span>Order Management</span></div>
-        </div>
-        <div className={styles.actions}>
-          <select className={styles.select}>
-            <option>Last 7 Days</option>
-            <option>Last 30 Days</option>
-          </select>
-          <button className={styles.exportBtn}>
-            Export <span>⎘</span>
-          </button>
-        </div>
-      </div>
+
 
       {/* ── Global KPIs ────────────────────────────────────────── */}
       <div className={styles.metricsGrid}>
