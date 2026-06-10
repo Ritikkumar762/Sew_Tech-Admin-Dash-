@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { apiClient, ENDPOINTS } from '@/lib';
 
 // --- Interfaces ---
 export interface KpiMetric {
@@ -58,6 +59,60 @@ export interface InsightCard {
   value: string;
   subtitle: string;
   tag: string;
+}
+
+type SmartViewPayload = Record<string, unknown>;
+
+function asRecord(value: unknown): SmartViewPayload | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as SmartViewPayload) : null;
+}
+
+function getValue(root: SmartViewPayload | null, paths: string[]): unknown {
+  if (!root) return null;
+  for (const path of paths) {
+    if (path in root && root[path] !== undefined && root[path] !== null) {
+      return root[path];
+    }
+  }
+  return null;
+}
+
+function getArray(root: SmartViewPayload | null, paths: string[]): unknown[] {
+  const value = getValue(root, paths);
+  return Array.isArray(value) ? value : [];
+}
+
+function toKpiMetric(value: unknown): KpiMetric | null {
+  const item = asRecord(value);
+  if (!item) return null;
+  const label = String(item.label ?? item.name ?? item.title ?? 'Metric');
+  const rawValue = item.value ?? item.amount ?? item.total ?? item.count ?? item.metric;
+  const icon = String(item.icon ?? '📊');
+  const iconColor = String(item.iconColor ?? item.color ?? '#3b82f6');
+  return { label, value: rawValue == null ? '—' : String(rawValue), icon, iconColor };
+}
+
+function toInsightCard(value: unknown): InsightCard | null {
+  const item = asRecord(value);
+  if (!item) return null;
+  return {
+    title: String(item.title ?? item.label ?? item.name ?? 'Insight'),
+    value: String(item.value ?? item.amount ?? item.total ?? ''),
+    subtitle: String(item.subtitle ?? item.extra ?? ''),
+    tag: String(item.tag ?? item.badge ?? ''),
+  };
+}
+
+function parseSmartViewPayload(payload: unknown) {
+  const root = asRecord(payload);
+  const dataRoot = asRecord(getValue(root, ['data', 'result', 'payload', 'response'])) ?? root;
+  const topKpis = getArray(dataRoot, ['top_kpis', 'topKpis', 'kpis', 'metrics'])
+    .map(toKpiMetric)
+    .filter((item): item is KpiMetric => Boolean(item));
+  const performanceInsights = getArray(asRecord(getValue(dataRoot, ['performance_insights', 'performanceInsights'])), ['insights', 'items', 'cards'])
+    .map(toInsightCard)
+    .filter((item): item is InsightCard => Boolean(item));
+  return { topKpis, performanceInsights };
 }
 
 // --- Mock Data ---
@@ -159,7 +214,7 @@ const MOCK_PERFORMANCE_INSIGHTS: InsightCard[] = [
 ];
 
 
-const USE_MOCK = true; // Toggle to false to use backend APIs
+const USE_MOCK = false; // Toggle to true to force the local mock dataset
 
 export function useOverview() {
   const [loading, setLoading] = useState(true);
@@ -187,45 +242,47 @@ export function useOverview() {
   // Performance
   const [perfInsights, setPerfInsights] = useState<InsightCard[]>([]);
 
+  const applyMockState = useCallback(() => {
+    setGlobalKpis(MOCK_GLOBAL_KPIS);
+
+    setFunnel(MOCK_FUNNEL);
+    setOrderOutcome(MOCK_ORDER_OUTCOME);
+    setOrderTrend(MOCK_ORDER_TREND);
+    setCancelReasons(MOCK_CANCELLATION_REASONS);
+
+    setInvDonut(MOCK_INVENTORY_DONUT);
+    setStockCategory(MOCK_STOCK_CATEGORY);
+    setStockAlerts(MOCK_STOCK_ALERTS);
+    setDeadStock(MOCK_DEAD_STOCK);
+
+    setRevenueTrend(MOCK_REVENUE_TREND);
+    setRevenueRisk(MOCK_REVENUE_RISK);
+    setTransactions(MOCK_TRANSACTION_INSIGHTS);
+
+    setPerfInsights(MOCK_PERFORMANCE_INSIGHTS);
+  }, []);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       if (USE_MOCK) {
         await new Promise((r) => setTimeout(r, 600)); // Simulate API lag
-        setGlobalKpis(MOCK_GLOBAL_KPIS);
-        
-        setFunnel(MOCK_FUNNEL);
-        setOrderOutcome(MOCK_ORDER_OUTCOME);
-        setOrderTrend(MOCK_ORDER_TREND);
-        setCancelReasons(MOCK_CANCELLATION_REASONS);
-        
-        setInvDonut(MOCK_INVENTORY_DONUT);
-        setStockCategory(MOCK_STOCK_CATEGORY);
-        setStockAlerts(MOCK_STOCK_ALERTS);
-        setDeadStock(MOCK_DEAD_STOCK);
-        
-        setRevenueTrend(MOCK_REVENUE_TREND);
-        setRevenueRisk(MOCK_REVENUE_RISK);
-        setTransactions(MOCK_TRANSACTION_INSIGHTS);
-        
-        setPerfInsights(MOCK_PERFORMANCE_INSIGHTS);
+        applyMockState();
       } else {
-        // TODO: Map to actual backend API responses
-        // const [resOrder, resInv, resRev, resPerf] = await Promise.all([
-        //   apiClient.get('/api/overview/order'),
-        //   apiClient.get('/api/overview/inventory'),
-        //   apiClient.get('/api/overview/revenue'),
-        //   apiClient.get('/api/overview/performance'),
-        // ]);
-        // ... set state from responses ...
+        const response = await apiClient.get<unknown>(ENDPOINTS.admin.dashboard.smartView);
+        const parsed = parseSmartViewPayload(response);
+
+        setGlobalKpis(parsed.topKpis.length ? parsed.topKpis : MOCK_GLOBAL_KPIS);
+        setPerfInsights(parsed.performanceInsights.length ? parsed.performanceInsights : MOCK_PERFORMANCE_INSIGHTS);
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to fetch overview data.');
+    } catch {
+      applyMockState();
+      setError(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyMockState]);
 
   useEffect(() => {
     fetchData();

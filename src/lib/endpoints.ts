@@ -111,6 +111,21 @@ export const ENDPOINTS = {
     skills:     `${BASE_URL}/mdm/skills`,
   },
 
+  // ── Admin ───────────────────────────────────────────────────
+  admin: {
+    dashboard: {
+      smartView: `${BASE_URL}/v1/admin/dashboard/smart-view`,
+    },
+    sellerApplications: {
+      list: `${BASE_URL}/v1/admin/seller-applications`,
+      byId: (id: string) => `${BASE_URL}/v1/admin/seller-applications/${id}`,
+      review: (id: string) => `${BASE_URL}/v1/admin/seller-applications/${id}/review`,
+    },
+    sellers: `${BASE_URL}/v1/admin/sellers`,
+    products: `${BASE_URL}/v1/admin/products`,
+    productStatus: (id: string) => `${BASE_URL}/v1/admin/products/${id}/status`,
+  },
+
   // ── Settings ─────────────────────────────────────────────────
   settings: {
     get:    `${BASE_URL}/settings`,

@@ -7,7 +7,282 @@ export type TopMetric = { label: string; value: string; icon: string; iconColor:
 export type KpiMetric = { label: string; value: string | number; subValue?: string; trendLabel?: string; trendUp?: boolean; icon: string; iconColor: string; iconBg: string };
 export type DonutMetric = { label: string; centerValue: string; centerLabel: string; data: { name: string; value: number; color: string }[] };
 export type LineChartData = { name: string; [key: string]: string | number };
-export type BarChartData = { name: string; [key: string]: string | number; color?: string };
+export type BarChartData = { name: string; [key: string]: string | number | undefined; color?: string };
+
+type SmartViewPayload = Record<string, unknown>;
+
+function asRecord(value: unknown): SmartViewPayload | null {
+  return value && typeof value === 'object' && !Array.isArray(value) ? (value as SmartViewPayload) : null;
+}
+
+function getValue(root: SmartViewPayload | null, paths: string[]): unknown {
+  if (!root) return null;
+  for (const path of paths) {
+    if (path in root && root[path] !== undefined && root[path] !== null) {
+      return root[path];
+    }
+  }
+  return null;
+}
+
+function getArray(root: SmartViewPayload | null, paths: string[]): unknown[] {
+  const value = getValue(root, paths);
+  return Array.isArray(value) ? value : [];
+}
+
+function toTopMetric(value: unknown): TopMetric | null {
+  const item = asRecord(value);
+  if (!item) return null;
+  const label = String(item.label ?? item.name ?? item.title ?? 'Metric');
+  const rawValue = item.value ?? item.amount ?? item.total ?? item.count ?? item.metric;
+  const icon = String(item.icon ?? '📊');
+  const iconColor = String(item.iconColor ?? item.color ?? '#3b82f6');
+  return { label, value: rawValue == null ? '—' : String(rawValue), icon, iconColor };
+}
+
+function toKpiMetric(value: unknown): KpiMetric | null {
+  const item = asRecord(value);
+  if (!item) return null;
+  const label = String(item.label ?? item.name ?? item.title ?? 'Metric');
+  const rawValue = item.value ?? item.amount ?? item.total ?? item.count ?? item.metric;
+  const icon = String(item.icon ?? '📊');
+  const iconColor = String(item.iconColor ?? item.color ?? '#3b82f6');
+  const iconBg = String(item.iconBg ?? `${iconColor}15`);
+  return {
+    label,
+    value: rawValue == null ? '—' : String(rawValue),
+    subValue: item.subValue != null ? String(item.subValue) : undefined,
+    trendLabel: item.trendLabel != null ? String(item.trendLabel) : undefined,
+    trendUp: typeof item.trendUp === 'boolean' ? item.trendUp : undefined,
+    icon,
+    iconColor,
+    iconBg,
+  };
+}
+
+function toDonutMetric(value: unknown): DonutMetric | null {
+  const item = asRecord(value);
+  if (!item) return null;
+  const label = String(item.label ?? item.name ?? item.title ?? 'Metric');
+  const centerValue = String(item.centerValue ?? item.value ?? item.total ?? '');
+  const centerLabel = String(item.centerLabel ?? item.unit ?? '');
+  const series = Array.isArray(item.data) ? item.data : Array.isArray(item.items) ? item.items : [];
+  const data = series
+    .map((entry) => {
+      const record = asRecord(entry);
+      if (!record) return null;
+      return {
+        name: String(record.name ?? record.label ?? 'Item'),
+        value: typeof record.value === 'number' ? record.value : Number(record.value ?? 0),
+        color: String(record.color ?? '#3b82f6'),
+      };
+    })
+    .filter(Boolean) as { name: string; value: number; color: string }[];
+
+  return { label, centerValue, centerLabel, data };
+}
+
+function toLineChartData(value: unknown): LineChartData | null {
+  const item = asRecord(value);
+  if (!item) return null;
+  const result: LineChartData = { name: String(item.name ?? item.label ?? item.period ?? 'Series') };
+  Object.entries(item).forEach(([key, entry]) => {
+    if (key !== 'name' && key !== 'label' && key !== 'period' && (typeof entry === 'string' || typeof entry === 'number')) {
+      result[key] = entry;
+    }
+  });
+  return result;
+}
+
+function toBarChartData(value: unknown): BarChartData | null {
+  const item = asRecord(value);
+  if (!item) return null;
+  const result: BarChartData = { name: String(item.name ?? item.label ?? item.period ?? 'Series') };
+  Object.entries(item).forEach(([key, entry]) => {
+    if (key !== 'name' && key !== 'label' && key !== 'period' && (typeof entry === 'string' || typeof entry === 'number')) {
+      result[key] = entry;
+    }
+  });
+  return result;
+}
+
+function formatMetricValue(value: unknown): string {
+  if (typeof value === 'number') {
+    return Number.isInteger(value)
+      ? value.toLocaleString('en-IN')
+      : value.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  }
+
+  if (typeof value === 'string') return value;
+  return value == null ? '—' : String(value);
+}
+
+function formatCurrencyValue(value: unknown): string {
+  if (typeof value === 'number') {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
+    }).format(value);
+  }
+
+  return formatMetricValue(value);
+}
+
+function toNumeric(value: unknown): number {
+  const parsed = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function parseSmartViewPayload(payload: unknown) {
+  const root = asRecord(payload);
+  const dataRoot = asRecord(getValue(root, ['data', 'result', 'payload', 'response'])) ?? root;
+
+  const topKpis = asRecord(getValue(dataRoot, ['top_kpis', 'topKpis', 'topMetrics', 'top_metrics']));
+  const topMetrics: TopMetric[] = [
+    { label: 'WAU', value: formatMetricValue(getValue(topKpis, ['wau', 'active_users', 'activeUsers'])), icon: '👤', iconColor: '#3b82f6' },
+    { label: 'Avg Time / User', value: formatMetricValue(getValue(topKpis, ['avg_time_per_user', 'avgTimePerUser', 'averageTimePerUser'])), icon: '⏱️', iconColor: '#3b82f6' },
+    { label: 'Avg NPS', value: formatMetricValue(getValue(topKpis, ['avg_nps', 'avgNps'])), icon: '✅', iconColor: '#10b981' },
+    { label: 'Open Reports', value: formatMetricValue(getValue(topKpis, ['open_reports', 'openReports'])), icon: '🚨', iconColor: '#ef4444' },
+  ];
+
+  const moduleHealth = asRecord(getValue(dataRoot, ['module_health_kpis', 'moduleHealthKpis', 'module_health', 'moduleHealth']));
+  const sparesData = asRecord(getValue(moduleHealth, ['st_spares', 'stSpares', 'spares']));
+  const mechanicData = asRecord(getValue(moduleHealth, ['st_mechanic', 'stMechanic', 'mechanic']));
+
+  const sparesKpis = sparesData
+    ? [
+        { label: 'Total Orders (Today)', value: formatMetricValue(getValue(sparesData, ['total_orders_today', 'totalOrdersToday'])), icon: '📦', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'Revenue (Today)', value: formatCurrencyValue(getValue(sparesData, ['revenue_today', 'revenueToday'])), icon: '💰', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'Refund Rate %', value: formatMetricValue(getValue(sparesData, ['refund_rate', 'refundRate'])), icon: '⚠️', iconColor: '#f59e0b', iconBg: '#fffbeb' },
+        { label: 'Open Issues', value: formatMetricValue(getValue(sparesData, ['open_issues', 'openIssues'])), icon: '🚨', iconColor: '#ef4444', iconBg: '#fef2f2' },
+      ]
+    : [];
+
+  const mechanicKpis = mechanicData
+    ? [
+        { label: 'New Requests', value: formatMetricValue(getValue(mechanicData, ['new_requests', 'newRequests'])), icon: '⚡', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'Open Requests', value: formatMetricValue(getValue(mechanicData, ['open_requests', 'openRequests'])), icon: '🔧', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'AMC Visits Due', value: formatMetricValue(getValue(mechanicData, ['amc_visits_due', 'amcVisitsDue'])), icon: '📅', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'Mechanics Online', value: formatMetricValue(getValue(mechanicData, ['mechanics_online', 'mechanicsOnline'])), icon: '👷', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+      ]
+    : [];
+
+  const performance = asRecord(getValue(dataRoot, ['performance_insights', 'performanceInsights', 'performance']));
+  const perfDonuts: DonutMetric[] = performance
+    ? [
+        {
+          label: 'Active Users',
+          centerValue: formatMetricValue(getValue(performance, ['active_users_dau', 'activeUsersDau'])),
+          centerLabel: 'DAU',
+          data: [{ name: 'Users', value: Math.max(toNumeric(getValue(performance, ['active_users_dau', 'activeUsersDau'])), 1), color: '#10b981' }],
+        },
+        {
+          label: 'Revenue Contribution',
+          centerValue: formatCurrencyValue(getValue(performance, ['revenue_contribution', 'revenueContribution'])),
+          centerLabel: 'Total Revenue',
+          data: [{ name: 'Revenue', value: Math.max(toNumeric(getValue(performance, ['revenue_contribution', 'revenueContribution'])), 1), color: '#3b82f6' }],
+        },
+        {
+          label: 'Disputes / Reports',
+          centerValue: formatMetricValue(getValue(performance, ['disputes_reports', 'disputesReports'])),
+          centerLabel: 'Reports',
+          data: [{ name: 'Reports', value: Math.max(toNumeric(getValue(performance, ['disputes_reports', 'disputesReports'])), 1), color: '#ef4444' }],
+        },
+        {
+          label: 'Avg Time spent by user',
+          centerValue: formatMetricValue(getValue(performance, ['avg_time_spent_by_user', 'avgTimeSpentByUser'])),
+          centerLabel: 'min',
+          data: [{ name: 'Time', value: Math.max(toNumeric(getValue(performance, ['avg_time_spent_by_user', 'avgTimeSpentByUser'])), 1), color: '#f59e0b' }],
+        },
+      ]
+    : [];
+
+  const revenueTrendEntries = Array.isArray(getValue(performance, ['revenue_trend', 'revenueTrend']))
+    ? (getValue(performance, ['revenue_trend', 'revenueTrend']) as unknown[])
+    : [];
+
+  const trendModule: LineChartData[] = revenueTrendEntries.reduce<LineChartData[]>((acc, entry) => {
+    const record = asRecord(entry);
+    if (!record) return acc;
+
+    const revenue = toNumeric(getValue(record, ['revenue', 'value', 'amount']));
+    acc.push({ name: String(record.date ?? record.name ?? record.label ?? 'Series'), Spares: revenue, Mechanic: revenue });
+    return acc;
+  }, []);
+
+  const trendUserType: LineChartData[] = revenueTrendEntries.reduce<LineChartData[]>((acc, entry) => {
+    const record = asRecord(entry);
+    if (!record) return acc;
+
+    const revenue = toNumeric(getValue(record, ['revenue', 'value', 'amount']));
+    acc.push({ name: String(record.date ?? record.name ?? record.label ?? 'Series'), Customer: revenue, Mechanic: revenue });
+    return acc;
+  }, []);
+
+  const trendCity: BarChartData[] = [];
+
+  const userInsights = asRecord(getValue(dataRoot, ['user_insights', 'userInsights', 'user']));
+  const userTypeDistribution = asRecord(getValue(userInsights, ['user_type_distribution', 'userTypeDistribution']));
+  const mechanicExperience = asRecord(getValue(userInsights, ['mechanic_experience', 'mechanicExperience']));
+  const businessSize = asRecord(getValue(userInsights, ['business_size', 'businessSize']));
+
+  const userDonuts: DonutMetric[] = [
+    userTypeDistribution
+      ? {
+          label: 'User Type',
+          centerValue: formatMetricValue(Object.values(userTypeDistribution).reduce<number>((total, value) => total + toNumeric(value), 0)),
+          centerLabel: 'Users',
+          data: Object.entries(userTypeDistribution).map(([name, value], index) => ({
+            name,
+            value: Math.max(toNumeric(value), 1),
+            color: ['#10b981', '#3b82f6', '#6366f1', '#ec4899'][index] ?? '#3b82f6',
+          })),
+        }
+      : null,
+    mechanicExperience
+      ? {
+          label: 'Mechanic Experience Level',
+          centerValue: formatMetricValue(Object.values(mechanicExperience).reduce<number>((total, value) => total + toNumeric(value), 0)),
+          centerLabel: 'Mechanics',
+          data: Object.entries(mechanicExperience).map(([name, value], index) => ({
+            name,
+            value: Math.max(toNumeric(value), 1),
+            color: ['#3b82f6', '#10b981', '#8b5cf6'][index] ?? '#3b82f6',
+          })),
+        }
+      : null,
+    businessSize
+      ? {
+          label: 'Business size',
+          centerValue: formatMetricValue(Object.values(businessSize).reduce<number>((total, value) => total + toNumeric(value), 0)),
+          centerLabel: 'Businesses',
+          data: Object.entries(businessSize).map(([name, value], index) => ({
+            name,
+            value: Math.max(toNumeric(value), 1),
+            color: ['#3b82f6', '#10b981', '#8b5cf6'][index] ?? '#3b82f6',
+          })),
+        }
+      : null,
+  ].filter((item): item is DonutMetric => Boolean(item));
+
+  const newRepeatEntries = Array.isArray(getValue(userInsights, ['new_vs_repeat_trend', 'newVsRepeatTrend']))
+    ? (getValue(userInsights, ['new_vs_repeat_trend', 'newVsRepeatTrend']) as unknown[])
+    : [];
+  const newRepeat: LineChartData[] = newRepeatEntries.reduce<LineChartData[]>((acc, entry) => {
+    const record = asRecord(entry);
+    if (!record) return acc;
+
+    acc.push({
+      name: String(record.date ?? record.name ?? record.label ?? 'Series'),
+      New: toNumeric(getValue(record, ['new', 'New'])),
+      Repeat: toNumeric(getValue(record, ['repeat', 'Repeat'])),
+    });
+    return acc;
+  }, []);
+
+  return { topMetrics, sparesKpis, mechanicKpis, perfDonuts, trendModule, trendUserType, trendCity, userDonuts, newRepeat };
+}
 
 // ─── Mock Data ──────────────────────────────────────────────────
 const MOCK_TOP_METRICS: TopMetric[] = [
@@ -124,49 +399,59 @@ export function useDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const applyMockState = useCallback(() => {
+    setTopMetrics(MOCK_TOP_METRICS);
+    setSparesKpis(MOCK_SPARES_KPIS);
+    setMechanicKpis(MOCK_MECHANIC_KPIS);
+
+    setPerfDonuts(MOCK_PERF_DONUTS);
+    setTrendModule(MOCK_TREND_MODULE);
+    setTrendUserType(MOCK_TREND_USER_TYPE);
+    setTrendCity(MOCK_TREND_CITY);
+
+    setUserDonuts(MOCK_USER_DONUTS);
+    setNewRepeat(MOCK_NEW_REPEAT);
+  }, []);
+
   const fetchAll = useCallback(async () => {
     setLoading(true);
     setError(null);
 
-    const USE_MOCK = true;
+    const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK_DATA === 'true';
 
     try {
       if (USE_MOCK) {
         await new Promise((r) => setTimeout(r, 500));
-        setTopMetrics(MOCK_TOP_METRICS);
-        setSparesKpis(MOCK_SPARES_KPIS);
-        setMechanicKpis(MOCK_MECHANIC_KPIS);
-        
-        setPerfDonuts(MOCK_PERF_DONUTS);
-        setTrendModule(MOCK_TREND_MODULE);
-        setTrendUserType(MOCK_TREND_USER_TYPE);
-        setTrendCity(MOCK_TREND_CITY);
-
-        setUserDonuts(MOCK_USER_DONUTS);
-        setNewRepeat(MOCK_NEW_REPEAT);
+        applyMockState();
       } else {
-        // Example real API fetching structure
-        const [tm, sk, mk, pd, trm, tru, trc, ud, nr] = await Promise.all([
-          apiClient.get<TopMetric[]>(ENDPOINTS.dashboard.metrics),
-          apiClient.get<KpiMetric[]>(`${ENDPOINTS.dashboard.metrics}/spares`),
-          apiClient.get<KpiMetric[]>(`${ENDPOINTS.dashboard.metrics}/mechanic`),
-          apiClient.get<DonutMetric[]>(`${ENDPOINTS.dashboard.performance}/donuts`),
-          apiClient.get<LineChartData[]>(`${ENDPOINTS.dashboard.performance}/trend-module`),
-          apiClient.get<LineChartData[]>(`${ENDPOINTS.dashboard.performance}/trend-user`),
-          apiClient.get<BarChartData[]>(`${ENDPOINTS.dashboard.performance}/trend-city`),
-          apiClient.get<DonutMetric[]>(`${ENDPOINTS.dashboard.performance}/user-donuts`),
-          apiClient.get<LineChartData[]>(`${ENDPOINTS.dashboard.performance}/new-repeat`),
-        ]);
-        setTopMetrics(tm); setSparesKpis(sk); setMechanicKpis(mk);
-        setPerfDonuts(pd); setTrendModule(trm); setTrendUserType(tru); setTrendCity(trc);
-        setUserDonuts(ud); setNewRepeat(nr);
+        const response = await apiClient.get<unknown>(ENDPOINTS.admin.dashboard.smartView);
+        const parsed = parseSmartViewPayload(response);
+
+        setTopMetrics(parsed.topMetrics);
+        setSparesKpis(parsed.sparesKpis);
+        setMechanicKpis(parsed.mechanicKpis);
+        setPerfDonuts(parsed.perfDonuts);
+        setTrendModule(parsed.trendModule);
+        setTrendUserType(parsed.trendUserType);
+        setTrendCity(parsed.trendCity);
+        setUserDonuts(parsed.userDonuts);
+        setNewRepeat(parsed.newRepeat);
       }
-    } catch {
-      setError('Failed to load dashboard data. Please try again.');
+    } catch (err) {
+      setTopMetrics([]);
+      setSparesKpis([]);
+      setMechanicKpis([]);
+      setPerfDonuts([]);
+      setTrendModule([]);
+      setTrendUserType([]);
+      setTrendCity([]);
+      setUserDonuts([]);
+      setNewRepeat([]);
+      setError(err instanceof Error ? err.message : 'Unable to load dashboard data from the API response.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [applyMockState]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
