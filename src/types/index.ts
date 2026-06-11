@@ -25,6 +25,22 @@ export type User = {
   status: 'Active' | 'Inactive' | 'Suspended';
   joinedAt: string;
   avatar?: string;
+  phone: string;
+  location: string;
+  lastLogin: string;
+  lifetimeValue: string;
+  membership?: string;
+  dob?: string;
+  selectedLanguage?: string;
+  joiningDate?: string;
+  userType?: string;
+  typeOfUser?: string;
+  businessName?: string;
+  businessType?: string;
+  gstNumber?: string;
+  modulesUsed?: string[];
+  activities?: Array<{ id: string; title: string; status: 'Completed' | 'Cancelled' | 'Pending'; date: string }>;
+  escalations?: Array<{ id: string; disputeId: string; mechanicName: string; mechanicAvatar?: string; issueType: string; status: 'Resolved' | 'Active' }>;
 };
 
 // --- ORDER ---

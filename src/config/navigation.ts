@@ -29,7 +29,15 @@ export const NAVIGATION_ROUTES: Route[] = [
   { name: 'Finance', path: '/finance', icon: '💰' },
   { name: 'Ads & Marketing', path: '/marketing', icon: '📢' },
   { name: 'Support & Disputes', path: '/support', icon: '🎧' },
-  { name: 'User Management', path: '/users', icon: '👥' },
+  { 
+    name: 'User Management', 
+    path: '/users', 
+    icon: '👥',
+    subItems: [
+      { name: 'All Users', path: '/users' },
+      { name: 'Add New User', path: '/users/add' }
+    ]
+  },
 ];
 
 export const BOTTOM_ROUTES: Route[] = [

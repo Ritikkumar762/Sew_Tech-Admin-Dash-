@@ -76,7 +76,17 @@ export function useMutation<TResponse = void, TBody = unknown>(
       setLoading(true);
       setError(null);
       try {
-        const result = await apiClient[method.toLowerCase() as 'post' | 'put' | 'patch' | 'delete']<TResponse>(url, body);
+        const m = method.toLowerCase();
+        let result: TResponse;
+        if (m === 'delete') {
+          result = await apiClient.delete<TResponse>(url);
+        } else if (m === 'post') {
+          result = await apiClient.post<TResponse>(url, body);
+        } else if (m === 'put') {
+          result = await apiClient.put<TResponse>(url, body);
+        } else {
+          result = await apiClient.patch<TResponse>(url, body);
+        }
         return result;
       } catch (err) {
         const message = err instanceof ApiError ? err.message : 'Request failed';
