@@ -1,41 +1,137 @@
 'use client';
-import { useSpares } from '../_hooks/useSpares';
-import { useParams, notFound } from 'next/navigation';
-import Link from 'next/link';
-import Badge from '@/components/ui/Badge';
-import PageHeader from '@/components/ui/PageHeader';
+import React, { useState } from 'react';
+import { useParams } from 'next/navigation';
+import styles from '@/components/spare-details/SpareDetails.module.css';
+import { SpareDetailsHeader } from '@/components/spare-details/SpareDetailsHeader';
+import { SpareTopStats } from '@/components/spare-details/SpareTopStats';
+import { BasicInfoCard } from '@/components/spare-details/BasicInfoCard';
+import { TechnicalDetailsCard } from '@/components/spare-details/TechnicalDetailsCard';
+import { PriceDetailsCard } from '@/components/spare-details/PriceDetailsCard';
+import { StockDetailsCard } from '@/components/spare-details/StockDetailsCard';
+import { CompatibilityCard } from '@/components/spare-details/CompatibilityCard';
+import { ProductImagesCard } from '@/components/spare-details/ProductImagesCard';
+import { AuditLog } from '@/components/spare-details/AuditLog';
+import { SpareDetailData } from '@/components/spare-details/Types';
+
+const MOCK_SPARE: SpareDetailData = {
+  id: 'sth-rh-2045',
+  sku: 'STH-RH-2045',
+  name: 'High-Speed Rotary Hook Assembly',
+  category: 'Rotary Hook',
+  stock: 10,
+  ordersLast30Days: 500,
+  activeVendors: 10,
+  currentSellingPrice: 15000,
+  description: 'Elevate your sewing experience with the Presser Bar Spring Housing Support! This essential component is designed for use in sewing machines, ensuring optimal performance.',
+  mappedIndustry: 'Demo Industry',
+  manufacturer: 'HASTHIP, cs.service01@outlook.com',
+  warranty: '-',
+  tags: ['Rotary Hook', 'Rotary Hook'],
+  visibility: 'Live',
+  dimensions: '48 mm x 42 mm x 28 mm',
+  itemWeight: '185 g',
+  netQuantity: '1 Unit',
+  material: 'Hardened Alloy Steel',
+  listingPrice: 1500,
+  salePrice: 1500,
+  isReturnable: true,
+  stockInventory: 100,
+  stockAlertQuantity: 12,
+  compatibilities: [
+    { id: '1', brand: 'Juki Single Needle Lockstitch', machineModel: 'HC3000' },
+    { id: '2', brand: 'Juki Single Needle Lockstitch', machineModel: 'HC3000' },
+    { id: '3', brand: 'Juki Single Needle Lockstitch', machineModel: 'HC3000' }
+  ],
+  variants: [
+    {
+      name: '5mm',
+      isDefault: true,
+      images: ['img1', 'img2', 'img3']
+    },
+    {
+      name: '10mm',
+      images: ['img4', 'img5', 'img6']
+    }
+  ]
+};
 
 export default function SpareDetailPage() {
-  const { id } = useParams<{ id: string }>();
-  const { spares, loading } = useSpares();
-  if (loading) return <div className="card">Loading...</div>;
-  const spare = spares.find((s) => s.id === id);
-  if (!spare) return notFound();
+  const params = useParams();
+  const [activeTab, setActiveTab] = useState<'details' | 'audit'>('details');
+  const [spareData, setSpareData] = useState<SpareDetailData>(MOCK_SPARE);
+
+  // If you ever want to fetch actual data, this structure allows simple fetching:
+  // useEffect(() => {
+  //   fetch(`/api/spares/${params.id}`).then(res => res.json()).then(data => setSpareData(data))
+  // }, [params.id])
 
   return (
-    <div>
-      <PageHeader title={spare.name} subtitle={`SKU: ${spare.sku}`} actions={<Link href="/spares/all" className="btn btn-outline">← Back</Link>} />
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-        <div className="card">
-          <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Spare Details</h3>
-          {[['SKU', spare.sku], ['Category', spare.category], ['Price', `₹${spare.price}`], ['Stock', spare.stock], ['Status', spare.status]].map(([k, v]) => (
-            <div key={String(k)} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px solid #f3f4f6' }}>
-              <span style={{ color: '#6b7280', fontWeight: 500 }}>{k}</span>
-              <span style={{ fontWeight: 600 }}>
-                {k === 'Status' ? <Badge label={String(v)} /> : String(v)}
-              </span>
-            </div>
-          ))}
+    <div className={styles.pageContainer}>
+      <SpareDetailsHeader name={spareData.name} sku={spareData.sku} />
+      
+      <SpareTopStats 
+        category={spareData.category}
+        stock={spareData.stock}
+        orders={spareData.ordersLast30Days}
+        vendors={spareData.activeVendors}
+        price={spareData.currentSellingPrice}
+      />
+
+      <div className={styles.tabsContainer}>
+        <div 
+          className={`${styles.tab} ${activeTab === 'details' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('details')}
+        >
+          Spare Details
         </div>
-        <div className="card">
-          <h3 style={{ fontWeight: 700, marginBottom: '1rem' }}>Quick Actions</h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <button className="btn btn-dark" style={{ justifyContent: 'flex-start' }}>📦 Update Stock</button>
-            <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }}>✏️ Edit Details</button>
-            <button className="btn btn-outline" style={{ justifyContent: 'flex-start' }}>🗑️ Delete Spare</button>
-          </div>
+        <div 
+          className={`${styles.tab} ${activeTab === 'audit' ? styles.tabActive : ''}`}
+          onClick={() => setActiveTab('audit')}
+        >
+          Audit Log
         </div>
       </div>
+
+      {activeTab === 'details' ? (
+        <div>
+          <BasicInfoCard 
+            description={spareData.description}
+            mappedIndustry={spareData.mappedIndustry}
+            manufacturer={spareData.manufacturer}
+            warranty={spareData.warranty}
+            tags={spareData.tags}
+            visibility={spareData.visibility}
+          />
+          
+          <TechnicalDetailsCard 
+            dimensions={spareData.dimensions}
+            itemWeight={spareData.itemWeight}
+            netQuantity={spareData.netQuantity}
+            material={spareData.material}
+          />
+
+          <PriceDetailsCard 
+            listingPrice={spareData.listingPrice}
+            salePrice={spareData.salePrice}
+            isReturnable={spareData.isReturnable}
+          />
+
+          <StockDetailsCard 
+            stockInventory={spareData.stockInventory}
+            stockAlertQuantity={spareData.stockAlertQuantity}
+          />
+
+          <CompatibilityCard 
+            compatibilities={spareData.compatibilities}
+          />
+
+          <ProductImagesCard 
+            variants={spareData.variants}
+          />
+        </div>
+      ) : (
+        <AuditLog />
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import styles from './ProductsInventory.module.css';
 import { SpareProduct } from './Types';
 
@@ -59,9 +60,9 @@ export function DataTable({ data }: DataTableProps) {
                 </span>
               </td>
               <td>
-                <button className={styles.viewBtn}>
+                <Link href={`/spares/${item.id}`} className={styles.viewBtn}>
                   View <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                </button>
+                </Link>
               </td>
             </tr>
           ))}
