@@ -163,17 +163,18 @@ export default function EditUserPage() {
         formattedDob = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()]}' ${dateObj.getFullYear()}`;
       }
 
+      const isCust = role === 'Customer';
       await updateUser(user.id, {
         email: email.trim().toLowerCase(),
         phone: formattedPhone,
         dob: formattedDob,
         selectedLanguage: languages.join(', '),
         role,
-        userType,
-        typeOfUser: userType,
-        businessName: userType === 'Business Owner' ? businessName.trim() : undefined,
-        businessType: userType === 'Business Owner' ? businessType : undefined,
-        gstNumber: userType === 'Business Owner' ? gstNumber.trim() : undefined
+        userType: isCust ? userType : 'Individual',
+        typeOfUser: isCust ? userType : 'Individual',
+        businessName: (isCust && userType === 'Business Owner') ? businessName.trim() : undefined,
+        businessType: (isCust && userType === 'Business Owner') ? businessType : undefined,
+        gstNumber: (isCust && userType === 'Business Owner') ? gstNumber.trim() : undefined
       });
 
       // Redirect back to profile page
@@ -366,26 +367,28 @@ export default function EditUserPage() {
           </div>
 
           {/* User Type Dropdown */}
-          <div className={styles.fieldGroup}>
-            <label className={styles.label}>
-              Type of user <span className={styles.required}>*</span>
-            </label>
-            <select 
-              className={styles.input}
-              value={userType}
-              onChange={(e) => setUserType(e.target.value)}
-              disabled={isSaving}
-            >
-              {userTypesList.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-            {errors.userType && <span className={styles.errorText}>{errors.userType}</span>}
-          </div>
+          {role === 'Customer' && (
+            <div className={styles.fieldGroup}>
+              <label className={styles.label}>
+                Type of user <span className={styles.required}>*</span>
+              </label>
+              <select 
+                className={styles.input}
+                value={userType}
+                onChange={(e) => setUserType(e.target.value)}
+                disabled={isSaving}
+              >
+                {userTypesList.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              {errors.userType && <span className={styles.errorText}>{errors.userType}</span>}
+            </div>
+          )}
         </div>
 
-        {/* Business Details Section - Shown conditionally if User Type is Business Owner */}
-        {userType === 'Business Owner' && (
+        {/* Business Details Section - Shown conditionally if User Type is Business Owner and role is Customer */}
+        {role === 'Customer' && userType === 'Business Owner' && (
           <>
             <h2 className={styles.sectionTitle} style={{ marginTop: '1rem' }}>Business Details</h2>
             <div className={styles.formGrid}>

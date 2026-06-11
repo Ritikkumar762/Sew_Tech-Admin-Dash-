@@ -347,6 +347,17 @@
 
 .statusCompleted { background: #d1fae5; color: #065f46; }
 .statusCancelled { background: #fee2e2; color: #991b1b; }
+.statusNotSelected { background: #ffe4e6; color: #991b1b; }
+
+.timelineNodeBlack {
+  background: #1e293b !important;
+  color: white !important;
+  border-color: #0f172a !important;
+  font-size: 0.55rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.05em;
+  padding: 1px;
+}
 
 .timelineTime {
   font-size: 0.75rem;

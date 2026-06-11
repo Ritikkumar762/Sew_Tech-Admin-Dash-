@@ -142,12 +142,14 @@ export default function UserDetailPage() {
         >
           Activity Snapshot
         </button>
-        <button 
-          className={`${styles.tab} ${activeTab === 'escalations' ? styles.activeTab : ''}`}
-          onClick={() => setActiveTab('escalations')}
-        >
-          Escalations
-        </button>
+        {user.role.toLowerCase() === 'customer' && (
+          <button 
+            className={`${styles.tab} ${activeTab === 'escalations' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('escalations')}
+          >
+            Escalations
+          </button>
+        )}
       </div>
 
       {/* Tab Panels */}
@@ -233,41 +235,76 @@ export default function UserDetailPage() {
             )}
           </div>
 
-          <h2 className={styles.cardTitle} style={{ marginTop: '1rem' }}>Activity Details</h2>
-          
-          <div className={styles.timeline}>
-            {user.activities && user.activities.length > 0 ? (
-              user.activities.map((act) => (
-                <div key={act.id} className={styles.timelineItem}>
-                  <div className={styles.timelineNode}>N</div>
-                  <div className={styles.timelineContent}>
-                    <div className={styles.timelineDetails}>
-                      <span className={styles.timelineTitle}>{act.title}</span>
-                      <button 
-                        className={styles.timelineBtn}
-                        onClick={() => alert('Activity details are being fetched...')}
-                      >
-                        View Details <ExternalLink size={10} />
-                      </button>
-                      <span className={`${styles.timelineStatus} ${
-                        act.status === 'Completed' ? styles.statusCompleted : styles.statusCancelled
-                      }`}>
-                        {act.status}
-                      </span>
+          {/* Timeline heading and nodes based on role */}
+          {(() => {
+            const isMechanicOrKaarigar = user.role.toLowerCase().includes('mechanic') || user.role.toLowerCase().includes('kaarigar');
+            const heading = isMechanicOrKaarigar ? 'Detailed Journey' : 'Activity Details';
+            
+            // Mechanic detailed journey mock timeline items
+            const mechanicJourney = [
+              { id: 'mj1', title: 'Instant Booking Assigned', status: 'Completed', date: '15th Jan 2025, 10:20 AM', icon: 'SM' },
+              { id: 'mj2', title: 'Quote Submitted', status: 'Not Selected', date: '15th Jan 2025, 10:20 AM', icon: 'N' },
+              { id: 'mj3', title: 'Instant Booking Assigned', status: 'Completed', date: '15th Jan 2025, 10:20 AM', icon: 'SM' }
+            ];
+
+            const timelineItems = isMechanicOrKaarigar 
+              ? (user.activities && user.activities.length > 0 ? user.activities : mechanicJourney)
+              : (user.activities || []);
+
+            return (
+              <>
+                <h2 className={styles.cardTitle} style={{ marginTop: '1rem' }}>{heading}</h2>
+                <div className={styles.timeline}>
+                  {timelineItems.length > 0 ? (
+                    timelineItems.map((act: any) => {
+                      const isSMIcon = act.icon === 'SM';
+                      
+                      return (
+                        <div key={act.id} className={styles.timelineItem}>
+                          {isMechanicOrKaarigar ? (
+                            isSMIcon ? (
+                              <div className={`${styles.timelineNode} ${styles.timelineNodeBlack}`}>SM</div>
+                            ) : (
+                              <div className={styles.timelineNode} style={{ background: '#eff6ff', color: '#2563eb', borderColor: '#bfdbfe' }}>N</div>
+                            )
+                          ) : (
+                            <div className={styles.timelineNode}>N</div>
+                          )}
+                          <div className={styles.timelineContent}>
+                            <div className={styles.timelineDetails}>
+                              <span className={styles.timelineTitle}>{act.title}</span>
+                              <button 
+                                type="button"
+                                className={styles.timelineBtn}
+                                onClick={() => alert('Activity details are being fetched...')}
+                              >
+                                View Details <ExternalLink size={10} />
+                              </button>
+                              <span className={`${styles.timelineStatus} ${
+                                act.status === 'Completed' ? styles.statusCompleted :
+                                act.status === 'Cancelled' ? styles.statusCancelled :
+                                styles.statusNotSelected
+                              }`}>
+                                {act.status}
+                              </span>
+                            </div>
+                            <span className={styles.timelineTime}>{act.date}</span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem', padding: '1rem 0' }}>
+                      No activities recorded.
                     </div>
-                    <span className={styles.timelineTime}>{act.date}</span>
+                  )}
+                  <div className={styles.timelineFooter}>
+                    Created- {user.joiningDate || '15th Jan 2025'}
                   </div>
                 </div>
-              ))
-            ) : (
-              <div style={{ color: 'var(--text-muted)', fontSize: '0.875rem', padding: '1rem 0' }}>
-                No activities recorded.
-              </div>
-            )}
-            <div className={styles.timelineFooter}>
-              Created- {user.joiningDate || '15th Jan 2025'}
-            </div>
-          </div>
+              </>
+            );
+          })()}
         </div>
       )}
 

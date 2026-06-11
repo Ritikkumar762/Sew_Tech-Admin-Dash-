@@ -61,7 +61,7 @@ export default function AddUserPage() {
       tempErrors.email = 'Please enter a valid email address.';
     }
     if (!role) tempErrors.role = 'Role is required.';
-    if (!userType) tempErrors.userType = 'User Type is required.';
+    if (role === 'Customer' && !userType) tempErrors.userType = 'User Type is required.';
 
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
@@ -88,20 +88,21 @@ export default function AddUserPage() {
         formattedDob = `${dateObj.getDate()} ${monthNames[dateObj.getMonth()]}' ${dateObj.getFullYear()}`;
       }
 
+      const isCust = role === 'Customer';
       await createUser({
         name: name.trim(),
         email: email.trim().toLowerCase(),
         phone: formattedPhone,
         dob: formattedDob || undefined,
         role,
-        userType,
-        typeOfUser: userType, // Keep both fields for safety
+        userType: isCust ? userType : 'Individual',
+        typeOfUser: isCust ? userType : 'Individual', // Keep both fields for safety
         status: 'Active', // Default status is active
-        membership: role === 'Customer' ? 'Silver' : undefined,
+        membership: isCust ? 'Silver' : undefined,
         // Mock business details for business owner roles
-        businessName: userType === 'Business Owner' ? 'Demo company Pvt Ltd' : undefined,
-        businessType: userType === 'Business Owner' ? 'Demo Type' : undefined,
-        gstNumber: userType === 'Business Owner' ? '29ABCDE1234F1Z5' : undefined,
+        businessName: (isCust && userType === 'Business Owner') ? 'Demo company Pvt Ltd' : undefined,
+        businessType: (isCust && userType === 'Business Owner') ? 'Demo Type' : undefined,
+        gstNumber: (isCust && userType === 'Business Owner') ? '29ABCDE1234F1Z5' : undefined,
       });
 
       // Redirect back to users list
@@ -246,23 +247,25 @@ export default function AddUserPage() {
             {errors.role && <span className={styles.errorText}>{errors.role}</span>}
           </div>
 
-          {/* User Type Dropdown */}
-          <div className={styles.fieldGroup}>
-            <label className={styles.label}>
-              User Type <span className={styles.required}>*</span>
-            </label>
-            <select 
-              className={styles.input}
-              value={userType}
-              onChange={(e) => setUserType(e.target.value)}
-              disabled={isSubmitting}
-            >
-              {userTypesList.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-            {errors.userType && <span className={styles.errorText}>{errors.userType}</span>}
-          </div>
+          {/* User Type Dropdown - Conditional on Customer role */}
+          {role === 'Customer' && (
+            <div className={styles.fieldGroup}>
+              <label className={styles.label}>
+                User Type <span className={styles.required}>*</span>
+              </label>
+              <select 
+                className={styles.input}
+                value={userType}
+                onChange={(e) => setUserType(e.target.value)}
+                disabled={isSubmitting}
+              >
+                {userTypesList.map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+              {errors.userType && <span className={styles.errorText}>{errors.userType}</span>}
+            </div>
+          )}
         </div>
 
         {/* Send user notification Checkbox */}
