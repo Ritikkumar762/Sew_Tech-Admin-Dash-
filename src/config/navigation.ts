@@ -26,7 +26,17 @@ export const NAVIGATION_ROUTES: Route[] = [
   { name: 'Sewtech Kaarigar', path: '/kaarigar', icon: '👤' },
   { name: 'Sewtech Academy', path: '/academy', icon: '🎓' },
   { name: 'Master Data Management', path: '/mdm', icon: '📊' },
-  { name: 'Finance', path: '/finance', icon: '💰' },
+  { 
+    name: 'Finance', 
+    path: '/finance', 
+    icon: '💰',
+    subItems: [
+      { name: 'Overview', path: '/finance' },
+      { name: 'Gold Membership', path: '/finance/gold-membership' },
+      { name: 'Discount Codes', path: '/finance/discount-codes' },
+      { name: 'Referrals', path: '/finance/referrals' }
+    ]
+  },
   { name: 'Ads & Marketing', path: '/marketing', icon: '📢' },
   { name: 'Support & Disputes', path: '/support', icon: '🎧' },
   { 

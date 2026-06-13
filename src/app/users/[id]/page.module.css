@@ -3,6 +3,7 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ── Header Area ── */
@@ -64,6 +65,7 @@
   background: #d1fae5 !important;
   color: #065f46 !important;
   border-color: #6ee7b7 !important;
+  animation: badgePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
 
 .editBtn {
@@ -175,6 +177,7 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .detailCard {
@@ -186,6 +189,8 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 
 .cardTitle {
@@ -295,6 +300,12 @@
   justify-content: center;
   font-weight: 700;
   font-size: 0.75rem;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+}
+
+.timelineItem:hover .timelineNode {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
 }
 
 .timelineContent {
@@ -305,6 +316,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.timelineItem:hover .timelineContent {
+  transform: translateX(4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  border-color: var(--border-color-hover);
 }
 
 .timelineDetails {
@@ -381,6 +399,7 @@
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   overflow: hidden;
+  animation: fadeInUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .tableResponsive {
@@ -573,5 +592,29 @@
   }
   .tabsContainer {
     gap: 1rem;
+  }
+}
+
+/* ── Keyframe Animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
   }
 }

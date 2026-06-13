@@ -16,6 +16,15 @@ export default function Sidebar() {
     setIsMobileOpen(false);
   }, [pathname]);
 
+  // Auto-expand active sub-menus
+  useEffect(() => {
+    NAVIGATION_ROUTES.forEach((route) => {
+      if (route.subItems && (pathname === route.path || pathname.startsWith(route.path + '/'))) {
+        setOpenMenus((prev) => ({ ...prev, [route.path]: true }));
+      }
+    });
+  }, [pathname]);
+
   // Close on ESC
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {

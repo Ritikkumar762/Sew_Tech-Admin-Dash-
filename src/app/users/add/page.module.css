@@ -3,6 +3,7 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .headerRow {
@@ -57,6 +58,11 @@
 
 .discardBtn:hover {
   background: #fef2f2;
+  transform: translateY(-1px);
+}
+
+.discardBtn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .submitBtn {
@@ -68,11 +74,16 @@
   font-weight: 600;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .submitBtn:hover {
   background: #1e293b;
+  transform: translateY(-1px);
+}
+
+.submitBtn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 /* ── Form Card ── */
@@ -85,6 +96,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .sectionTitle {
@@ -129,7 +141,7 @@
   color: var(--text-primary);
   background: white;
   outline: none;
-  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
 }
 
 .input::placeholder {
@@ -138,7 +150,7 @@
 
 .input:focus {
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 /* Phone input container */
@@ -154,7 +166,7 @@
 
 .phoneInputWrapper:focus-within {
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .flagDropdown {
@@ -254,5 +266,17 @@
   .actions {
     width: 100%;
     justify-content: flex-end;
+  }
+}
+
+/* ── Keyframe Animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

@@ -3,6 +3,7 @@
   flex-direction: column;
   gap: 1.5rem;
   width: 100%;
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* ── Header Row white Card ── */
@@ -36,11 +37,16 @@
   justify-content: center;
   padding: 0.25rem;
   border-radius: 50%;
-  transition: background-color var(--transition-fast);
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .backArrow:hover {
   background-color: #f1f5f9;
+  transform: translateX(-2px);
+}
+
+.backArrow:active {
+  transform: translateX(0) scale(0.95);
 }
 
 .profileTitleArea {
@@ -79,6 +85,7 @@
   background: #d1fae5 !important;
   color: #065f46 !important;
   border-color: #6ee7b7 !important;
+  animation: badgePop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
 
 .actions {
@@ -101,6 +108,11 @@
 
 .discardBtn:hover {
   background: #fef2f2;
+  transform: translateY(-1px);
+}
+
+.discardBtn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .saveBtn {
@@ -112,11 +124,16 @@
   font-weight: 600;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background var(--transition-fast);
+  transition: all var(--transition-fast);
 }
 
 .saveBtn:hover {
   background: #1e293b;
+  transform: translateY(-1px);
+}
+
+.saveBtn:active {
+  transform: translateY(0) scale(0.98);
 }
 
 /* ── Form Card Sections ── */
@@ -129,6 +146,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .sectionTitle {
@@ -182,7 +200,7 @@
 
 .input:focus {
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 /* ── Selected Language Dropdown & Tags ── */
@@ -210,7 +228,7 @@
 
 .multiSelectTrigger:focus-within {
   border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
 
 .tagsRow {
@@ -267,6 +285,8 @@
   overflow-y: auto;
   margin-top: 0.25rem;
   padding: 0.25rem;
+  transform-origin: top center;
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .dropdownOptionItem {
@@ -310,5 +330,40 @@
   .actions {
     width: 100%;
     justify-content: flex-end;
+  }
+}
+
+/* ── Keyframe Animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+  100% {
+    transform: scale(1);
   }
 }
