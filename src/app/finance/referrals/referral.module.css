@@ -1,0 +1,497 @@
+/* ── Referrals Page Styles + Animations ─────────────────── */
+
+/* Page entrance */
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  animation: pageFadeIn 0.5s ease-out both;
+}
+
+/* ── Stat Cards ──────────────────────────────────────────── */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.statCard {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border-right: 1px solid #e5e7eb;
+  cursor: default;
+  opacity: 0;
+  animation: statSlideUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transition: background 0.25s, transform 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Staggered delays per card */
+.statCard:nth-child(1) { animation-delay: 0.05s; }
+.statCard:nth-child(2) { animation-delay: 0.12s; }
+.statCard:nth-child(3) { animation-delay: 0.19s; }
+.statCard:nth-child(4) { animation-delay: 0.26s; border-right: none; }
+
+.statCard::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0%;
+  background: linear-gradient(90deg, #2563eb, #60a5fa);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.statCard:hover {
+  background: #f8fafc;
+  transform: translateY(-2px);
+}
+
+.statCard:hover::after {
+  width: 100%;
+}
+
+.statValue {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #111827;
+  transition: color 0.2s;
+}
+
+.statCard:hover .statValue {
+  color: #2563eb;
+}
+
+.statLabel {
+  font-size: 0.82rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* ── Tabs ────────────────────────────────────────────────── */
+.tabBar {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e5e7eb;
+  animation: fadeIn 0.4s ease both;
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+.tab {
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b7280;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.2s, border-color 0.2s;
+  position: relative;
+}
+
+.tab::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: #2563eb;
+  transform: translateX(-50%);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tab:hover {
+  color: #2563eb;
+}
+
+.tab:hover::after {
+  width: 80%;
+}
+
+.tabActive {
+  color: #2563eb;
+  border-bottom-color: #2563eb;
+}
+
+.tabActive::after {
+  width: 0 !important;
+}
+
+/* ── Filter bar entry ────────────────────────────────────── */
+.filterBarAnim {
+  animation: filterSlideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Table container entry ───────────────────────────────── */
+.tableAnim {
+  animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0.1s;
+}
+
+/* ── Person Cell (Referrer / Referee) ────────────────────── */
+.personCell {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #4338ca;
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s;
+}
+
+.avatar:hover {
+  transform: scale(1.18) rotate(-3deg);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+.personInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.personName {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1f2937;
+  transition: color 0.2s;
+}
+
+/* ── Module Trigger icon ─────────────────────────────────── */
+.moduleTrigger {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  background: #ef4444;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+  cursor: default;
+  position: relative;
+}
+
+.moduleTrigger::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  opacity: 0;
+  transform: scale(1.4);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.moduleTrigger:hover {
+  transform: scale(1.15) rotate(12deg);
+  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.4);
+}
+
+.moduleTrigger:hover::before {
+  opacity: 0.15;
+  transform: scale(1.6);
+}
+
+.moduleTriggerGreen {
+  background: #10b981;
+}
+
+.moduleTriggerGreen:hover {
+  box-shadow: 0 6px 18px rgba(16, 185, 129, 0.4);
+}
+
+/* ── Table row reveal ────────────────────────────────────── */
+@keyframes rowReveal {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Applied via inline style on each <tr> */
+
+/* ── Referral Configuration Tab ──────────────────────────── */
+.configSection {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.75rem 2rem;
+  animation: configReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.configHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+
+.configTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.editBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #ffffff;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.editBtn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.editBtn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.saveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #10b981;
+  color: #ffffff;
+  border: none;
+  padding: 0.45rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+}
+
+.saveBtn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16,185,129,0.3);
+}
+
+.saveBtn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* ── 2-col form grid ─────────────────────────────────────── */
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem 2rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  opacity: 0;
+  animation: fieldFadeUp 0.4s ease forwards;
+}
+
+/* stagger each field */
+.formGroup:nth-child(1) { animation-delay: 0.05s; }
+.formGroup:nth-child(2) { animation-delay: 0.10s; }
+.formGroup:nth-child(3) { animation-delay: 0.15s; }
+.formGroup:nth-child(4) { animation-delay: 0.20s; }
+.formGroup:nth-child(5) { animation-delay: 0.25s; }
+
+.formLabel {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #374151;
+  transition: color 0.2s;
+}
+
+.formGroup:focus-within .formLabel {
+  color: #2563eb;
+}
+
+.formInput {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  color: #111827;
+  background: #ffffff;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.formInput:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.formInput:disabled {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.formInput::placeholder { color: #9ca3af; }
+
+.formSelect {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  color: #374151;
+  background: #ffffff;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  padding-right: 2.25rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.formSelect:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.formSelect:disabled {
+  background-color: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* Expiry row */
+.expiryRow {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.expiryInput {
+  flex: 1;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  color: #111827;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.expiryInput:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.expiryInput:disabled {
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.expiryUnitSelect {
+  width: 110px;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.875rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  outline: none;
+  color: #374151;
+  background: #ffffff;
+  font-family: inherit;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+  transition: border-color 0.2s;
+}
+
+.expiryUnitSelect:focus { border-color: #2563eb; }
+
+.expiryUnitSelect:disabled {
+  background-color: #f9fafb;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+/* ── Keyframes ───────────────────────────────────────────── */
+@keyframes pageFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes statSlideUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes filterSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes configReveal {
+  from { opacity: 0; transform: translateY(16px) scale(0.99); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes fieldFadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .statsRow { grid-template-columns: repeat(2, 1fr); }
+  .statCard:nth-child(2) { border-right: none; }
+  .statCard:nth-child(3) { border-top: 1px solid #e5e7eb; }
+  .statCard:nth-child(4) { border-top: 1px solid #e5e7eb; border-right: none; }
+  .formGrid { grid-template-columns: 1fr; }
+}
