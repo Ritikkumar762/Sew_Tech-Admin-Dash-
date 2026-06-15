@@ -129,4 +129,13 @@ export type Campaign = {
   conversions: number;
   startDate: string;
   endDate: string;
+  // Banner specific fields
+  spareName?: string;
+  impressionsL30D?: string;
+  currentImpressions?: string;
+  currentClicks?: string;
+  currentCTR?: string;
+  targetAudience?: string;
+  tabCategory?: 'Home Screen' | 'ST Spares' | 'ST Mechanic' | 'ST Kaarigar' | 'ST Exchange' | 'ST Academics';
 };
+

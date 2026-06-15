@@ -2,12 +2,22 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Campaign } from '@/types';
 
-const MOCK_CAMPAIGNS: Campaign[] = [
-  { id: 'cp1', name: 'Summer Sale Blast', type: 'Email', status: 'Active', reach: 12000, conversions: 480, startDate: '2026-06-01', endDate: '2026-06-30' },
-  { id: 'cp2', name: 'New Mechanic Promo', type: 'SMS', status: 'Active', reach: 5000, conversions: 220, startDate: '2026-06-05', endDate: '2026-06-20' },
-  { id: 'cp3', name: 'App Download Push', type: 'Push', status: 'Completed', reach: 20000, conversions: 1200, startDate: '2026-05-01', endDate: '2026-05-31' },
-  { id: 'cp4', name: 'Spare Parts Banner', type: 'Banner', status: 'Draft', reach: 0, conversions: 0, startDate: '2026-07-01', endDate: '2026-07-15' },
-];
+const MOCK_CAMPAIGNS: Campaign[] = Array.from({ length: 7 }).map((_, i) => ({
+  id: `banner-${i + 1}`,
+  name: `Banner ${i + 1}`,
+  type: 'Banner',
+  status: 'Active',
+  reach: 150000,
+  conversions: 20,
+  startDate: '14 Jan\' 26',
+  endDate: '28 Feb 26',
+  spareName: `Banner ${i + 1}`,
+  impressionsL30D: '1.5L',
+  currentImpressions: '1.2L',
+  currentClicks: '30,000',
+  currentCTR: '20%',
+  tabCategory: 'Home Screen'
+}));
 
 export function useMarketing() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);

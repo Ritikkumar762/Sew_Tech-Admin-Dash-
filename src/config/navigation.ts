@@ -37,7 +37,15 @@ export const NAVIGATION_ROUTES: Route[] = [
       { name: 'Referrals', path: '/finance/referrals' }
     ]
   },
-  { name: 'Ads & Marketing', path: '/marketing', icon: '📢' },
+  { 
+    name: 'Ads & Marketing', 
+    path: '/marketing', 
+    icon: '📢',
+    subItems: [
+      { name: 'Live Banners', path: '/marketing' },
+      { name: 'All Creatives', path: '/marketing/creatives' }
+    ]
+  },
   { name: 'Support & Disputes', path: '/support', icon: '🎧' },
   { 
     name: 'User Management', 
