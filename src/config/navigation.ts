@@ -56,9 +56,19 @@ export const NAVIGATION_ROUTES: Route[] = [
       { name: 'Add New User', path: '/users/add' }
     ]
   },
+  { 
+    name: 'System & Settings', 
+    path: '/settings', 
+    icon: '⚙️',
+    subItems: [
+      { name: 'Platform Configuration', path: '/settings/platform-configuration' },
+      { name: 'Role Management', path: '/settings/role-management' },
+      { name: 'Audit & Security', path: '/settings/audit-security' },
+      { name: 'Module Wise Settings', path: '/settings/module-settings' },
+    ]
+  },
 ];
 
 export const BOTTOM_ROUTES: Route[] = [
   { name: 'Logout', path: '/logout', icon: '🚪' },
-  { name: 'System & Settings', path: '/settings', icon: '⚙️' },
 ];
