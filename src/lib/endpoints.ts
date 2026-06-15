@@ -114,6 +114,10 @@ export const ENDPOINTS = {
 
   // ── MDM ──────────────────────────────────────────────────────
   mdm: {
+    industries: `${BASE_URL}/v1/mdm/industries`,
+    industryById: (id: string) => `${BASE_URL}/v1/mdm/industries/${id}`,
+    machines:   `${BASE_URL}/v1/mdm/machines`,
+    machineById: (id: string) => `${BASE_URL}/v1/mdm/machines/${id}`,
     categories: `${BASE_URL}/mdm/categories`,
     locations:  `${BASE_URL}/mdm/locations`,
     pricing:    `${BASE_URL}/mdm/pricing`,
