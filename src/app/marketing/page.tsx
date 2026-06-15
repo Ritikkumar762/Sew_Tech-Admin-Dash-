@@ -15,16 +15,8 @@ const tabs = [
 
 export default function MarketingPage() {
   const router = useRouter();
-  const { campaigns, loading } = useMarketing();
+  const { campaigns, stats, loading } = useMarketing();
   const [activeTab, setActiveTab] = useState('Home Screen');
-
-  const stats = [
-    { label: 'Impressions', value: '1500', trend: '▲ 5%', trendLabel: '(L7D)', color: '#10b981' },
-    { label: 'Clicks', value: '500', trend: '▲ 5%', trendLabel: '(L7D)', color: '#10b981' },
-    { label: 'CTR', value: '500', trend: '▲ 5%', trendLabel: '(L7D)', color: '#10b981' },
-    { label: 'Conversions', value: '200', trend: '▲ 5%', trendLabel: '(L7D)', color: '#10b981' },
-    { label: 'Banners Active', value: '15', trend: '', trendLabel: '', color: '' },
-  ];
 
   return (
     <div style={{ animation: 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>

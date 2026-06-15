@@ -1,9 +1,13 @@
 'use client';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import { apiClient, ENDPOINTS } from '@/lib';
 
 export default function BannerDetailPage() {
   const router = useRouter();
+  const params = useParams();
+  const bannerIdParam = params?.id as string;
+
   const [step, setStep] = useState<1 | 2 | 3>(1); // Changed default to 1 as per design flow
   const [carousel, setCarousel] = useState(false);
 
@@ -19,6 +23,75 @@ export default function BannerDetailPage() {
   const [audience, setAudience] = useState<string>('Gold Members');
   const [startDate, setStartDate] = useState<string>('28.02.2026, 01:00-02:00 PM');
   const [endDate, setEndDate] = useState<string>('28.02.2026, 01:00-02:00 PM');
+
+  const [loading, setLoading] = useState(false);
+
+  // Fetch current banner details if id exists
+  useEffect(() => {
+    if (!bannerIdParam || bannerIdParam.startsWith('banner-')) return; // skip for mock banner-1, banner-2 prefix placeholders
+
+    const loadBannerDetails = async () => {
+      setLoading(true);
+      try {
+        const response = await apiClient.get<{ success: boolean; data: any }>(ENDPOINTS.marketing.bannerById(bannerIdParam));
+        if (response && response.success && response.data) {
+          const b = response.data;
+          setAudience(b.targetAudience || 'Gold Members');
+          setStartDate(b.startDate || '28.02.2026, 01:00-02:00 PM');
+          setEndDate(b.endDate || '28.02.2026, 01:00-02:00 PM');
+          if (b.creative) {
+            setCarousel(b.creative.carousel || false);
+            setLinkTo(b.creative.linkTo || 'ST Spares');
+            setOpenType(b.creative.openType || 'Spare');
+            setSpareId(b.creative.spareId || 'ST Spares');
+            setCategoryId(b.creative.categoryId || 'Sewing Machine Spares');
+            setMachineId(b.creative.machineId || 'Lockstitch Machine');
+            setExternalLink(b.creative.externalLink || '');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch banner details from local API server:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBannerDetails();
+  }, [bannerIdParam]);
+
+  // Handle Publish/Update
+  const handlePublish = async () => {
+    setLoading(true);
+    try {
+      const payload = {
+        targetAudience: audience,
+        startDate,
+        endDate,
+        creative: {
+          carousel,
+          linkTo,
+          openType,
+          spareId,
+          categoryId,
+          machineId,
+          externalLink
+        }
+      };
+
+      if (bannerIdParam && !bannerIdParam.startsWith('banner-')) {
+        await apiClient.put(ENDPOINTS.marketing.bannerById(bannerIdParam), payload);
+      } else {
+        await apiClient.post(ENDPOINTS.marketing.banners, payload);
+      }
+      router.push('/marketing');
+    } catch (err) {
+      console.error('Error publishing banner to backend:', err);
+      // Fallback redirect so UI flow remains completely unbroken
+      router.push('/marketing');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const hasOpenField = (link: string) => {
     return !['External Link', 'Open Service Category'].includes(link);
@@ -252,8 +325,8 @@ export default function BannerDetailPage() {
               Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           ) : (
-            <button onClick={() => router.push('/marketing')} style={{ background: '#10b981', color: '#fff', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              Publish Banner <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <button onClick={handlePublish} disabled={loading} style={{ background: '#10b981', color: '#fff', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: loading ? 0.7 : 1 }}>
+              {loading ? 'Publishing...' : 'Publish Banner'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
             </button>
           )}
         </div>

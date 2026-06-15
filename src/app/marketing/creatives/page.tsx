@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { apiClient, ENDPOINTS } from '@/lib';
 
 interface Creative {
   id: string;
@@ -138,20 +139,68 @@ export default function AllCreativesPage() {
   const router = useRouter();
   const [creatives, setCreatives] = useState<Creative[]>(INITIAL_CREATIVES);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleCreateCopy = (creative: Creative) => {
-    const newCreative: Creative = {
-      ...creative,
-      id: `creative-${Date.now()}`,
-      name: `${creative.name} (Copy)`,
-      timeAgo: 'Uploaded Just Now'
-    };
-    setCreatives([newCreative, ...creatives]);
+  const loadCreatives = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.get<{ success: boolean; data: Creative[] }>(ENDPOINTS.marketing.creatives);
+      if (response && response.success && Array.isArray(response.data)) {
+        setCreatives(response.data);
+      } else {
+        setCreatives(INITIAL_CREATIVES);
+      }
+    } catch (err) {
+      console.warn('Backend server offline. Displaying static mockup creatives.');
+      setCreatives(INITIAL_CREATIVES);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCreatives();
+  }, []);
+
+  const handleCreateCopy = async (creative: Creative) => {
+    try {
+      const response = await apiClient.post<{ success: boolean; data: Creative }>(
+        ENDPOINTS.marketing.creativeCopy(creative.id),
+        {}
+      );
+      if (response && response.success && response.data) {
+        setCreatives([response.data, ...creatives]);
+      } else {
+        // Fallback UI cloning
+        const newCreative: Creative = {
+          ...creative,
+          id: `creative-${Date.now()}`,
+          name: `${creative.name} (Copy)`,
+          timeAgo: 'Uploaded Just Now'
+        };
+        setCreatives([newCreative, ...creatives]);
+      }
+    } catch (err) {
+      console.error('Failed to register creative copy on backend. Applying fallback clone.', err);
+      const newCreative: Creative = {
+        ...creative,
+        id: `creative-${Date.now()}`,
+        name: `${creative.name} (Copy)`,
+        timeAgo: 'Uploaded Just Now'
+      };
+      setCreatives([newCreative, ...creatives]);
+    }
     setActiveMenuId(null);
   };
 
-  const handleDelete = (id: string) => {
-    setCreatives(creatives.filter((c) => c.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await apiClient.delete(ENDPOINTS.marketing.creativeById(id));
+      setCreatives(creatives.filter((c) => c.id !== id));
+    } catch (err) {
+      console.error('Failed to delete on API. Removing from active state fallback.', err);
+      setCreatives(creatives.filter((c) => c.id !== id));
+    }
     setActiveMenuId(null);
   };
 
