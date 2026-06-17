@@ -1,0 +1,453 @@
+================================================================================
+                    USER MANAGEMENT - BACKEND API REQUIREMENTS
+================================================================================
+
+BASE URL: ${BASE_URL}/users
+(Replace ${BASE_URL} with your actual API URL from NEXT_PUBLIC_API_URL environment variable)
+
+================================================================================
+REQUIRED API ENDPOINTS
+================================================================================
+
+1. GET /users
+   PURPOSE: Fetch paginated list of all users
+   
+   QUERY PARAMETERS (Optional):
+   - page: number (default: 1)
+   - pageSize: number (default: 10)
+   - search: string (search by name, email, phone)
+   - role: string (filter by role)
+   - status: string (filter by status)
+   - sortField: string (field name to sort by)
+   - sortDirection: 'asc' or 'desc'
+   
+   RESPONSE FORMAT:
+   {
+     "data": {
+       "items": [
+         {
+           "id": string,
+           "name": string,
+           "email": string,
+           "phone": string,
+           "role": string,
+           "status": "Active" or "Inactive" or "Suspended",
+           "joinedAt": string,
+           "lastLogin": string,
+           "lifetimeValue": string,
+           "location": string,
+           "dob": string (optional),
+           "membershipTier": string (optional),
+           "userType": string (optional),
+           "businessName": string (optional),
+           "businessType": string (optional),
+           "gstNumber": string (optional),
+           "selectedLanguage": string (optional),
+           "modulesUsed": array of strings (optional),
+           "activities": array (optional),
+           "escalations": array (optional)
+         }
+       ],
+       "total": number,
+       "page": number,
+       "pageSize": number
+     },
+     "success": boolean
+   }
+
+================================================================================
+
+2. POST /users
+   PURPOSE: Create a new user
+   
+   REQUEST BODY:
+   {
+     "name": string (REQUIRED),
+     "email": string (REQUIRED),
+     "phone": string (REQUIRED),
+     "role": string (REQUIRED),
+     "dob": string (optional),
+     "userType": string (optional),
+     "typeOfUser": string (optional),
+     "businessName": string (optional),
+     "businessType": string (optional),
+     "gstNumber": string (optional),
+     "status": "Active" or "Inactive" or "Suspended" (optional, default: "Active"),
+     "modulesUsed": array of strings (optional),
+     "selectedLanguage": string (optional)
+   }
+   
+   RESPONSE FORMAT:
+   {
+     "data": {
+       "id": string (newly generated),
+       "name": string,
+       "email": string,
+       "phone": string,
+       "role": string,
+       "status": string,
+       "joinedAt": string (current date in format: "21 Jan' 26"),
+       "lastLogin": string,
+       "lifetimeValue": string,
+       "location": string,
+       "dob": string,
+       "userType": string,
+       "modulesUsed": array,
+       "activities": empty array,
+       "escalations": empty array
+     },
+     "success": boolean,
+     "message": "User created successfully"
+   }
+
+================================================================================
+
+3. GET /users/{id}
+   PURPOSE: Fetch detailed information for a specific user
+   
+   PATH PARAMETER:
+   - id: string (user ID)
+   
+   RESPONSE FORMAT:
+   {
+     "data": {
+       "id": string,
+       "name": string,
+       "email": string,
+       "phone": string,
+       "role": string,
+       "status": "Active" or "Inactive" or "Suspended",
+       "joinedAt": string,
+       "lastLogin": string,
+       "lifetimeValue": string,
+       "location": string,
+       "dob": string,
+       "membershipTier": string,
+       "userType": string,
+       "typeOfUser": string,
+       "businessName": string,
+       "businessType": string,
+       "gstNumber": string,
+       "selectedLanguage": string,
+       "modulesUsed": array of strings,
+       "activities": [
+         {
+           "id": string,
+           "title": string,
+           "status": "Completed" or "Cancelled" or "Pending",
+           "date": string
+         }
+       ],
+       "escalations": [
+         {
+           "id": string,
+           "disputeId": string,
+           "mechanicName": string,
+           "issueType": string,
+           "status": "Resolved" or "Active"
+         }
+       ]
+     },
+     "success": boolean
+   }
+
+================================================================================
+
+4. PATCH /users/{id}
+   PURPOSE: Update user details (name, email, phone, role, etc.)
+   
+   PATH PARAMETER:
+   - id: string (user ID)
+   
+   REQUEST BODY (send only fields to update):
+   {
+     "name": string (optional),
+     "email": string (optional),
+     "phone": string (optional),
+     "role": string (optional),
+     "dob": string (optional),
+     "userType": string (optional),
+     "typeOfUser": string (optional),
+     "businessName": string (optional),
+     "businessType": string (optional),
+     "gstNumber": string (optional),
+     "selectedLanguage": string (optional),
+     "location": string (optional),
+     "membershipTier": string (optional)
+   }
+   
+   RESPONSE FORMAT:
+   {
+     "data": {
+       (complete updated user object)
+     },
+     "success": boolean,
+     "message": "User updated successfully"
+   }
+
+================================================================================
+
+5. PATCH /users/{id}/status
+   PURPOSE: Update user status (Active/Inactive/Suspended)
+   
+   PATH PARAMETER:
+   - id: string (user ID)
+   
+   REQUEST BODY:
+   {
+     "status": "Active" or "Inactive" or "Suspended"
+   }
+   
+   RESPONSE FORMAT:
+   {
+     "data": {
+       "id": string,
+       "status": string (updated status)
+     },
+     "success": boolean,
+     "message": "User status updated successfully"
+   }
+
+================================================================================
+
+6. DELETE /users/{id}
+   PURPOSE: Delete a user account (if delete functionality needed)
+   
+   PATH PARAMETER:
+   - id: string (user ID)
+   
+   RESPONSE FORMAT:
+   {
+     "data": null,
+     "success": boolean,
+     "message": "User deleted successfully"
+   }
+
+================================================================================
+USER ROLES (Supported in the system)
+================================================================================
+
+1. Customer
+2. Mechanic
+3. Kaarigar
+4. Audit
+5. Super-Admin
+6. Spares Admin
+7. Kaarigar Admin
+8. Mechanic Admin
+9. Academic Admin
+10. Exchange Admin
+
+================================================================================
+USER STATUS OPTIONS
+================================================================================
+
+1. Active
+2. Inactive
+3. Suspended
+
+================================================================================
+USER TYPES / CATEGORIES
+================================================================================
+
+1. Individual
+2. Business Owner
+3. Partner
+4. Corporate
+
+================================================================================
+MEMBERSHIP TIERS (Optional)
+================================================================================
+
+1. Gold
+2. Silver
+3. Bronze
+
+================================================================================
+MODULES USED (Track which platform modules the user has access to)
+================================================================================
+
+Possible modules: 'spares', 'exchange', 'kaarigar', 'academy', 'mechanics', 'finance'
+
+================================================================================
+ERROR RESPONSES
+================================================================================
+
+All errors should follow this format:
+
+{
+  "success": false,
+  "message": "Error description",
+  "data": null
+}
+
+Common error scenarios:
+- Missing required fields
+- Invalid email format
+- Invalid phone number format
+- User already exists
+- User not found
+- Unauthorized access
+- Internal server error
+
+================================================================================
+AUTHENTICATION
+================================================================================
+
+All API endpoints require authentication:
+- Pass Authorization header with Bearer token
+- Token format: "Bearer <auth_token>"
+- Token should be stored in localStorage as 'auth_token'
+- The API client automatically injects the token
+
+================================================================================
+PAGINATION GUIDELINES
+================================================================================
+
+Default page size: 10
+Maximum page size: 100
+Total users count should be returned in response
+
+Use pagination for GET /users endpoint when user list is large
+
+================================================================================
+SORTING GUIDELINES
+================================================================================
+
+Supported sort fields:
+- name
+- email
+- phone
+- role
+- status
+- joinedAt
+- lastLogin
+
+Sort direction: 'asc' (ascending) or 'desc' (descending)
+
+================================================================================
+FILTERING GUIDELINES
+================================================================================
+
+Supported filters:
+- role: Filter users by role
+- status: Filter by Active/Inactive/Suspended
+- search: Search in name, email, phone (full text search)
+- date range: Filter users joined between dates (optional)
+
+================================================================================
+FRONTEND INTEGRATION NOTES
+================================================================================
+
+1. All API calls use ENDPOINTS.users.* from /src/lib/endpoints.ts
+2. API client automatically handles:
+   - Auth token injection
+   - Request timeout (10 seconds default)
+   - Error formatting
+3. Existing endpoints in endpoints.ts:
+   - ENDPOINTS.users.list = ${BASE_URL}/users
+   - ENDPOINTS.users.byId(id) = ${BASE_URL}/users/{id}
+   - ENDPOINTS.users.create = ${BASE_URL}/users
+   - ENDPOINTS.users.update(id) = ${BASE_URL}/users/{id}
+   - ENDPOINTS.users.delete(id) = ${BASE_URL}/users/{id}
+   - ENDPOINTS.users.updateStatus(id) = ${BASE_URL}/users/{id}/status
+
+4. Hook: useUsers() is located at /src/app/users/_hooks/useUsers.ts
+   - Currently uses localStorage fallback
+   - Replace mock calls with actual API endpoints:
+     * fetchUsers() - call GET /users
+     * createUser() - call POST /users
+     * updateStatus() - call PATCH /users/{id}/status
+     * updateUser() - call PATCH /users/{id}
+
+================================================================================
+EXAMPLE REQUEST/RESPONSE FLOWS
+================================================================================
+
+EXAMPLE 1: Create New Customer
+Request:
+POST /users
+{
+  "name": "Rajesh Kumar",
+  "email": "rajesh@example.com",
+  "phone": "+91 9876543210",
+  "role": "Customer",
+  "userType": "Individual",
+  "dob": "21 Jan' 1990",
+  "status": "Active"
+}
+
+Response:
+{
+  "data": {
+    "id": "u-abc123xyz",
+    "name": "Rajesh Kumar",
+    "email": "rajesh@example.com",
+    "phone": "+91 9876543210",
+    "role": "Customer",
+    "status": "Active",
+    "joinedAt": "17 Jun' 26",
+    "lastLogin": "17 Jun' 26",
+    "lifetimeValue": "₹0",
+    "location": "Delhi",
+    "userType": "Individual",
+    "activities": [],
+    "escalations": []
+  },
+  "success": true,
+  "message": "User created successfully"
+}
+
+---
+
+EXAMPLE 2: Get Users List with Pagination and Filter
+Request:
+GET /users?page=1&pageSize=10&role=Customer&status=Active&sortField=joinedAt&sortDirection=desc
+
+Response:
+{
+  "data": {
+    "items": [
+      {
+        "id": "u-nishant",
+        "name": "Nishant Kumar",
+        "email": "nishant.kumar@gmail.com",
+        "role": "Customer",
+        "status": "Active",
+        "joinedAt": "21 Jan' 26",
+        "phone": "9876543210",
+        "location": "Delhi",
+        "lastLogin": "21 Jan' 26",
+        "lifetimeValue": "₹2,500",
+        "membership": "Gold"
+      }
+    ],
+    "total": 150,
+    "page": 1,
+    "pageSize": 10
+  },
+  "success": true
+}
+
+---
+
+EXAMPLE 3: Update User Status
+Request:
+PATCH /users/u-nishant/status
+{
+  "status": "Inactive"
+}
+
+Response:
+{
+  "data": {
+    "id": "u-nishant",
+    "status": "Inactive"
+  },
+  "success": true,
+  "message": "User status updated successfully"
+}
+
+================================================================================
+END OF BACKEND API REQUIREMENTS
+================================================================================

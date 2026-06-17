@@ -205,7 +205,7 @@ export default function AddUserPage() {
             </label>
             <input 
               type="email" 
-              placeholder="Enter Name" // Matches mock image design
+              placeholder="Enter Email" // Matches mock image design
               className={styles.input}
               value={email}
               onChange={(e) => setEmail(e.target.value)}

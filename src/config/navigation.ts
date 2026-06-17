@@ -21,7 +21,19 @@ export const NAVIGATION_ROUTES: Route[] = [
       { name: 'Requests & Alerts', path: '/spares/alerts' }
     ]
   },
-  { name: 'Sewtech Mechanic', path: '/mechanic', icon: '🔧' },
+  { 
+    name: 'Sewtech Mechanic', 
+    path: '/mechanic', 
+    icon: '🔧',
+    subItems: [
+      { name: 'Overview', path: '/mechanic/overview' },
+      { name: 'Orders/Service Requests', path: '/mechanic/orders' },
+      { name: 'Mechanic Management', path: '/mechanic/management' },
+      { name: 'Mechanic Verification', path: '/mechanic/verification' },
+      { name: 'AMC Management', path: '/mechanic/amc' },
+      { name: 'Payments', path: '/mechanic/payments' }
+    ]
+  },
   { name: 'Sewtech Exchange', path: '/exchange', icon: '🔄' },
   { name: 'Sewtech Kaarigar', path: '/kaarigar', icon: '👤' },
   { name: 'Sewtech Academy', path: '/academy', icon: '🎓' },
