@@ -108,7 +108,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.65rem 1.25rem;
+  padding: 0.65rem 1rem;
+  margin: 0 0.5rem;
+  border-radius: 0.5rem;
   color: var(--text-secondary);
   transition: all var(--transition-fast);
   font-size: 0.875rem;
@@ -120,9 +122,8 @@
 .navLink:hover { background-color: var(--bg-tertiary); color: #111827; }
 
 .navLinkActive {
-  background-color: #fff0f0;
-  color: var(--accent-primary);
-  border-right: 3px solid var(--accent-primary);
+  background-color: #dcfce7;
+  color: var(--accent-green);
   font-weight: 600;
 }
 
@@ -146,8 +147,8 @@
 
 .subNavLink:hover { color: #111827; background: #f3f4f6; }
 
-.subNavLinkActive { color: var(--accent-primary); font-weight: 600; }
-.subNavLinkActive .subDot { color: var(--accent-primary); }
+.subNavLinkActive { color: var(--accent-green); font-weight: 600; }
+.subNavLinkActive .subDot { color: var(--accent-green); }
 
 .subDot { color: #d1d5db; font-size: 1rem; line-height: 0; }
 
