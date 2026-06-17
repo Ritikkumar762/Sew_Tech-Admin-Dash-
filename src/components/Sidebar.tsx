@@ -4,7 +4,21 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NAVIGATION_ROUTES, BOTTOM_ROUTES } from '@/config/navigation';
+import { RefreshCw, User, PlayCircle, Network, Briefcase, Megaphone, Headset, Users, Settings, LogOut } from 'lucide-react';
 import styles from './Sidebar.module.css';
+
+const iconMap: Record<string, React.ReactNode> = {
+  RefreshCw: <RefreshCw size={20} strokeWidth={1.5} />,
+  User: <User size={20} strokeWidth={1.5} />,
+  PlayCircle: <PlayCircle size={20} strokeWidth={1.5} />,
+  Network: <Network size={20} strokeWidth={1.5} />,
+  Briefcase: <Briefcase size={20} strokeWidth={1.5} />,
+  Megaphone: <Megaphone size={20} strokeWidth={1.5} />,
+  Headset: <Headset size={20} strokeWidth={1.5} />,
+  Users: <Users size={20} strokeWidth={1.5} />,
+  Settings: <Settings size={20} strokeWidth={1.5} />,
+  LogOut: <LogOut size={20} strokeWidth={1.5} />
+};
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -41,9 +55,7 @@ export default function Sidebar() {
   const sidebarContent = (
     <aside className={styles.sidebar}>
       <div className={styles.logoArea}>
-        <div className={styles.logoText}>
-          SEWTECH <br /> mart
-        </div>
+        <img src="/main_logo.png" alt="Sewtech Mart" style={{ height: '56px', width: 'auto', objectFit: 'contain' }} />
         {/* Close button visible on mobile */}
         <button className={styles.closeBtn} onClick={() => setIsMobileOpen(false)}>✕</button>
       </div>
@@ -64,7 +76,15 @@ export default function Sidebar() {
                   onClick={() => toggleMenu(route.path)}
                 >
                   <div className={styles.navLinkContent}>
-                    <span className={styles.navIcon}>{route.icon}</span>
+                    <span className={styles.navIcon}>
+                      {route.icon?.includes('.png') ? (
+                        <img src={route.icon} alt={route.name} style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} className={isActive ? styles.activeImg : ''} />
+                      ) : route.icon && iconMap[route.icon] ? (
+                        iconMap[route.icon]
+                      ) : (
+                        route.icon
+                      )}
+                    </span>
                     <span>{route.name}</span>
                   </div>
                   <span className={styles.chevron}>{isOpen ? '▾' : '›'}</span>
@@ -75,7 +95,15 @@ export default function Sidebar() {
                   className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
                 >
                   <div className={styles.navLinkContent}>
-                    <span className={styles.navIcon}>{route.icon}</span>
+                    <span className={styles.navIcon}>
+                      {route.icon?.includes('.png') ? (
+                        <img src={route.icon} alt={route.name} style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} className={isActive ? styles.activeImg : ''} />
+                      ) : route.icon && iconMap[route.icon] ? (
+                        iconMap[route.icon]
+                      ) : (
+                        route.icon
+                      )}
+                    </span>
                     <span>{route.name}</span>
                   </div>
                   <span className={styles.chevron}>›</span>
@@ -94,7 +122,7 @@ export default function Sidebar() {
                         href={subItem.path}
                         className={`${styles.subNavLink} ${isSubActive ? styles.subNavLinkActive : ''}`}
                       >
-                        <span className={styles.subDot}>•</span>
+                        <span className={styles.subDot}></span>
                         {subItem.name}
                       </Link>
                     );
@@ -115,8 +143,16 @@ export default function Sidebar() {
             style={route.name === 'Logout' ? { color: 'var(--danger)' } : {}}
           >
             <div className={styles.navLinkContent}>
-              <span className={styles.navIcon}>{route.icon}</span>
-              <span>{route.name}</span>
+              <span className={styles.navIcon} style={route.name === 'Logout' ? { color: '#ef4444' } : {}}>
+                {route.icon?.includes('.png') ? (
+                  <img src={route.icon} alt={route.name} style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} />
+                ) : route.icon && iconMap[route.icon] ? (
+                  iconMap[route.icon]
+                ) : (
+                  route.icon
+                )}
+              </span>
+              <span style={route.name === 'Logout' ? { color: '#ef4444' } : {}}>{route.name}</span>
             </div>
           </Link>
         ))}
