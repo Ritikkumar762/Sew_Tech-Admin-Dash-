@@ -1,5 +1,5 @@
 'use client';
-import { useMechanics } from './_hooks/useMechanics';
+import { useMechanics } from '../_hooks/useMechanics';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
 import DataTable, { Column } from '@/components/ui/DataTable';
