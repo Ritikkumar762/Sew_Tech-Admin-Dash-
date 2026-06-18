@@ -36,10 +36,52 @@ export default function SparesOrdersPage() {
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   
-  // Pill Filter states
-  const [showDelayedPill, setShowDelayedPill] = useState(true);
-  const [showFlaggedPill, setShowFlaggedPill] = useState(true);
-  const [showSupportPill, setShowSupportPill] = useState(true);
+  // Dynamic Pill Filter states per tab
+  const [activePills, setActivePills] = useState<Record<string, string[]>>({
+    All: ['Delayed'],
+    Ordered: ['Shipped'],
+    Return: ['Return Requested'],
+    Replacement: ['Replacement Requested'],
+    Cancelled: ['Cancelled'],
+  });
+
+  const ALL_PILLS: Record<string, { label: string; count?: number; hasPlus?: boolean }[]> = {
+    All: [
+      { label: 'Flagged', count: 767 },
+      { label: 'Delayed' },
+      { label: 'Support Required', count: 34, hasPlus: true }
+    ],
+    Ordered: [
+      { label: 'Payment Failed', count: 767, hasPlus: true },
+      { label: 'Shipped' },
+      { label: 'Out for Delivery', count: 34, hasPlus: true },
+      { label: 'Delivery Failed', count: 12, hasPlus: true },
+      { label: 'Completed', hasPlus: true }
+    ],
+    Return: [
+      { label: 'Return Requested' },
+      { label: 'Returned', count: 1983, hasPlus: true }
+    ],
+    Replacement: [
+      { label: 'Replacement Requested' },
+      { label: 'Replacement', count: 1534, hasPlus: true }
+    ],
+    Cancelled: [
+      { label: 'Cancelled' },
+      { label: 'Cancelled by User', count: 374, hasPlus: true }
+    ]
+  };
+
+  const togglePill = (tab: string, label: string) => {
+    setActivePills(prev => {
+      const current = prev[tab] || [];
+      if (current.includes(label)) {
+        return { ...prev, [tab]: current.filter(l => l !== label) };
+      } else {
+        return { ...prev, [tab]: [...current, label] };
+      }
+    });
+  };
 
   // Refresh animations/states for cards
   const [refreshingCard, setRefreshingCard] = useState<number | null>(null);
@@ -319,7 +361,7 @@ export default function SparesOrdersPage() {
         
         {/* Toolbar row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', gap: '1rem' }}>
-          <div style={{ display: 'flex', gap: '1rem', flex: 1, maxW: '700px' }}>
+          <div style={{ display: 'flex', gap: '1rem', flex: 1, maxWidth: '700px' }}>
             {/* Search Input */}
             <div style={{ position: 'relative', flex: 2 }}>
               <span style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
@@ -421,27 +463,54 @@ export default function SparesOrdersPage() {
 
         {/* Secondary Filter Pills row */}
         <div style={{ display: 'flex', gap: '0.75rem', paddingBottom: '1rem', flexWrap: 'wrap' }}>
-          {showFlaggedPill && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.875rem', borderRadius: '2rem', backgroundColor: '#f3f4f6', color: '#4b5563', fontSize: '0.75rem', fontWeight: 500 }}>
-              Flagged (767)
-            </div>
-          )}
-          
-          {showDelayedPill && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.875rem', borderRadius: '2rem', backgroundColor: '#1f2937', color: 'white', fontSize: '0.75rem', fontWeight: 500 }}>
-              Delayed
-              <button onClick={() => setShowDelayedPill(false)} style={{ border: 'none', background: 'none', color: 'white', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' }}>
-                <X size={12} />
-              </button>
-            </div>
-          )}
-
-          {showSupportPill && (
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.875rem', borderRadius: '2rem', backgroundColor: '#f3f4f6', color: '#4b5563', fontSize: '0.75rem', fontWeight: 500 }}>
-              Support Required (34)
-              <Plus size={12} style={{ color: '#9ca3af' }} />
-            </div>
-          )}
+          {(ALL_PILLS[activeTab] || []).map((pill) => {
+            const isActive = (activePills[activeTab] || []).includes(pill.label);
+            return (
+              <div 
+                key={pill.label}
+                onClick={() => !isActive && togglePill(activeTab, pill.label)}
+                style={{ 
+                  display: 'inline-flex', 
+                  alignItems: 'center', 
+                  gap: '0.375rem', 
+                  padding: '0.375rem 0.875rem', 
+                  borderRadius: '2rem', 
+                  backgroundColor: isActive ? '#1f2937' : '#f3f4f6', 
+                  color: isActive ? 'white' : '#4b5563', 
+                  fontSize: '0.75rem', 
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  userSelect: 'none'
+                }}
+              >
+                {pill.label}
+                {pill.count !== undefined && ` (${pill.count})`}
+                {isActive ? (
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); togglePill(activeTab, pill.label); }}
+                    style={{ border: 'none', background: 'none', color: 'white', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', marginLeft: '0.125rem' }}
+                  >
+                    <X size={12} />
+                  </button>
+                ) : (
+                  <span style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    width: '12px', 
+                    height: '12px', 
+                    borderRadius: '50%', 
+                    border: '1px solid #9ca3af',
+                    fontSize: '9px',
+                    fontWeight: 700,
+                    lineHeight: 1,
+                    marginLeft: '0.125rem'
+                  }}>+</span>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Orders Table Container */}

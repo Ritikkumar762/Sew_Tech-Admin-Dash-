@@ -68,6 +68,27 @@ export default function OrderDetailPage() {
     setShowCancelModal(false);
   };
 
+  const getBadgeClass = (status: string) => {
+    switch (status) {
+      case 'Order Received':
+      case 'Delivered':
+      case 'Completed':
+        return 'badge-completed';
+      case 'Shipped':
+        return 'badge-warning';
+      case 'Out for Delivery':
+        return order.id.toLowerCase() === 'sth-rh-2048' ? 'badge-completed' : 'badge-warning';
+      case 'Cancelled':
+      case 'Payment Failed':
+      case 'Delivery Failed':
+        return 'badge-danger';
+      case 'Processing':
+      case 'Return Requested':
+      default:
+        return 'badge-info';
+    }
+  };
+
   // Products List matching image
   const products = [
     { name: 'High-Speed Rotary Hook Assembly', code: 'HC3000', price: 1850, quantity: 2, tax: 1850, amount: 1850 },
@@ -128,6 +149,11 @@ export default function OrderDetailPage() {
             background-color: #fef2f2;
             color: #dc2626;
             border: 1px solid #fecaca;
+          }
+          .badge-warning {
+            background-color: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fef3c7;
           }
           .copy-btn {
             display: inline-flex;
@@ -286,6 +312,32 @@ export default function OrderDetailPage() {
 
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', position: 'relative' }}>
+            {/* Invoice Button */}
+            <button 
+              onClick={() => {
+                alert('Downloading invoice...');
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+                padding: '0.5rem 1rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.5rem',
+                backgroundColor: 'white',
+                color: '#374151',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+            >
+              Invoice
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            </button>
+
             {order.status !== 'Cancelled' && (
               <button 
                 onClick={() => setShowCancelModal(true)}
@@ -393,7 +445,7 @@ export default function OrderDetailPage() {
 
           <div>
             <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500, marginBottom: '0.25rem' }}>Status:</div>
-            <span className={`badge ${order.status === 'Delivered' ? 'badge-completed' : order.status === 'Cancelled' ? 'badge-danger' : 'badge-info'}`}>
+            <span className={`badge ${getBadgeClass(order.status)}`}>
               {order.status}
             </span>
           </div>
