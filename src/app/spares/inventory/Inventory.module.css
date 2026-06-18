@@ -1,0 +1,535 @@
+.pageContainer {
+  display: flex;
+  height: calc(100vh - 64px);
+  background-color: #f9fafb;
+  overflow-y: auto;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.breadcrumb span {
+  color: #111827;
+  font-weight: 500;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.headerActions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btnDark {
+  background-color: #111827;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.btnDark:hover {
+  background-color: #1f2937;
+}
+
+.btnDiscard {
+  background: white;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.btnDiscard:hover {
+  background-color: #fee2e2;
+}
+
+.btnSave {
+  background-color: #10b981;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background-color 0.2s;
+}
+
+.btnSave:hover {
+  background-color: #059669;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.statCard {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  position: relative;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.02);
+}
+
+.statHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.statTitleWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.statTitle {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.infoIcon {
+  color: #9ca3af;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+
+.infoIcon:hover {
+  color: #4b5563;
+}
+
+.statValueWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.refreshBtn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  border-radius: 4px;
+}
+
+.refreshBtn:hover {
+  background-color: #eff6ff;
+}
+
+.tooltipPopover {
+  position: absolute;
+  top: -110px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  width: 250px;
+  padding: 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  text-align: left;
+}
+
+.tooltipPopover::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-right: 1px solid #d1d5db;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.tooltipTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tooltipText {
+  font-size: 0.75rem;
+  color: #4b5563;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.tableControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+}
+
+.controlGroupLeft {
+  display: flex;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.searchInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  width: 320px;
+  background: white;
+}
+
+.searchInput {
+  border: none;
+  outline: none;
+  font-size: 0.875rem;
+  width: 100%;
+}
+
+.selectBox {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #374151;
+  background: white url('data:image/svg+xml;utf8,<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="%236b7280" strokeWidth="2"><polyline points="6 9 12 15 18 9"></polyline></svg>') no-repeat right 0.75rem center;
+  appearance: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.iconBtn {
+  background: white;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem;
+  border-radius: 6px;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconBtn:hover {
+  background-color: #f9fafb;
+}
+
+.controlGroupRight {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btnApplyFilters {
+  background-color: #111827;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tableContainer {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.tableHeaderRow {
+  display: grid;
+  grid-template-columns: 40px 1.5fr 1fr 1fr 1fr;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+}
+
+.tableHeaderCell {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4b5563;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid #d1d5db;
+  cursor: pointer;
+}
+
+.productBlock {
+  border-bottom: 1px solid #e5e7eb;
+  transition: all 0.2s;
+  background-color: white;
+}
+
+.productBlockExpanded {
+  background-color: #eff6ff;
+  border: 2px solid #3b82f6;
+  margin: 0.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.productMainRow {
+  display: grid;
+  grid-template-columns: 40px 1.5fr 1fr 1fr 1fr;
+  padding: 1rem;
+  align-items: center;
+  cursor: pointer;
+}
+
+.productCell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.thumbnailWrapper {
+  width: 40px;
+  height: 40px;
+  background-color: #fef3c7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.productName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.productSku {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.15rem;
+}
+
+.dataBox {
+  background-color: #f3f4f6;
+  color: #111827;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  width: 140px;
+  text-align: center;
+}
+
+.dataBoxExpanded {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.variantsContainer {
+  padding: 0 1rem 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.variantRow {
+  display: grid;
+  grid-template-columns: 40px 1.5fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background-color: white;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+}
+
+.variantCell {
+  display: flex;
+  flex-direction: column;
+  padding-left: 0.75rem;
+}
+
+.variantName {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.variantSubtext {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.stockEditor {
+  display: flex;
+  align-items: center;
+  background-color: #9ca3af;
+  border-radius: 6px;
+  width: 140px;
+  overflow: hidden;
+}
+
+.editorBtn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: bold;
+  width: 40px;
+  height: 38px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.editorBtn:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.editorInput {
+  background-color: white;
+  border: none;
+  width: 60px;
+  height: 38px;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #111827;
+  outline: none;
+}
+
+.whiteBox {
+  background-color: white;
+  border: 1px solid #d1d5db;
+  color: #111827;
+  font-weight: 600;
+  font-size: 0.875rem;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  width: 140px;
+  text-align: center;
+}
+
+.priceEditorWrapper {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  width: 140px;
+  height: 38px;
+  position: relative;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.priceEditorWrapper:focus-within {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.currencySymbol {
+  position: absolute;
+  left: 12px;
+  color: #6b7280;
+  font-weight: 600;
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+
+.priceInput {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  height: 100%;
+  color: #111827;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-align: center;
+  padding-left: 20px;
+  padding-right: 12px;
+  box-sizing: border-box;
+}

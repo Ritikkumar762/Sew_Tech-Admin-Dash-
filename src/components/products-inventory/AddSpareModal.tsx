@@ -22,16 +22,24 @@ export function AddSpareModal({ isOpen, onClose, onBulkUpload, onEnterManually }
   };
 
   return (
-    <div className={styles.modalOverlay} style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.6)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
-    }}>
-      <div className={styles.modalCard} style={{ position: 'relative', overflow: 'visible' }}>
+    <div 
+      className={styles.modalOverlay} 
+      onClick={onClose}
+      style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1100
+      }}
+    >
+      <div 
+        className={styles.modalCard} 
+        onClick={(e) => e.stopPropagation()}
+        style={{ position: 'relative', overflow: 'visible', margin: 'auto' }}
+      >
         <button className={styles.modalCloseBtnCorner} onClick={onClose} aria-label="Close modal">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -57,7 +65,7 @@ export function AddSpareModal({ isOpen, onClose, onBulkUpload, onEnterManually }
                   style={{ 
                     width: '32px', 
                     height: '32px', 
-                    filter: selectedOption === 'bulk' ? 'brightness(0) invert(1)' : 'none' 
+                    filter: selectedOption === 'bulk' ? 'none' : 'brightness(0) opacity(0.6)' 
                   }} 
                 />
               </div>
@@ -76,7 +84,7 @@ export function AddSpareModal({ isOpen, onClose, onBulkUpload, onEnterManually }
                   style={{ 
                     width: '32px', 
                     height: '32px', 
-                    filter: selectedOption === 'manual' ? 'brightness(0) invert(1)' : 'none' 
+                    filter: selectedOption === 'manual' ? 'brightness(0) invert(1)' : 'brightness(0) opacity(0.6)' 
                   }} 
                 />
               </div>

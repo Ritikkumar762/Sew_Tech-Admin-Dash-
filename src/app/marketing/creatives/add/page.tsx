@@ -1,9 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient, ENDPOINTS } from '@/lib';
 
-export default function AddCreativePage() {
+function AddCreativeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams ? searchParams.get('editId') : null;
@@ -836,5 +836,13 @@ export default function AddCreativePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AddCreativePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>Loading creative details...</div>}>
+      <AddCreativeContent />
+    </Suspense>
   );
 }

@@ -94,35 +94,37 @@ export default function ProductsInventoryPage() {
   ];
 
   return (
-    <div className={styles.pageContainer}>
-      <div className={styles.mainContent}>
-        <div className={styles.pageHeader}>
-          <div>
-            <div className={styles.breadcrumb}>Sewtech Spare • Products Inventory</div>
-            <h1 className={styles.pageTitle}>Products Inventory</h1>
+    <>
+      <div className={styles.pageContainer}>
+        <div className={styles.mainContent}>
+          <div className={styles.pageHeader}>
+            <div>
+              <div className={styles.breadcrumb}>Sewtech Spare • Products Inventory</div>
+              <h1 className={styles.pageTitle}>Products Inventory</h1>
+            </div>
+            <div className={styles.headerActions}>
+              <button className={styles.btnDark} onClick={() => setIsOptionsModalOpen(true)}>Add Spare</button>
+              <button className={styles.btnDark}>
+                Export 
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              </button>
+            </div>
           </div>
-          <div className={styles.headerActions}>
-            <button className={styles.btnDark} onClick={() => setIsOptionsModalOpen(true)}>Add Spare</button>
-            <button className={styles.btnDark}>
-              Export 
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            </button>
+
+          <StatCards stats={stats} />
+
+          <div className={styles.tableCard}>
+            <TableControls onSearchChange={handleSearchChange} />
+            <DataTable data={filteredData} />
           </div>
         </div>
-
-        <StatCards stats={stats} />
-
-        <div className={styles.tableCard}>
-          <TableControls onSearchChange={handleSearchChange} />
-          <DataTable data={filteredData} />
-        </div>
+        
+        <FilterSidebar 
+          filters={filters} 
+          setFilters={setFilters} 
+          onClear={handleClearFilters} 
+        />
       </div>
-      
-      <FilterSidebar 
-        filters={filters} 
-        setFilters={setFilters} 
-        onClear={handleClearFilters} 
-      />
 
       <AddSpareModal 
         isOpen={isOptionsModalOpen} 
@@ -141,6 +143,6 @@ export default function ProductsInventoryPage() {
         isOpen={isBulkUploadOpen} 
         onClose={() => setIsBulkUploadOpen(false)} 
       />
-    </div>
+    </>
   );
 }

@@ -24,7 +24,8 @@ export default function AddSparePage() {
   ]);
 
   return (
-    <div className={styles.pageContainer}>
+    <>
+      <div className={styles.pageContainer}>
       <div className={styles.mainContent}>
         <div className={styles.pageHeader}>
           <div>
@@ -239,7 +240,22 @@ export default function AddSparePage() {
 
           <div className={styles.formGroup} style={{ marginTop: '1.5rem' }}>
             <label className={styles.label}>Upload Spare Images<span className={styles.required}>*</span></label>
-            <div className={styles.uploadBox}>
+            <div 
+              className={styles.uploadBox}
+              onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (e.dataTransfer.files) {
+                  setUploadedImages(prev => [...prev, ...Array.from(e.dataTransfer.files)]);
+                }
+              }}
+              style={{ cursor: 'pointer' }}
+            >
               <input 
                 type="file" 
                 multiple 
@@ -257,6 +273,7 @@ export default function AddSparePage() {
                 className={styles.uploadBtn} 
                 onClick={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   fileInputRef.current?.click();
                 }}
               >
@@ -320,13 +337,13 @@ export default function AddSparePage() {
             </div>
           </div>
         </div>
-
       </div>
+    </div>
 
-      {/* Confirmation Modal */}
+    {/* Confirmation Modal */}
       {showConfirmation && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.confirmationCard}>
+        <div className={styles.modalOverlay} style={{ zIndex: 1100 }}>
+          <div className={styles.confirmationCard} style={{ margin: 'auto' }}>
             <button className={styles.modalCloseBtn} onClick={() => setShowConfirmation(false)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
             </button>
@@ -346,6 +363,6 @@ export default function AddSparePage() {
           </div>
         </div>
       )}
-    </div>
+    </>
   );
 }

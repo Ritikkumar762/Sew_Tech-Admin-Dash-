@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiClient, ENDPOINTS } from '@/lib';
 
@@ -27,7 +27,7 @@ const TYPE_OPTIONS = [
   'View Only'
 ];
 
-export default function AddRolePage() {
+function AddRoleContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editId = searchParams ? searchParams.get('editId') : null;
@@ -413,5 +413,13 @@ export default function AddRolePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AddRolePage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>Loading role details...</div>}>
+      <AddRoleContent />
+    </Suspense>
   );
 }

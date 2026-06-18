@@ -19,7 +19,13 @@ export default function OrdersDashboard() {
     { id: 'Assisted Booking', label: 'Assisted Booking', count: 1085, alert: true }
   ];
 
-  const getFilters = (tab: TabType) => {
+  interface FilterOption {
+    label: string;
+    count: number | null;
+    active?: boolean;
+  }
+
+  const getFilters = (tab: TabType): FilterOption[] => {
     switch (tab) {
       case 'Instant Smart Booking':
         return [

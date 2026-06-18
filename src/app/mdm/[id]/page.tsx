@@ -1,7 +1,8 @@
 'use client';
 import { useMdmDetail } from '../_hooks/useMdmDetail';
+import { Suspense } from 'react';
 
-export default function MDMDetailPage() {
+function MDMDetailContent() {
   const {
     id,
     router,
@@ -778,7 +779,14 @@ export default function MDMDetailPage() {
           </div>
         </>
       )}
-
     </div>
+  );
+}
+
+export default function MDMDetailPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>Loading details...</div>}>
+      <MDMDetailContent />
+    </Suspense>
   );
 }

@@ -28,16 +28,24 @@ export function BulkUploadFlow({ isOpen, onClose }: BulkUploadFlowProps) {
   };
 
   return (
-    <div className={styles.modalOverlay} style={{
-      position: 'fixed',
-      top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.6)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 1000
-    }}>
-      <div className={`${styles.modalCard} ${uploadState === 'preview' ? styles.modalCardLarge : ''}`} style={{ position: 'relative', overflow: 'visible', margin: 'auto' }}>
+    <div 
+      className={styles.modalOverlay} 
+      onClick={resetAndClose}
+      style={{
+        position: 'fixed',
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1100
+      }}
+    >
+      <div 
+        className={`${styles.modalCard} ${uploadState === 'preview' ? styles.modalCardLarge : ''}`} 
+        onClick={(e) => e.stopPropagation()}
+        style={{ position: 'relative', overflow: 'visible', margin: 'auto' }}
+      >
         <div className={styles.modalHeader}>
           <h3>{uploadState === 'preview' ? 'Preview Bulk Upload' : 'Bulk Upload'}</h3>
           <button className={styles.modalCloseBtn} onClick={resetAndClose}>
