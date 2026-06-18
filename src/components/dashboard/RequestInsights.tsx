@@ -13,8 +13,16 @@ export default function RequestInsights() {
     'Video Assistance'
   ];
 
+  interface FunnelStage {
+    name: string;
+    value: number;
+    trend?: string;
+    link?: string;
+    status?: string;
+  }
+
   // Data for "All Jobs" or default 4-stage funnel
-  const defaultFunnelData = {
+  const defaultFunnelData: { title: string; stages: FunnelStage[]; areaData: any[]; gradientStops: any[] } = {
     title: 'Service Request Funnel',
     stages: [
       { name: 'Requests Received', value: 1000, trend: '▲ 5% (L7D)' },
@@ -39,7 +47,7 @@ export default function RequestInsights() {
   };
 
   // Data for "Invite Quotes" 5-stage funnel
-  const inviteQuotesData = {
+  const inviteQuotesData: { title: string; stages: FunnelStage[]; areaData: any[]; gradientStops: any[] } = {
     title: 'Order Funnel',
     stages: [
       { name: 'Quotes Invited', value: 1000, trend: '▲ 5% (L7D)' },

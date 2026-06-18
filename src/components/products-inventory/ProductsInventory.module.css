@@ -673,12 +673,12 @@
 }
 
 .secondaryOption {
-  background-color: #f9fafb;
+  background-color: #eff6ff;
   color: #111827;
 }
 
 .secondaryOption:hover {
-  background-color: #f3f4f6;
+  background-color: #dbeafe;
 }
 
 .optionIcon {
@@ -836,4 +836,28 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.modalCloseBtnCorner {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  background-color: #1f2937;
+  color: white;
+  border: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  z-index: 1010;
+  transition: background-color 0.2s;
+}
+
+.modalCloseBtnCorner:hover {
+  background-color: #111827;
+}
+
 

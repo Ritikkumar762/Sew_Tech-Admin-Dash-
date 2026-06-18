@@ -624,7 +624,7 @@ export default function ModuleWiseSettingsPage() {
 
       {/* ─── MODAL: Verification Password overlay ─── */}
       {showPasswordModal && (
-        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyCentert: 'center', zIndex: 100 }}>
+        <div className="modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100 }}>
           {/* Box dimensions matched strictly to Frame 1561849204 & Frame 1261158783 */}
           <div style={{ background: '#fff', borderRadius: '1rem', width: '420px', padding: '2rem', border: passwordError ? '1.5px solid #fca5a5' : '1px solid #e5e7eb', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', position: 'relative', margin: 'auto', animation: 'fadeInUp 0.3s ease-out' }}>
             

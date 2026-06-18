@@ -28,8 +28,16 @@ export function BulkUploadFlow({ isOpen, onClose }: BulkUploadFlowProps) {
   };
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={`${styles.modalCard} ${uploadState === 'preview' ? styles.modalCardLarge : ''}`}>
+    <div className={styles.modalOverlay} style={{
+      position: 'fixed',
+      top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    }}>
+      <div className={`${styles.modalCard} ${uploadState === 'preview' ? styles.modalCardLarge : ''}`} style={{ position: 'relative', overflow: 'visible', margin: 'auto' }}>
         <div className={styles.modalHeader}>
           <h3>{uploadState === 'preview' ? 'Preview Bulk Upload' : 'Bulk Upload'}</h3>
           <button className={styles.modalCloseBtn} onClick={resetAndClose}>
@@ -84,8 +92,13 @@ export function BulkUploadFlow({ isOpen, onClose }: BulkUploadFlowProps) {
                     <tr key={item}>
                       <td>
                         <div className={styles.productCell}>
-                           <div className={styles.productIconWrapper}>
-                              <span className={styles.productIcon}>b</span>
+                           <div className={styles.productIconWrapper} style={{ overflow: 'hidden' }}>
+                              <span className={styles.productIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                                 </svg>
+                              </span>
                            </div>
                            <div>
                               <div className={styles.productName}>High-Speed Rotary Hook Assembly</div>

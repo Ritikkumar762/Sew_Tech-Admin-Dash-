@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 export default function AddSparePage() {
   const router = useRouter();
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [banners, setBanners] = useState([
     { id: 1, url: '/sale 1.png', selected: true },
     { id: 2, url: '/sale 2.png', selected: false },
@@ -15,9 +17,10 @@ export default function AddSparePage() {
     { id: 5, url: '/sale 5.png', selected: false },
     { id: 6, url: '/sale 6.png', selected: false },
     { id: 7, url: '/sale 7.png', selected: false },
-    { id: 8, url: '/sale 8.png', selected: false },
     { id: 9, url: '/sale 9.png', selected: false },
     { id: 10, url: '/sale 10.png', selected: false },
+    { id: 11, url: '/sale 11.png', selected: false },
+    { id: 12, url: '/sale 12.png', selected: false },
   ]);
 
   return (
@@ -237,11 +240,52 @@ export default function AddSparePage() {
           <div className={styles.formGroup} style={{ marginTop: '1.5rem' }}>
             <label className={styles.label}>Upload Spare Images<span className={styles.required}>*</span></label>
             <div className={styles.uploadBox}>
-              <button className={styles.uploadBtn}>
-                Upload Photo
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              <input 
+                type="file" 
+                multiple 
+                accept="image/*" 
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  if (e.target.files) {
+                    setUploadedImages(prev => [...prev, ...Array.from(e.target.files!)]);
+                  }
+                }}
+              />
+              <button 
+                type="button" 
+                className={styles.uploadBtn} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }}
+              >
+                Upload Photo <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
               </button>
             </div>
+            {uploadedImages.length > 0 && (
+              <div className={styles.uploadedImagesGrid}>
+                {uploadedImages.map((file, i) => {
+                  const previewUrl = URL.createObjectURL(file);
+                  return (
+                    <div key={i} className={styles.uploadedImageCard}>
+                      <img src={previewUrl} alt={file.name} className={styles.uploadedImage} />
+                      <button 
+                        type="button" 
+                        className={styles.deleteImageBtn} 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setUploadedImages(prev => prev.filter((_, idx) => idx !== i));
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
 
@@ -250,18 +294,29 @@ export default function AddSparePage() {
           <h2 className={styles.sectionTitle} style={{ marginBottom: '1.5rem' }}>Product Banner</h2>
           <div className={styles.formGroup}>
             <label className={styles.label}>Select Banner<span className={styles.required}>*</span></label>
-            <div className={styles.bannersGrid}>
-              {banners.map((banner) => (
-                <div key={banner.id} className={`${styles.bannerCard} ${banner.selected ? styles.bannerCardSelected : ''}`}>
-                  <input type="checkbox" className={styles.bannerCheckbox} checked={banner.selected} readOnly />
-                  <img src={banner.url} alt={`Banner ${banner.id}`} className={styles.bannerImage} />
-                </div>
-              ))}
-            </div>
-            <div style={{ textAlign: 'center', marginTop: '0.5rem' }}>
-              <span style={{ backgroundColor: '#3b82f6', color: 'white', padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 500 }}>
-                1020 Fill × 300 Hug
-              </span>
+            <div className={styles.bannersContainer}>
+              <div className={styles.bannersGrid}>
+                {banners.map((banner) => (
+                  <div 
+                    key={banner.id} 
+                    className={`${styles.bannerCard} ${banner.selected ? styles.bannerCardSelected : ''}`} 
+                    onClick={() => {
+                      setBanners(banners.map(b => ({ ...b, selected: b.id === banner.id })));
+                    }}
+                  >
+                    <input 
+                      type="checkbox" 
+                      checked={banner.selected} 
+                      readOnly 
+                      className={styles.bannerCheckbox} 
+                    />
+                    <img src={banner.url} alt={`Banner ${banner.id}`} className={styles.bannerImage} />
+                  </div>
+                ))}
+              </div>
+              <div className={styles.bannerBadgeWrapper}>
+                <span className={styles.bannerBadge}>1020 Fill × 300 Hug</span>
+              </div>
             </div>
           </div>
         </div>
