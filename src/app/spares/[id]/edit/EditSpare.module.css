@@ -1,0 +1,744 @@
+/* Re-used from AddSpare.module.css with variants support added */
+.pageContainer {
+  display: flex;
+  height: calc(100vh - 64px);
+  background-color: #f3f4f6;
+  overflow-y: auto;
+}
+
+.mainContent {
+  flex: 1;
+  padding: 1.5rem 2rem;
+  width: 100%;
+}
+
+.pageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 1.5rem;
+}
+
+.breadcrumb {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.breadcrumb span {
+  color: #111827;
+  font-weight: 500;
+}
+
+.pageTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.skuBadge {
+  font-size: 0.75rem;
+  background-color: #eff6ff;
+  color: #3b82f6;
+  border: 1px dashed #3b82f6;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.headerActions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btnOutlineRed {
+  background: white;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 0.5rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.btnDark {
+  background-color: #111827;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.sectionCard {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+  margin: 0;
+}
+
+.statusSelect {
+  border: 1px solid #bfdbfe;
+  color: #3b82f6;
+  background-color: #eff6ff;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  outline: none;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.required {
+  color: #ef4444;
+}
+
+.input {
+  border: 1px solid #d1d5db;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #111827;
+  outline: none;
+  width: 100%;
+}
+
+.select {
+  border: 1px solid #d1d5db;
+  padding: 0.65rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #111827;
+  outline: none;
+  width: 100%;
+  appearance: none;
+  background: url('data:image/svg+xml;utf8,<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%239ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>') no-repeat right 1rem center;
+}
+
+.richTextEditor {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.editorToolbar {
+  background-color: #f3f4f6;
+  padding: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #d1d5db;
+}
+
+.editorToolbar button {
+  background: none;
+  border: none;
+  color: #4b5563;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.editorContent {
+  padding: 1rem;
+  min-height: 100px;
+  font-size: 0.875rem;
+  color: #9ca3af;
+}
+
+.dimensionGrid {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dimensionSeparator {
+  color: #9ca3af;
+  font-size: 0.875rem;
+}
+
+.priceInputGroup {
+  display: flex;
+}
+
+.currencyAddon {
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-right: none;
+  padding: 0.65rem 1rem;
+  border-radius: 6px 0 0 6px;
+  color: #6b7280;
+  font-size: 0.875rem;
+}
+
+.priceInput {
+  border: 1px solid #d1d5db;
+  padding: 0.65rem 1rem;
+  font-size: 0.875rem;
+  color: #111827;
+  outline: none;
+  flex: 1;
+}
+
+.taxSelect {
+  border: 1px solid #d1d5db;
+  border-left: none;
+  padding: 0.65rem 1rem;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+  background-color: #f9fafb;
+  outline: none;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #111827;
+  font-weight: 500;
+  padding: 0.65rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  width: max-content;
+  cursor: pointer;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid #d1d5db;
+  appearance: none;
+  outline: none;
+  background-color: white;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.checkboxLabel input[type="checkbox"]:checked {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.checkboxLabel input[type="checkbox"]:checked::after {
+  content: '';
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+.uploadBox {
+  border: 1px dashed #3b82f6;
+  background-color: #eff6ff;
+  border-radius: 8px;
+  padding: 3rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.uploadBtn {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.bannersContainer {
+  border: 1px dashed #3b82f6;
+  background-color: #eff6ff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bannersGrid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+}
+
+.bannerCard {
+  border: 1px solid #d1d5db;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  height: 100px;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.bannerCardSelected {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.bannerCheckbox {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid #d1d5db;
+  appearance: none;
+  outline: none;
+  background-color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.bannerCheckbox:checked {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.bannerCheckbox:checked::after {
+  content: '';
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+.bannerImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.bannerBadgeWrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.bannerBadge {
+  background-color: #3b82f6;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.tagsContainer {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  min-height: 42px;
+  align-items: center;
+}
+
+.tagPill {
+  background-color: #eff6ff;
+  color: #3b82f6;
+  border: 1px solid #bfdbfe;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.tagClose {
+  background: #bfdbfe;
+  color: #1e3a8a;
+  border-radius: 50%;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  cursor: pointer;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Variants Section Styling (Screenshot 4 Layout)
+   ────────────────────────────────────────────────────────────── */
+.variantsSection {
+  margin-top: 1.5rem;
+}
+
+.variantContainer {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  background-color: white;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.variantLeftStrip {
+  background-color: #f3f4f6;
+  width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border-right: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.variantRightBody {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.variantHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.variantFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  max-width: 400px;
+}
+
+.variantLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.variantInput {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #111827;
+  outline: none;
+}
+
+.btnOutlineRedSmall {
+  background: white;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 0.35rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.uploadedImagesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.variantImagesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.variantImageCard {
+  position: relative;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 120px;
+  background-color: white;
+}
+
+.variantImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.deleteImageBtn {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.coverPhotoCheckboxWrapper {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  padding: 0.35rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border-top: 1px solid #e5e7eb;
+  cursor: pointer;
+  user-select: none;
+}
+
+.coverPhotoSelected {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  border-top: 1px solid #3b82f6;
+}
+
+.coverCheckboxBadge {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid #d1d5db;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  color: white;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.coverCheckboxChecked {
+  border-color: white;
+  background-color: white;
+  color: #3b82f6;
+}
+
+.coverCheckboxLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+}
+
+.variantUploadBoxSmall {
+  border: 1.5px dashed #3b82f6;
+  background-color: #eff6ff;
+  border-radius: 8px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.variantUploadBoxLarge {
+  border: 1.5px dashed #3b82f6;
+  background-color: #eff6ff;
+  border-radius: 8px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.variantUploadBtn {
+  font-size: 0.75rem;
+  color: #3b82f6;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.variantUploadBtnLarge {
+  font-size: 0.875rem;
+  color: #3b82f6;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.btnAddVariant {
+  background: white;
+  border: 1.5px solid #3b82f6;
+  color: #3b82f6;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  margin-top: 1.5rem;
+  transition: all 0.2s;
+  width: max-content;
+}
+
+.btnAddVariant:hover {
+  background-color: #eff6ff;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Confirmation Modal
+   ────────────────────────────────────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(55, 65, 81, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirmationCard {
+  background: white;
+  border-radius: 12px;
+  width: 400px;
+  max-width: 90vw;
+  padding: 3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modalCloseBtn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+}
+
+.successCircle {
+  width: 64px;
+  height: 64px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.successCircle svg {
+  stroke: white;
+}
+
+.confirmationTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.confirmationText {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+}
+
+.btnViewAll {
+  background-color: #111827;
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+}

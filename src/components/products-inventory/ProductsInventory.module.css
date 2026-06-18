@@ -166,6 +166,17 @@
   gap: 0.5rem;
 }
 
+.dropdownSelect {
+  background: white;
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  outline: none;
+}
+
 .calendarBtn {
   background: white;
   border: 1px solid #e5e7eb;

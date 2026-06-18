@@ -67,7 +67,7 @@ export default function SpareDetailPage() {
 
   return (
     <div className={styles.pageContainer}>
-      <SpareDetailsHeader name={spareData.name} sku={spareData.sku} />
+      <SpareDetailsHeader id={spareData.id} name={spareData.name} sku={spareData.sku} />
       
       <SpareTopStats 
         category={spareData.category}
