@@ -315,7 +315,8 @@ export default function OrderDetailPage() {
             {/* Invoice Button */}
             <button 
               onClick={() => {
-                alert('Downloading invoice...');
+                const numericId = order.id.endsWith('6') ? '6' : '5';
+                window.open(`https://project-sewtech-mart.onrender.com/api/v1/mart/orders/${numericId}/invoice`, '_blank');
               }}
               style={{
                 display: 'inline-flex',
