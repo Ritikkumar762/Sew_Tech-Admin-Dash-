@@ -12,7 +12,15 @@ export function AddSpareModal({ isOpen, onClose, onBulkUpload, onEnterManually }
   if (!isOpen) return null;
 
   return (
-    <div className={styles.modalOverlay}>
+    <div className={styles.modalOverlay} style={{
+      position: 'fixed',
+      top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    }}>
       <div className={styles.modalCard}>
         <div className={styles.modalHeader}>
           <h3>Add Spare Options</h3>
