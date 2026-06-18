@@ -6,12 +6,12 @@ export type Route = {
 };
 
 export const NAVIGATION_ROUTES: Route[] = [
-  { name: 'Dashboard', path: '/dashboard', icon: '🏠' },
-  { name: 'Alerts', path: '/alerts', icon: '⚠️' },
+  { name: 'Dashboard', path: '/dashboard', icon: 'Home' },
+  { name: 'Alerts', path: '/alerts', icon: 'AlertTriangle' },
   { 
     name: 'Sewtech Spares', 
     path: '/spares', 
-    icon: '⚙️',
+    icon: 'ShoppingCart',
     subItems: [
       { name: 'Overview', path: '/spares/overview' },
       { name: 'All Spares', path: '/spares/all' },
@@ -24,7 +24,7 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'Sewtech Mechanic', 
     path: '/mechanic', 
-    icon: '🔧',
+    icon: 'Wrench',
     subItems: [
       { name: 'Overview', path: '/mechanic/overview' },
       { name: 'Orders/Service Requests', path: '/mechanic/orders' },
@@ -34,14 +34,14 @@ export const NAVIGATION_ROUTES: Route[] = [
       { name: 'Payments', path: '/mechanic/payments' }
     ]
   },
-  { name: 'Sewtech Exchange', path: '/exchange', icon: '🔄' },
-  { name: 'Sewtech Kaarigar', path: '/kaarigar', icon: '👤' },
-  { name: 'Sewtech Academy', path: '/academy', icon: '🎓' },
-  { name: 'Master Data Management', path: '/mdm', icon: '📊' },
+  { name: 'Sewtech Exchange', path: '/exchange', icon: 'ArrowLeftRight' },
+  { name: 'Sewtech Kaarigar', path: '/kaarigar', icon: 'User' },
+  { name: 'Sewtech Academy', path: '/academy', icon: 'PlayCircle' },
+  { name: 'Master Data Management', path: '/mdm', icon: 'Network' },
   { 
     name: 'Finance', 
     path: '/finance', 
-    icon: '💰',
+    icon: 'Coins',
     subItems: [
       { name: 'Overview', path: '/finance' },
       { name: 'Gold Membership', path: '/finance/gold-membership' },
@@ -52,17 +52,17 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'Ads & Marketing', 
     path: '/marketing', 
-    icon: '📢',
+    icon: 'Megaphone',
     subItems: [
       { name: 'Live Banners', path: '/marketing' },
       { name: 'All Creatives', path: '/marketing/creatives' }
     ]
   },
-  { name: 'Support & Disputes', path: '/support', icon: '🎧' },
+  { name: 'Support & Disputes', path: '/support', icon: 'Headset' },
   { 
     name: 'User Management', 
     path: '/users', 
-    icon: '👥',
+    icon: 'Users',
     subItems: [
       { name: 'All Users', path: '/users' },
       { name: 'Add New User', path: '/users/add' }
@@ -71,7 +71,7 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'System & Settings', 
     path: '/settings', 
-    icon: '⚙️',
+    icon: 'Settings',
     subItems: [
       { name: 'Platform Configuration', path: '/settings/platform-configuration' },
       { name: 'Role Management', path: '/settings/role-management' },
@@ -82,5 +82,5 @@ export const NAVIGATION_ROUTES: Route[] = [
 ];
 
 export const BOTTOM_ROUTES: Route[] = [
-  { name: 'Logout', path: '/logout', icon: '🚪' },
+  { name: 'Logout', path: '/logout', icon: 'LogOut' },
 ];

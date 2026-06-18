@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   ChevronLeft, 
+  ChevronRight,
   Copy, 
   Check, 
   ChevronDown, 
@@ -11,7 +12,8 @@ import {
   CreditCard, 
   MapPin, 
   Clock, 
-  AlertCircle
+  AlertCircle,
+  X
 } from 'lucide-react';
 
 // Rich Mock Data for Detail Retrieval (to fetch corresponding order detail)
@@ -545,37 +547,152 @@ export default function OrderDetailPage() {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
+          {/* Shipping Timeline Accordion */}
+          <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden' }}>
+            <div className="accordion-header" onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}>
+              <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>Shipping Timeline</span>
+              {isTimelineExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </div>
+
+            {isTimelineExpanded && (
+              <div style={{ padding: '2rem 1.5rem', backgroundColor: 'white', display: 'flex', alignItems: 'center', position: 'relative', overflowX: 'auto' }}>
+                
+                <button style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  border: '1px solid #e5e7eb',
+                  backgroundColor: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#4b5563',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  flexShrink: 0,
+                  marginRight: '0.5rem',
+                  zIndex: 5
+                }}>
+                  <ChevronLeft size={16} />
+                </button>
+
+                <div style={{ display: 'flex', flex: 1, position: 'relative', alignItems: 'center', minWidth: '800px', padding: '1rem 0' }}>
+                  
+                  <div style={{
+                    position: 'absolute',
+                    left: '50px',
+                    right: '50px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    height: '0px',
+                    borderTop: '2.5px dashed #bfdbfe',
+                    zIndex: 1
+                  }} />
+
+                  {[
+                    { title: 'Order Received', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
+                    { title: 'Payment Completed', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'bottom' },
+                    { title: 'Order Shipped', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
+                    { title: 'Out for Delivery', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'bottom' },
+                    { title: 'Delivered', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
+                    { title: 'Return Requested', date: "21st March, 2025 at 11:06 AM", completed: true, error: true, position: 'bottom' },
+                    { title: 'Picked', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
+                  ].map((node, idx) => (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, zIndex: 2, position: 'relative' }}>
+                      
+                      {node.position === 'top' ? (
+                        <div style={{ height: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '10px', textAlign: 'center' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>{node.title}</span>
+                          <span style={{ fontSize: '0.625rem', color: '#9ca3af', marginTop: '2px', fontWeight: 500, whiteSpace: 'nowrap' }}>{node.date}</span>
+                        </div>
+                      ) : (
+                        <div style={{ height: '52px', marginBottom: '10px' }} />
+                      )}
+
+                      <div style={{
+                        width: '16px',
+                        height: '16px',
+                        borderRadius: '50%',
+                        backgroundColor: node.error ? '#dc2626' : '#2563eb',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        boxShadow: '0 0 0 4px white',
+                        zIndex: 3
+                      }}>
+                        {node.error ? (
+                          <span style={{ fontSize: '8px', fontWeight: 800, transform: 'scale(0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</span>
+                        ) : (
+                          <span style={{ fontSize: '8px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</span>
+                        )}
+                      </div>
+
+                      {node.position === 'bottom' ? (
+                        <div style={{ height: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', marginTop: '10px', textAlign: 'center' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>{node.title}</span>
+                          <span style={{ fontSize: '0.625rem', color: '#9ca3af', marginTop: '2px', fontWeight: 500, whiteSpace: 'nowrap' }}>{node.date}</span>
+                        </div>
+                      ) : (
+                        <div style={{ height: '52px', marginTop: '10px' }} />
+                      )}
+
+                    </div>
+                  ))}
+                </div>
+
+                <button style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '50%',
+                  border: '1px solid #e5e7eb',
+                  backgroundColor: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#4b5563',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                  flexShrink: 0,
+                  marginLeft: '0.5rem',
+                  zIndex: 5
+                }}>
+                  <ChevronRight size={16} />
+                </button>
+
+              </div>
+            )}
+          </div>
+
           {/* Payment Details Accordion */}
           <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden' }}>
             <div className="accordion-header" onClick={() => setIsPaymentExpanded(!isPaymentExpanded)}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <CreditCard size={18} style={{ color: '#4b5563' }} />
-                <span>Payment Details</span>
-              </div>
-              {isPaymentExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+              <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>Payment Details</span>
+              {isPaymentExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </div>
             
             {isPaymentExpanded && (
-              <div style={{ padding: '1.5rem', backgroundColor: 'white', borderTop: '1px solid #f3f4f6', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              <div style={{ padding: '1.5rem', backgroundColor: 'white', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ borderTop: '1.5px dotted #e5e7eb', margin: '0 -1.5rem 0.5rem -1.5rem' }} />
                 
                 {/* Method & Txn ID input elements */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                    <label style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600 }}>Payment Method</label>
-                    <div className="form-field">{order.paymentMethod}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.8125rem', color: '#374151', fontWeight: 600 }}>Payment Method</label>
+                    <div className="form-field" style={{ backgroundColor: '#f3f4f6', color: '#1f2937', fontWeight: 600 }}>{order.paymentMethod}</div>
                   </div>
                   
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                    <label style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600 }}>Transaction ID</label>
-                    <div className="form-field">{order.txnId}</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <label style={{ fontSize: '0.8125rem', color: '#374151', fontWeight: 600 }}>Transaction ID</label>
+                    <div className="form-field" style={{ backgroundColor: '#f3f4f6', color: '#1f2937', fontWeight: 600 }}>{order.txnId}</div>
                   </div>
                 </div>
 
                 {/* Addresses display */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <label style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600 }}>Billing Address</label>
-                    <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', fontSize: '0.875rem', color: '#4b5563', lineHeight: 1.6, fontWeight: 500 }}>
+                    <label style={{ fontSize: '0.8125rem', color: '#374151', fontWeight: 600 }}>Billing Address</label>
+                    <div style={{ backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', fontSize: '0.875rem', color: '#1f2937', lineHeight: 1.6, fontWeight: 600 }}>
                       123, MG Road<br />
                       Connaught Place<br />
                       New Delhi - 110001<br />
@@ -584,65 +701,14 @@ export default function OrderDetailPage() {
                   </div>
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    <label style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600 }}>Shipping Address</label>
-                    <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', fontSize: '0.875rem', color: '#4b5563', lineHeight: 1.6, fontWeight: 500 }}>
+                    <label style={{ fontSize: '0.8125rem', color: '#374151', fontWeight: 600 }}>Shipping Address</label>
+                    <div style={{ backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', fontSize: '0.875rem', color: '#1f2937', lineHeight: 1.6, fontWeight: 600 }}>
                       123, MG Road<br />
                       Connaught Place<br />
                       New Delhi - 110001<br />
                       DELHI, INDIA
                     </div>
                   </div>
-                </div>
-
-              </div>
-            )}
-          </div>
-
-          {/* Shipping Timeline Accordion */}
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden' }}>
-            <div className="accordion-header" onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Clock size={18} style={{ color: '#4b5563' }} />
-                <span>Shipping Timeline</span>
-              </div>
-              {isTimelineExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            </div>
-
-            {isTimelineExpanded && (
-              <div style={{ padding: '1.5rem', backgroundColor: 'white', borderTop: '1px solid #f3f4f6' }}>
-                
-                {/* Timeline display */}
-                <div style={{ paddingLeft: '0.5rem' }}>
-                  {[
-                    { title: 'Order Received', desc: 'Order placed by Aditya Bhargav', date: "10:30 PM, 21 Jan' 26", completed: true },
-                    { title: 'Processing', desc: 'Order details verified and spare parts packaged', date: "09:15 AM, 22 Jan' 26", completed: order.status !== 'Order Received' },
-                    { title: 'Shipped', desc: 'Package handed over to shipping courier', date: "03:40 PM, 22 Jan' 26", completed: ['Shipped', 'Out for Delivery', 'Delivered'].includes(order.status) },
-                    { title: 'Out for Delivery', desc: 'Package out with delivery agent in New Delhi', date: "11:00 AM, 23 Jan' 26", completed: ['Out for Delivery', 'Delivered'].includes(order.status) },
-                    { title: 'Delivered', desc: 'Package delivered at shipping address', date: "02:25 PM, 23 Jan' 26", completed: order.status === 'Delivered' }
-                  ].map((node, index) => (
-                    <div key={index} className="timeline-node">
-                      <div style={{
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        backgroundColor: node.completed ? '#22c55e' : '#e5e7eb',
-                        border: '4px solid white',
-                        boxShadow: '0 0 0 1px #e5e7eb',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 2,
-                        marginTop: '2px'
-                      }}>
-                        {node.completed && <Check size={10} style={{ color: 'white' }} />}
-                      </div>
-                      <div>
-                        <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1f2937' }}>{node.title}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.125rem' }}>{node.desc}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#9ca3af', marginTop: '0.25rem', fontWeight: 500 }}>{node.date}</div>
-                      </div>
-                    </div>
-                  ))}
                 </div>
 
               </div>

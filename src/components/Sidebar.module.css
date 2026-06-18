@@ -2,8 +2,8 @@
 .sidebar {
   width: var(--sidebar-width);
   height: 100vh;
-  background-color: var(--bg-secondary);
-  border-right: 1px solid var(--border-color);
+  background-color: #ffffff;
+  border-right: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -70,7 +70,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid #e5e7eb;
   flex-shrink: 0;
 }
 
@@ -109,26 +109,28 @@
   align-items: center;
   justify-content: space-between;
   padding: 0.65rem 1rem;
-  margin: 0 0.5rem;
+  margin: 0.25rem 0.75rem;
   border-radius: 0.5rem;
   color: #4b5563;
   transition: all var(--transition-fast);
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
 }
 
-.navLink:hover { background-color: var(--bg-tertiary); color: #111827; }
+.navLink:hover { background-color: #f3f4f6; color: #111827; }
 
 .navLinkActive {
-  background-color: #ecfdf5;
-  color: #10b981;
+  background-color: #e8f0fe;
+  color: #1a73e8;
   font-weight: 600;
-  border-radius: 0 0.5rem 0.5rem 0;
-  margin: 0 0.5rem 0.25rem 0;
-  padding-left: 1.5rem;
+  border-radius: 0.5rem;
+  margin: 0.25rem 0.75rem;
+  padding: 0.65rem 1rem;
 }
+
+.navLinkActive:hover { background-color: #d2e3fc; color: #1a73e8; }
 
 .navLinkContent { display: flex; align-items: center; gap: 0.75rem; }
 
@@ -140,12 +142,12 @@
   height: 32px; 
   border-radius: 8px;
   background-color: #f1f5f9;
-  color: #64748b;
+  color: #5f6368;
   flex-shrink: 0; 
 }
 
 .navLinkActive .navIcon {
-  background-color: #10b981;
+  background-color: #1a73e8;
   color: #ffffff;
 }
 
@@ -153,7 +155,15 @@
   filter: brightness(0) invert(1);
 }
 
-.chevron { font-size: 0.75rem; color: #9ca3af; }
+.chevron { 
+  display: flex; 
+  align-items: center; 
+  color: #9ca3af; 
+}
+
+.navLinkActive .chevron {
+  color: #1a73e8;
+}
 
 /* ── Sub Menu ────────────────────────────────────────────────── */
 .subMenu { display: flex; flex-direction: column; background-color: transparent; }
@@ -171,8 +181,8 @@
 
 .subNavLink:hover { color: #111827; background: #f3f4f6; }
 
-.subNavLinkActive { color: #10b981; font-weight: 600; }
-.subNavLinkActive .subDot { background-color: #10b981; }
+.subNavLinkActive { color: #1a73e8; font-weight: 600; }
+.subNavLinkActive .subDot { background-color: #1a73e8; }
 
 .subDot { 
   width: 8px; 

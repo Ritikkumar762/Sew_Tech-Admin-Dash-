@@ -4,20 +4,41 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { NAVIGATION_ROUTES, BOTTOM_ROUTES } from '@/config/navigation';
-import { RefreshCw, User, PlayCircle, Network, Briefcase, Megaphone, Headset, Users, Settings, LogOut } from 'lucide-react';
+import { 
+  Home,
+  AlertTriangle,
+  ShoppingCart,
+  Wrench,
+  ArrowLeftRight,
+  User, 
+  PlayCircle, 
+  Network, 
+  Coins,
+  Megaphone, 
+  Headset, 
+  Users, 
+  Settings, 
+  LogOut,
+  ChevronRight,
+  ChevronDown
+} from 'lucide-react';
 import styles from './Sidebar.module.css';
 
 const iconMap: Record<string, React.ReactNode> = {
-  RefreshCw: <RefreshCw size={20} strokeWidth={1.5} />,
-  User: <User size={20} strokeWidth={1.5} />,
-  PlayCircle: <PlayCircle size={20} strokeWidth={1.5} />,
-  Network: <Network size={20} strokeWidth={1.5} />,
-  Briefcase: <Briefcase size={20} strokeWidth={1.5} />,
-  Megaphone: <Megaphone size={20} strokeWidth={1.5} />,
-  Headset: <Headset size={20} strokeWidth={1.5} />,
-  Users: <Users size={20} strokeWidth={1.5} />,
-  Settings: <Settings size={20} strokeWidth={1.5} />,
-  LogOut: <LogOut size={20} strokeWidth={1.5} />
+  Home: <Home size={18} strokeWidth={2.5} />,
+  AlertTriangle: <AlertTriangle size={18} strokeWidth={2.5} />,
+  ShoppingCart: <ShoppingCart size={18} strokeWidth={2.5} />,
+  Wrench: <Wrench size={18} strokeWidth={2.5} />,
+  ArrowLeftRight: <ArrowLeftRight size={18} strokeWidth={2.5} />,
+  User: <User size={18} strokeWidth={2.5} />,
+  PlayCircle: <PlayCircle size={18} strokeWidth={2.5} />,
+  Network: <Network size={18} strokeWidth={2.5} />,
+  Coins: <Coins size={18} strokeWidth={2.5} />,
+  Megaphone: <Megaphone size={18} strokeWidth={2.5} />,
+  Headset: <Headset size={18} strokeWidth={2.5} />,
+  Users: <Users size={18} strokeWidth={2.5} />,
+  Settings: <Settings size={18} strokeWidth={2.5} />,
+  LogOut: <LogOut size={18} strokeWidth={2.5} />
 };
 
 export default function Sidebar() {
@@ -87,7 +108,9 @@ export default function Sidebar() {
                     </span>
                     <span>{route.name}</span>
                   </div>
-                  <span className={styles.chevron}>{isOpen ? '▾' : '›'}</span>
+                  <span className={styles.chevron}>
+                    {isOpen ? <ChevronDown size={16} strokeWidth={2.2} /> : <ChevronRight size={16} strokeWidth={2.2} />}
+                  </span>
                 </div>
               ) : (
                 <Link
@@ -106,7 +129,9 @@ export default function Sidebar() {
                     </span>
                     <span>{route.name}</span>
                   </div>
-                  <span className={styles.chevron}>›</span>
+                  <span className={styles.chevron}>
+                    <ChevronRight size={16} strokeWidth={2.2} />
+                  </span>
                 </Link>
               )}
 
