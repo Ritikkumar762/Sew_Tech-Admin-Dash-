@@ -6,12 +6,12 @@ export type Route = {
 };
 
 export const NAVIGATION_ROUTES: Route[] = [
-  { name: 'Dashboard', path: '/dashboard', icon: 'Home' },
-  { name: 'Alerts', path: '/alerts', icon: 'AlertTriangle' },
+  { name: 'Dashboard', path: '/dashboard', icon: '/home-03.png' },
+  { name: 'Alerts', path: '/alerts', icon: '/Alert_logo.png' },
   { 
     name: 'Sewtech Spares', 
     path: '/spares', 
-    icon: 'ShoppingCart',
+    icon: '/sewtech_spare_logo.png',
     subItems: [
       { name: 'Overview', path: '/spares/overview' },
       { name: 'All Spares', path: '/spares/all' },
@@ -24,7 +24,7 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'Sewtech Mechanic', 
     path: '/mechanic', 
-    icon: 'Wrench',
+    icon: '/sewtech_mechnics_logo.png',
     subItems: [
       { name: 'Overview', path: '/mechanic/overview' },
       { name: 'Orders/Service Requests', path: '/mechanic/orders' },
