@@ -543,3 +543,297 @@
   gap: 0.5rem;
   cursor: pointer;
 }
+ 
+ 
+/* Modals */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalCard {
+  background: white;
+  border-radius: 12px;
+  width: 500px;
+  max-width: 90vw;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Side Popup */
+.popupOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: transparent;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 6rem 2rem 0 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+.popupCard {
+  background: white;
+  border-radius: 12px;
+  width: 450px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+}
+
+.modalCardLarge {
+  width: 900px;
+}
+
+.modalHeader {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modalHeader h3 {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.modalCloseBtn {
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  border-radius: 6px;
+}
+
+.modalCloseBtn:hover {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.modalBody {
+  padding: 1.5rem;
+}
+
+.modalFooter {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+/* Add Option Cards */
+.addOptionsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.addOptionCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 2.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  background: white;
+  transition: all 0.2s;
+}
+
+.addOptionCard span {
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.primaryOption {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.primaryOption:hover {
+  background-color: #2563eb;
+}
+
+.secondaryOption {
+  background-color: #f9fafb;
+  color: #111827;
+}
+
+.secondaryOption:hover {
+  background-color: #f3f4f6;
+}
+
+.optionIcon {
+  display: flex;
+}
+
+/* Upload Flow */
+.uploadContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.downloadSample {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btnOutline {
+  background: white;
+  border: 1px solid #d1d5db;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  color: #374151;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.uploadLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #111827;
+  margin: 0;
+}
+
+.uploadBox {
+  border: 1px dashed #d1d5db;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  padding: 3rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.uploadBox:hover {
+  border-color: #9ca3af;
+  background-color: #f3f4f6;
+}
+
+.uploadBox span {
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.uploadBoxSuccess {
+  border: 1px solid #ecfdf5;
+  border-radius: 8px;
+  background-color: #ecfdf5;
+  padding: 3rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.successIconWrapper {
+  width: 32px;
+  height: 32px;
+  background-color: #10b981;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.successIconWrapper svg {
+  stroke: white;
+}
+
+.successText {
+  font-size: 0.875rem;
+  color: #059669;
+  font-weight: 600;
+}
+
+.previewContainer {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.previewTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.previewTable th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.previewTable td {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #111827;
+  border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+}
+
+/* Modal Buttons */
+.modalBtnDark {
+  background-color: #111827;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.modalBtnDark:hover {
+  background-color: #1f2937;
+}
+
+.modalBtnLight {
+  background-color: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 1.5rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.modalBtnLight:hover {
+  background-color: #f9fafb;
+}
+
+.btnDisabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
