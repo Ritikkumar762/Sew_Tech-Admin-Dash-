@@ -20,6 +20,34 @@ export default function PaymentsDashboard() {
     { id: 'Dispute/Escalations', label: 'Dispute/Escalations', count: 1, alert: true }
   ];
 
+  if (viewState === 'details') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.5s ease-in-out', width: '100%' }}>
+        <style>
+          {`
+            @keyframes fadeIn {
+              from { opacity: 0; transform: translateY(10px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+          `}
+        </style>
+        <DisputeDetails 
+          onBack={() => setViewState('table')} 
+          onResolve={() => setIsModalOpen(true)}
+          onRefund={() => setIsModalOpen(true)}
+        />
+        <RemarksModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          onSubmit={() => {
+            setIsModalOpen(false);
+            setViewState('table'); // Go back to table after resolving
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.5s ease-in-out' }}>
       <style>
@@ -56,49 +84,39 @@ export default function PaymentsDashboard() {
         <PaymentsToolbar />
 
         {/* Primary Tabs (Only visible when showing table) */}
-        {viewState === 'table' && (
-          <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid #e5e7eb', overflowX: 'auto', paddingBottom: '2px', marginBottom: '1rem' }}>
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className="tab-btn"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.75rem 0',
-                  border: 'none',
-                  background: 'none',
-                  color: activeTab === tab.id ? '#1f2937' : '#9ca3af',
-                  fontWeight: activeTab === tab.id ? 700 : 600,
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  borderBottom: activeTab === tab.id ? '2px solid #1f2937' : '2px solid transparent',
-                  marginBottom: '-2px',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {tab.label} {tab.count && <span style={{ backgroundColor: activeTab === tab.id && tab.alert ? '#ef4444' : '#f1f5f9', color: activeTab === tab.id && tab.alert ? 'white' : '#64748b', padding: '0.125rem 0.375rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>{tab.count}</span>}
-              </button>
-            ))}
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid #e5e7eb', overflowX: 'auto', paddingBottom: '2px', marginBottom: '1rem' }}>
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="tab-btn"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 0',
+                border: 'none',
+                background: 'none',
+                color: activeTab === tab.id ? '#1f2937' : '#9ca3af',
+                fontWeight: activeTab === tab.id ? 700 : 600,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                borderBottom: activeTab === tab.id ? '2px solid #1f2937' : '2px solid transparent',
+                marginBottom: '-2px',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {tab.label} {tab.count && <span style={{ backgroundColor: activeTab === tab.id && tab.alert ? '#ef4444' : '#f1f5f9', color: activeTab === tab.id && tab.alert ? 'white' : '#64748b', padding: '0.125rem 0.375rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 600 }}>{tab.count}</span>}
+            </button>
+          ))}
+        </div>
 
         {/* Dynamic Content */}
-        <div style={{ margin: viewState === 'table' ? '0 -1.5rem -1.5rem -1.5rem' : '0' }}>
-          {viewState === 'table' ? (
-            <PaymentsTable 
-              activeTab={activeTab} 
-              onViewDispute={() => setViewState('details')} 
-            />
-          ) : (
-            <DisputeDetails 
-              onBack={() => setViewState('table')} 
-              onResolve={() => setIsModalOpen(true)}
-              onRefund={() => setIsModalOpen(true)}
-            />
-          )}
+        <div style={{ margin: '0 -1.5rem -1.5rem -1.5rem' }}>
+          <PaymentsTable 
+            activeTab={activeTab} 
+            onViewDispute={() => setViewState('details')} 
+          />
         </div>
 
       </div>
