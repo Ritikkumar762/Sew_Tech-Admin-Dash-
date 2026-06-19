@@ -50,7 +50,7 @@ export default function EditSparePage() {
     { id: 5, url: '/sale 5.png', selected: false },
     { id: 6, url: '/sale 6.png', selected: false },
     { id: 7, url: '/sale 7.png', selected: false },
-    { id: 8, url: '/sale 8.png', selected: false },
+    { id: 8, url: '/sale 2.png', selected: false },
     { id: 9, url: '/sale 9.png', selected: false },
     { id: 10, url: '/sale 10.png', selected: false },
     { id: 11, url: '/sale 11.png', selected: false },
