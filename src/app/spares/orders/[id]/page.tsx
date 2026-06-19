@@ -37,6 +37,39 @@ interface OrderDetail {
   txnId: string;
 }
 
+const getTimelineState = (nodeTitle: string, currentStatus: string) => {
+  const statusHierarchy: Record<string, number> = {
+    'Order Received': 1,
+    'Processing': 2,
+    'Shipped': 3,
+    'Out for Delivery': 4,
+    'Delivered': 5,
+    'Completed': 6,
+  };
+
+  const currentLevel = statusHierarchy[currentStatus] || 1;
+
+  switch (nodeTitle) {
+    case 'Order Received':
+    case 'Payment Completed':
+      return { completed: currentLevel >= 1, error: false };
+    case 'Order Shipped':
+      return { completed: currentLevel >= 3, error: false };
+    case 'Out for Delivery':
+      return { completed: currentLevel >= 4, error: false };
+    case 'Delivered':
+      return { completed: currentLevel >= 5, error: false };
+    case 'Return Requested':
+      return { completed: currentStatus === 'Return Requested', error: currentStatus === 'Return Requested' };
+    case 'Picked':
+      return { completed: currentStatus === 'Return Requested', error: false };
+    case 'Completed':
+      return { completed: currentLevel >= 6, error: false };
+    default:
+      return { completed: false, error: false };
+  }
+};
+
 export default function OrderDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -79,7 +112,7 @@ export default function OrderDetailPage() {
       case 'Shipped':
         return 'badge-warning';
       case 'Out for Delivery':
-        return order.id.toLowerCase() === 'sth-rh-2048' ? 'badge-completed' : 'badge-warning';
+        return 'badge-warning';
       case 'Cancelled':
       case 'Payment Failed':
       case 'Delivery Failed':
@@ -400,7 +433,7 @@ export default function OrderDetailPage() {
                   width: '180px',
                   overflow: 'hidden'
                 }}>
-                  {['Order Received', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Return Requested'].map((statusOption) => (
+                  {['Order Received', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Completed', 'Return Requested'].map((statusOption) => (
                     <button 
                       key={statusOption} 
                       className="status-item"
@@ -590,14 +623,18 @@ export default function OrderDetailPage() {
                   }} />
 
                   {[
-                    { title: 'Order Received', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
-                    { title: 'Payment Completed', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'bottom' },
-                    { title: 'Order Shipped', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
-                    { title: 'Out for Delivery', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'bottom' },
-                    { title: 'Delivered', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
-                    { title: 'Return Requested', date: "21st March, 2025 at 11:06 AM", completed: true, error: true, position: 'bottom' },
-                    { title: 'Picked', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
-                  ].map((node, idx) => (
+                    { title: 'Order Received', date: "21st March, 2025 at 11:06 AM", position: 'top' },
+                    { title: 'Payment Completed', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
+                    { title: 'Order Shipped', date: "21st March, 2025 at 11:06 AM", position: 'top' },
+                    { title: 'Out for Delivery', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
+                    { title: 'Delivered', date: "21st March, 2025 at 11:06 AM", position: 'top' },
+                    { title: 'Return Requested', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
+                    { title: 'Picked', date: "21st March, 2025 at 11:06 AM", position: 'top' },
+                    { title: 'Completed', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
+                  ].map((rawNode) => {
+                    const { completed, error } = getTimelineState(rawNode.title, order.status);
+                    return { ...rawNode, completed, error };
+                  }).map((node, idx) => (
                     <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, zIndex: 2, position: 'relative' }}>
                       
                       {node.position === 'top' ? (
@@ -613,7 +650,7 @@ export default function OrderDetailPage() {
                         width: '16px',
                         height: '16px',
                         borderRadius: '50%',
-                        backgroundColor: node.error ? '#dc2626' : '#2563eb',
+                        backgroundColor: node.error ? '#dc2626' : (node.completed ? '#2563eb' : '#d1d5db'),
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -623,8 +660,10 @@ export default function OrderDetailPage() {
                       }}>
                         {node.error ? (
                           <span style={{ fontSize: '8px', fontWeight: 800, transform: 'scale(0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</span>
-                        ) : (
+                        ) : node.completed ? (
                           <span style={{ fontSize: '8px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</span>
+                        ) : (
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'white' }}></span>
                         )}
                       </div>
 

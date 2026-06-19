@@ -35,6 +35,27 @@ const MOCK_REQUEST_DETAILS: Record<string, RequestDetail> = {
   'sth-rh-2053': { id: 'sth-rh-2053', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 1600, status: 'Pickup Failed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0003', reason: 'Ordered by mistake' },
 };
 
+const getTimelineState = (nodeTitle: string, currentStatus: string) => {
+  switch (nodeTitle) {
+    case 'Order Received':
+    case 'Payment Completed':
+    case 'Order Shipped':
+    case 'Out for Delivery':
+    case 'Delivered':
+    case 'Return Requested':
+      return { completed: true, error: false };
+    case 'Picked':
+      if (currentStatus === 'Pickup Failed') {
+        return { completed: false, error: true };
+      }
+      return { completed: currentStatus === 'Pickup Scheduled', error: false };
+    case 'Completed':
+      return { completed: currentStatus === 'Pickup Scheduled', error: false };
+    default:
+      return { completed: false, error: false };
+  }
+};
+
 export default function RequestDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -711,14 +732,18 @@ export default function RequestDetailPage() {
                   }} />
 
                   {[
-                    { title: 'Order Received', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
-                    { title: 'Payment Completed', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'bottom' },
-                    { title: 'Order Shipped', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
-                    { title: 'Out for Delivery', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'bottom' },
-                    { title: 'Delivered', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
-                    { title: 'Return Requested', date: "21st March, 2025 at 11:06 AM", completed: true, error: true, position: 'bottom' },
-                    { title: 'Picked', date: "21st March, 2025 at 11:06 AM", completed: true, position: 'top' },
-                  ].map((node, idx) => (
+                    { title: 'Order Received', date: "21st March, 2025 at 11:06 AM", position: 'top' },
+                    { title: 'Payment Completed', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
+                    { title: 'Order Shipped', date: "21st March, 2025 at 11:06 AM", position: 'top' },
+                    { title: 'Out for Delivery', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
+                    { title: 'Delivered', date: "21st March, 2025 at 11:06 AM", position: 'top' },
+                    { title: 'Return Requested', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
+                    { title: 'Picked', date: "21st March, 2025 at 11:06 AM", position: 'top' },
+                    { title: 'Completed', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
+                  ].map((rawNode) => {
+                    const { completed, error } = getTimelineState(rawNode.title, request.status);
+                    return { ...rawNode, completed, error };
+                  }).map((node, idx) => (
                     <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, zIndex: 2, position: 'relative' }}>
                       
                       {node.position === 'top' ? (
@@ -734,7 +759,7 @@ export default function RequestDetailPage() {
                         width: '16px',
                         height: '16px',
                         borderRadius: '50%',
-                        backgroundColor: node.error ? '#dc2626' : '#2563eb',
+                        backgroundColor: node.error ? '#dc2626' : (node.completed ? '#2563eb' : '#d1d5db'),
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -744,8 +769,10 @@ export default function RequestDetailPage() {
                       }}>
                         {node.error ? (
                           <span style={{ fontSize: '8px', fontWeight: 800, transform: 'scale(0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</span>
-                        ) : (
+                        ) : node.completed ? (
                           <span style={{ fontSize: '8px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</span>
+                        ) : (
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'white' }}></span>
                         )}
                       </div>
 
