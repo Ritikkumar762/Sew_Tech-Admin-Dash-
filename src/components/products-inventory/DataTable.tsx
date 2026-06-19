@@ -29,7 +29,7 @@ export function DataTable({ data }: DataTableProps) {
           {data.map((item, idx) => (
             <tr key={item.id}>
               <td>
-                <input type="checkbox" className={styles.checkbox} defaultChecked={idx === 2} />
+                <input type="checkbox" className={styles.checkbox} />
               </td>
               <td>
                 <div className={styles.productCell}>

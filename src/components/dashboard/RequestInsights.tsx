@@ -75,6 +75,8 @@ export default function RequestInsights() {
     ]
   };
 
+  const [hoveredStageIdx, setHoveredStageIdx] = useState<number | null>(null);
+
   const currentFunnel = funnelFilter === 'Invite Quotes' ? inviteQuotesData : defaultFunnelData;
 
   const pieData = [
@@ -138,7 +140,22 @@ export default function RequestInsights() {
         
         <div style={{ display: 'grid', gridTemplateColumns: `repeat(${currentFunnel.stages.length}, 1fr)`, backgroundColor: '#f9fafb', borderRadius: '0.75rem', overflow: 'hidden' }}>
           {currentFunnel.stages.map((item, idx) => (
-            <div key={idx} style={{ padding: '1.5rem', position: 'relative', borderRight: idx !== currentFunnel.stages.length - 1 ? '1px solid #e5e7eb' : 'none' }}>
+            <div 
+              key={idx} 
+              onMouseEnter={() => setHoveredStageIdx(idx)}
+              onMouseLeave={() => setHoveredStageIdx(null)}
+              style={{ 
+                padding: '1.5rem', 
+                position: 'relative', 
+                borderRight: idx !== currentFunnel.stages.length - 1 ? '1px solid #e5e7eb' : 'none',
+                backgroundColor: hoveredStageIdx === idx ? '#f3f4f6' : '#f9fafb',
+                transform: hoveredStageIdx === idx ? 'translateY(-2px)' : 'none',
+                transition: 'all 0.2s ease-in-out',
+                boxShadow: hoveredStageIdx === idx ? '0 4px 6px -1px rgba(0, 0, 0, 0.05)' : 'none',
+                zIndex: hoveredStageIdx === idx ? 10 : 1,
+                cursor: 'default'
+              }}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>{item.name}</span>
                 {item.trend && <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>{item.trend}</span>}
@@ -159,7 +176,7 @@ export default function RequestInsights() {
                     ))}
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="val" stroke="none" fillOpacity={1} fill={`url(#colorVal-${currentFunnel.stages.length})`} isAnimationActive={false} />
+                <Area type="monotone" dataKey="val" stroke="none" fillOpacity={1} fill={`url(#colorVal-${currentFunnel.stages.length})`} isAnimationActive={true} animationDuration={800} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

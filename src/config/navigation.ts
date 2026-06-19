@@ -7,7 +7,7 @@ export type Route = {
 
 export const NAVIGATION_ROUTES: Route[] = [
   { name: 'Dashboard', path: '/dashboard', icon: '/home-03.png' },
-  { name: 'Alerts', path: '/alerts', icon: '/Alert_logo.png' },
+  { name: 'Alerts', path: '/alerts', icon: 'AlertTriangle' },
   { 
     name: 'Sewtech Spares', 
     path: '/spares', 
@@ -24,7 +24,7 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'Sewtech Mechanic', 
     path: '/mechanic', 
-    icon: '/sewtech_mechnics_logo.png',
+    icon: '/sewtech_mechincs_logo.png',
     subItems: [
       { name: 'Overview', path: '/mechanic/overview' },
       { name: 'Orders/Service Requests', path: '/mechanic/orders' },
