@@ -613,9 +613,14 @@ export default function SparesOrdersPage() {
                       <button 
                         onClick={() => router.push(`/spares/orders/${order.id}`)}
                         className="action-btn"
+                        style={{
+                          backgroundColor: '#111827',
+                          color: '#ffffff',
+                          borderColor: '#111827'
+                        }}
                       >
                         View
-                        <ExternalLink size={12} />
+                        <ExternalLink size={12} style={{ color: '#ffffff' }} />
                       </button>
                     </td>
                   </tr>
