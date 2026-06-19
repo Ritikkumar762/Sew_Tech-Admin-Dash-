@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { 
   ChevronLeft, 
@@ -56,6 +56,29 @@ const getTimelineState = (nodeTitle: string, currentStatus: string) => {
   }
 };
 
+const formatTimelineDate = (date: Date) => {
+  const day = date.getDate();
+  let suffix = 'th';
+  if (day === 1 || day === 21 || day === 31) suffix = 'st';
+  else if (day === 2 || day === 22) suffix = 'nd';
+  else if (day === 3 || day === 23) suffix = 'rd';
+
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const monthName = months[date.getMonth()];
+  const year = date.getFullYear();
+
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+
+  return `${day}${suffix} ${monthName}, ${year} at ${hours}:${minutes} ${ampm}`;
+};
+
 export default function RequestDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -67,11 +90,39 @@ export default function RequestDetailPage() {
   const [request, setRequest] = useState<RequestDetail>(initialRequest);
   const [activeTab, setActiveTab] = useState<'returnDetails' | 'summary' | 'tracking'>('returnDetails');
   const [isPaymentExpanded, setIsPaymentExpanded] = useState(true);
-  const [isTimelineExpanded, setIsTimelineExpanded] = useState(false);
+  const [isTimelineExpanded, setIsTimelineExpanded] = useState(true);
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [zoomImage, setZoomImage] = useState<string | null>(null);
+
+  const timelineScrollRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollTimeline = (direction: 'left' | 'right') => {
+    if (timelineScrollRef.current) {
+      const scrollAmount = 200;
+      timelineScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const [timelineDates, setTimelineDates] = useState<string[]>([]);
+  useEffect(() => {
+    const now = new Date();
+    const dates = [
+      formatTimelineDate(new Date(now.getTime() - 7 * 3600000)),
+      formatTimelineDate(new Date(now.getTime() - 6 * 3600000)),
+      formatTimelineDate(new Date(now.getTime() - 5 * 3600000)),
+      formatTimelineDate(new Date(now.getTime() - 4 * 3600000)),
+      formatTimelineDate(new Date(now.getTime() - 3 * 3600000)),
+      formatTimelineDate(new Date(now.getTime() - 2 * 3600000)),
+      formatTimelineDate(new Date(now.getTime() - 1 * 3600000)),
+      formatTimelineDate(now),
+    ];
+    setTimelineDates(dates);
+  }, []);
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -114,6 +165,9 @@ export default function RequestDetailPage() {
           @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
+          }
+          .timeline-scroll-container::-webkit-scrollbar {
+            display: none;
           }
           .detail-card {
             background: white;
@@ -641,6 +695,152 @@ export default function RequestDetailPage() {
       {activeTab === 'tracking' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
+          {/* Shipping Timeline Accordion */}
+          <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden' }}>
+            <div className="accordion-header" onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}>
+              <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>Shipping Timeline</span>
+              {isTimelineExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </div>
+
+            {isTimelineExpanded && (
+              <div style={{ position: 'relative', backgroundColor: 'white', display: 'flex', alignItems: 'center' }}>
+                
+                <button 
+                  onClick={() => scrollTimeline('left')}
+                  style={{
+                    position: 'absolute',
+                    left: '1rem',
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    border: '1px solid #e5e7eb',
+                    backgroundColor: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#4b5563',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    zIndex: 10
+                  }}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                <div 
+                  ref={timelineScrollRef}
+                  style={{ 
+                    overflowX: 'auto', 
+                    width: '100%', 
+                    padding: '2rem 3rem',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  }}
+                  className="timeline-scroll-container"
+                >
+                  <div style={{ display: 'flex', position: 'relative', alignItems: 'center', minWidth: '800px', padding: '1rem 0' }}>
+                    
+                    <div style={{
+                      position: 'absolute',
+                      left: '50px',
+                      right: '50px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      height: '0px',
+                      borderTop: '2.5px dashed #bfdbfe',
+                      zIndex: 1
+                    }} />
+
+                    {[
+                      { title: 'Order Received', position: 'top' },
+                      { title: 'Payment Completed', position: 'bottom' },
+                      { title: 'Order Shipped', position: 'top' },
+                      { title: 'Out for Delivery', position: 'bottom' },
+                      { title: 'Delivered', position: 'top' },
+                      { title: 'Return Requested', position: 'bottom' },
+                      { title: 'Picked', position: 'top' },
+                      { title: 'Completed', position: 'bottom' },
+                    ].map((rawNode, rawIdx) => {
+                      const { completed, error } = getTimelineState(rawNode.title, request.status);
+                      return {
+                        ...rawNode,
+                        date: timelineDates[rawIdx] || "21st March, 2025 at 11:06 AM",
+                        completed,
+                        error
+                      };
+                    }).map((node, idx) => (
+                      <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, zIndex: 2, position: 'relative' }}>
+                        
+                        {node.position === 'top' ? (
+                          <div style={{ height: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '10px', textAlign: 'center' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>{node.title}</span>
+                            <span style={{ fontSize: '0.625rem', color: '#9ca3af', marginTop: '2px', fontWeight: 500, whiteSpace: 'nowrap' }}>{node.date}</span>
+                          </div>
+                        ) : (
+                          <div style={{ height: '52px', marginBottom: '10px' }} />
+                        )}
+
+                        <div style={{
+                          width: '16px',
+                          height: '16px',
+                          borderRadius: '50%',
+                          backgroundColor: node.error ? '#dc2626' : (node.completed ? '#2563eb' : '#d1d5db'),
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          boxShadow: '0 0 0 4px white',
+                          zIndex: 3
+                        }}>
+                          {node.error ? (
+                            <span style={{ fontSize: '8px', fontWeight: 800, transform: 'scale(0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</span>
+                          ) : node.completed ? (
+                            <span style={{ fontSize: '8px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</span>
+                          ) : (
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'white' }}></span>
+                          )}
+                        </div>
+
+                        {node.position === 'bottom' ? (
+                          <div style={{ height: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', marginTop: '10px', textAlign: 'center' }}>
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>{node.title}</span>
+                            <span style={{ fontSize: '0.625rem', color: '#9ca3af', marginTop: '2px', fontWeight: 500, whiteSpace: 'nowrap' }}>{node.date}</span>
+                          </div>
+                        ) : (
+                          <div style={{ height: '52px', marginTop: '10px' }} />
+                        )}
+
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => scrollTimeline('right')}
+                  style={{
+                    position: 'absolute',
+                    right: '1rem',
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '50%',
+                    border: '1px solid #e5e7eb',
+                    backgroundColor: 'white',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#4b5563',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    zIndex: 10
+                  }}
+                >
+                  <ChevronRight size={16} />
+                </button>
+
+              </div>
+            )}
+          </div>
+
           {/* Payment Details Accordion */}
           <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden' }}>
             <div className="accordion-header" onClick={() => setIsPaymentExpanded(!isPaymentExpanded)}>
@@ -685,129 +885,6 @@ export default function RequestDetailPage() {
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-          </div>
-
-          {/* Shipping Timeline Accordion */}
-          <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden' }}>
-            <div className="accordion-header" onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}>
-              <span style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>Shipping Timeline</span>
-              {isTimelineExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </div>
-
-            {isTimelineExpanded && (
-              <div style={{ padding: '2rem 1.5rem', backgroundColor: 'white', display: 'flex', alignItems: 'center', position: 'relative', overflowX: 'auto' }}>
-                
-                <button style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  border: '1px solid #e5e7eb',
-                  backgroundColor: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#4b5563',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                  flexShrink: 0,
-                  marginRight: '0.5rem',
-                  zIndex: 5
-                }}>
-                  <ChevronLeft size={16} />
-                </button>
-
-                <div style={{ display: 'flex', flex: 1, position: 'relative', alignItems: 'center', minWidth: '800px', padding: '1rem 0' }}>
-                  
-                  <div style={{
-                    position: 'absolute',
-                    left: '50px',
-                    right: '50px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    height: '0px',
-                    borderTop: '2.5px dashed #bfdbfe',
-                    zIndex: 1
-                  }} />
-
-                  {[
-                    { title: 'Order Received', date: "21st March, 2025 at 11:06 AM", position: 'top' },
-                    { title: 'Payment Completed', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
-                    { title: 'Order Shipped', date: "21st March, 2025 at 11:06 AM", position: 'top' },
-                    { title: 'Out for Delivery', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
-                    { title: 'Delivered', date: "21st March, 2025 at 11:06 AM", position: 'top' },
-                    { title: 'Return Requested', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
-                    { title: 'Picked', date: "21st March, 2025 at 11:06 AM", position: 'top' },
-                    { title: 'Completed', date: "21st March, 2025 at 11:06 AM", position: 'bottom' },
-                  ].map((rawNode) => {
-                    const { completed, error } = getTimelineState(rawNode.title, request.status);
-                    return { ...rawNode, completed, error };
-                  }).map((node, idx) => (
-                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, zIndex: 2, position: 'relative' }}>
-                      
-                      {node.position === 'top' ? (
-                        <div style={{ height: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '10px', textAlign: 'center' }}>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>{node.title}</span>
-                          <span style={{ fontSize: '0.625rem', color: '#9ca3af', marginTop: '2px', fontWeight: 500, whiteSpace: 'nowrap' }}>{node.date}</span>
-                        </div>
-                      ) : (
-                        <div style={{ height: '52px', marginBottom: '10px' }} />
-                      )}
-
-                      <div style={{
-                        width: '16px',
-                        height: '16px',
-                        borderRadius: '50%',
-                        backgroundColor: node.error ? '#dc2626' : (node.completed ? '#2563eb' : '#d1d5db'),
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        color: 'white',
-                        boxShadow: '0 0 0 4px white',
-                        zIndex: 3
-                      }}>
-                        {node.error ? (
-                          <span style={{ fontSize: '8px', fontWeight: 800, transform: 'scale(0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</span>
-                        ) : node.completed ? (
-                          <span style={{ fontSize: '8px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</span>
-                        ) : (
-                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: 'white' }}></span>
-                        )}
-                      </div>
-
-                      {node.position === 'bottom' ? (
-                        <div style={{ height: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', marginTop: '10px', textAlign: 'center' }}>
-                          <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>{node.title}</span>
-                          <span style={{ fontSize: '0.625rem', color: '#9ca3af', marginTop: '2px', fontWeight: 500, whiteSpace: 'nowrap' }}>{node.date}</span>
-                        </div>
-                      ) : (
-                        <div style={{ height: '52px', marginTop: '10px' }} />
-                      )}
-
-                    </div>
-                  ))}
-                </div>
-
-                <button style={{
-                  width: '28px',
-                  height: '28px',
-                  borderRadius: '50%',
-                  border: '1px solid #e5e7eb',
-                  backgroundColor: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#4b5563',
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                  flexShrink: 0,
-                  marginLeft: '0.5rem',
-                  zIndex: 5
-                }}>
-                  <ChevronRight size={16} />
-                </button>
-
               </div>
             )}
           </div>
