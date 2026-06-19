@@ -5,7 +5,7 @@
  */
 
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
-export const MARKETING_BASE_URL = 'http://127.0.0.1:8000';
+export const MARKETING_BASE_URL = 'https://project-sewtech-mart.onrender.com';
 
 export const ENDPOINTS = {
   // ── Dashboard ────────────────────────────────────────────────
