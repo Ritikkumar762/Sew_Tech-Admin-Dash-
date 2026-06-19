@@ -214,7 +214,7 @@ const MOCK_PERFORMANCE_INSIGHTS: InsightCard[] = [
 ];
 
 
-const USE_MOCK = false; // Toggle to true to force the local mock dataset
+const USE_MOCK = true; // Toggle to true to force the local mock dataset
 
 export function useOverview() {
   const [loading, setLoading] = useState(true);
