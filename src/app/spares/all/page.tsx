@@ -41,6 +41,7 @@ export default function ProductsInventoryPage() {
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTERS);
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(true);
 
   const handleClearFilters = () => {
     setFilters(INITIAL_FILTERS);
@@ -114,16 +115,23 @@ export default function ProductsInventoryPage() {
           <StatCards stats={stats} />
 
           <div className={styles.tableCard}>
-            <TableControls onSearchChange={handleSearchChange} />
+            <TableControls 
+              onSearchChange={handleSearchChange} 
+              onToggleFilters={() => setIsFilterOpen(prev => !prev)}
+              isFilterOpen={isFilterOpen}
+            />
             <DataTable data={filteredData} />
           </div>
         </div>
         
-        <FilterSidebar 
-          filters={filters} 
-          setFilters={setFilters} 
-          onClear={handleClearFilters} 
-        />
+        {isFilterOpen && (
+          <FilterSidebar 
+            filters={filters} 
+            setFilters={setFilters} 
+            onClear={handleClearFilters} 
+            onClose={() => setIsFilterOpen(false)}
+          />
+        )}
       </div>
 
       <AddSpareModal 

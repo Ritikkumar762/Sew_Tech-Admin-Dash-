@@ -3,9 +3,11 @@ import styles from './ProductsInventory.module.css';
 
 interface TableControlsProps {
   onSearchChange: (query: string) => void;
+  onToggleFilters?: () => void;
+  isFilterOpen?: boolean;
 }
 
-export function TableControls({ onSearchChange }: TableControlsProps) {
+export function TableControls({ onSearchChange, onToggleFilters, isFilterOpen }: TableControlsProps) {
   return (
     <div className={styles.tableControls}>
       <div className={styles.searchInputWrapper}>
@@ -37,8 +39,12 @@ export function TableControls({ onSearchChange }: TableControlsProps) {
           <option value="" disabled>Bulk Actions</option>
           <option value="bulk-edit">Bulk Edit Spares</option>
         </select>
-        <button className={styles.applyFiltersBtn}>
-          Apply Filters 
+        <button 
+          className={styles.applyFiltersBtn} 
+          onClick={onToggleFilters}
+          style={{ backgroundColor: isFilterOpen ? '#4b5563' : '#111827' }}
+        >
+          {isFilterOpen ? 'Hide Filters' : 'Apply Filters'}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
         </button>
       </div>

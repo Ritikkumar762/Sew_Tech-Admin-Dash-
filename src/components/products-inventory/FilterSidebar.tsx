@@ -6,9 +6,10 @@ interface FilterSidebarProps {
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   onClear: () => void;
+  onClose?: () => void;
 }
 
-export function FilterSidebar({ filters, setFilters, onClear }: FilterSidebarProps) {
+export function FilterSidebar({ filters, setFilters, onClear, onClose }: FilterSidebarProps) {
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     if (value && value !== 'Select Category' && !filters.categories.includes(value)) {
@@ -65,7 +66,14 @@ export function FilterSidebar({ filters, setFilters, onClear }: FilterSidebarPro
     <div className={styles.filterSidebar}>
       <div className={styles.filterHeader}>
         <h2>Filters</h2>
-        <button className={styles.clearFiltersBtn} onClick={onClear}>Clear Filters ⊗</button>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <button className={styles.clearFiltersBtn} onClick={onClear}>Clear Filters ⊗</button>
+          {onClose && (
+            <button className={styles.closeSidebarBtn} onClick={onClose} aria-label="Close Filters">
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
       <div className={styles.filterSection}>
