@@ -88,6 +88,7 @@ export default function Sidebar() {
             (route.subItems && pathname.startsWith(route.path)) ||
             (pathname === '/dashboard' && route.path === '/dashboard');
           const isOpen = openMenus[route.path];
+          const isLinkActive = isActive || !!(route.subItems && isOpen);
 
           return (
             <div 
@@ -101,7 +102,7 @@ export default function Sidebar() {
             >
               {route.subItems ? (
                 <div
-                  className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+                  className={`${styles.navLink} ${isLinkActive ? styles.navLinkActive : ''}`}
                   onClick={() => toggleMenu(route.path)}
                 >
                   <div className={styles.navLinkContent}>
@@ -123,7 +124,7 @@ export default function Sidebar() {
               ) : (
                 <Link
                   href={route.path}
-                  className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+                  className={`${styles.navLink} ${isLinkActive ? styles.navLinkActive : ''}`}
                 >
                   <div className={styles.navLinkContent}>
                     <span className={`${styles.navIcon} ${route.icon?.includes('.png') ? styles.navIconImage : ''}`}>
