@@ -34,8 +34,8 @@ export const NAVIGATION_ROUTES: Route[] = [
       { name: 'Payments', path: '/mechanic/payments' }
     ]
   },
-  { name: 'Sewtech Exchange', path: '/exchange', icon: 'ArrowLeftRight' },
-  { name: 'Sewtech Kaarigar', path: '/kaarigar', icon: 'User' },
+  { name: 'Sewtech Exchange', path: '/exchange', icon: '/Exchange_logo.png' },
+  { name: 'Sewtech Kaarigar', path: '/kaarigar', icon: '/kaarigar_logo.png' },
   { name: 'Sewtech Academy', path: '/academy', icon: 'PlayCircle' },
   { name: 'Master Data Management', path: '/mdm', icon: 'Network' },
   { 
