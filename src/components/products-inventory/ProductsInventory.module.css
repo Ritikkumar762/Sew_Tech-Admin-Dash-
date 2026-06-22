@@ -343,13 +343,22 @@
   color: white;
   border: none;
   padding: 0.35rem 0.75rem;
-  border-radius: 1rem;
+  border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+
+.viewBtn:hover {
+  opacity: 0.85;
+}
+
+.viewBtn:active {
+  transform: scale(0.95);
 }
 
 .pagination {
