@@ -90,7 +90,15 @@ export default function Sidebar() {
           const isOpen = openMenus[route.path];
 
           return (
-            <div key={route.path} className={styles.navItem}>
+            <div 
+              key={route.path} 
+              className={styles.navItem}
+              style={{
+                ['--active-bg' as any]: route.activeBg,
+                ['--active-color' as any]: route.activeColor,
+                ['--active-hover-bg' as any]: route.activeHoverBg,
+              }}
+            >
               {route.subItems ? (
                 <div
                   className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
