@@ -6,6 +6,8 @@
 
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
 export const MARKETING_BASE_URL = 'https://project-sewtech-mart.onrender.com';
+// Alerts backend — change this URL once deployed; everything else uses BASE_URL
+export const ALERTS_BASE_URL = 'http://127.0.0.1:8000';
 
 export const ENDPOINTS = {
   // ── Dashboard ────────────────────────────────────────────────
@@ -21,10 +23,11 @@ export const ENDPOINTS = {
 
   // ── Alerts ───────────────────────────────────────────────────
   alerts: {
-    list:       `${BASE_URL}/alerts`,
-    byId:       (id: string) => `${BASE_URL}/alerts/${id}`,
-    markRead:   (id: string) => `${BASE_URL}/alerts/${id}/read`,
-    markAll:    `${BASE_URL}/alerts/mark-all-read`,
+    list:         `${ALERTS_BASE_URL}/alerts`,
+    byId:         (id: string) => `${ALERTS_BASE_URL}/alerts/${id}`,
+    markRead:     (id: string) => `${ALERTS_BASE_URL}/alerts/${id}/read`,
+    markAll:      `${ALERTS_BASE_URL}/alerts/mark-all-read`,
+    unreadCount:  `${ALERTS_BASE_URL}/alerts/unread-count`,
   },
 
   // ── Spares ───────────────────────────────────────────────────

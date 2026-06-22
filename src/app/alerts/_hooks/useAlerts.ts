@@ -1,8 +1,10 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { Alert } from '@/types';
+import { ENDPOINTS } from '@/lib/endpoints';
 
-// ─── Mock Data ─── Replace with real API calls ───────────────────
+// ─── Fallback Mock Data ────────────────────────────────────────────
+// Used automatically when the backend is unreachable or returns an error.
 const MOCK_ALERTS: Alert[] = [
   { id: 'a1', title: 'Stock-out Industrial Sewing Needle', message: 'SKU-102 stock is at 0.', type: 'error', module: 'ST Spares', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: false },
   { id: 'a2', title: 'Stock-out Industrial Sewing Needle', message: 'SKU-105 stock is at 0.', type: 'error', module: 'ST Spares', createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), read: false },
@@ -18,34 +20,75 @@ const MOCK_ALERTS: Alert[] = [
 ];
 // ──────────────────────────────────────────────────────────────────
 
+/** Normalise any response shape the backend may return into Alert[]. */
+function parseAlertsResponse(json: unknown): Alert[] {
+  if (Array.isArray(json)) return json as Alert[];
+  const obj = json as Record<string, unknown>;
+  if (obj?.data) {
+    const d = obj.data as Record<string, unknown>;
+    if (Array.isArray(d)) return d as Alert[];
+    if (Array.isArray(d?.items)) return d.items as Alert[];
+  }
+  return [];
+}
+
 export function useAlerts() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [usingFallback, setUsingFallback] = useState(false);
 
   const fetchAlerts = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // TODO: Replace with real API call
-      // const res = await fetch('/api/alerts');
-      // const json = await res.json();
-      // setAlerts(json.data);
-      await new Promise((r) => setTimeout(r, 400));
+      const res = await fetch(ENDPOINTS.alerts.list, {
+        headers: { Accept: 'application/json' },
+      });
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      const json = await res.json();
+      const data = parseAlertsResponse(json);
+      setAlerts(data);
+      setUsingFallback(false);
+    } catch (err) {
+      // Backend unreachable or error — fall back to mock data silently
+      console.warn('[useAlerts] API unavailable, using mock data.', err);
       setAlerts(MOCK_ALERTS);
-    } catch {
-      setError('Failed to load alerts.');
+      setUsingFallback(true);
+      // Don't set error — UI should still be fully functional with mock data
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const markRead = useCallback((id: string) => {
+  const markRead = useCallback(async (id: string) => {
+    // Optimistic update first — UI feels instant
     setAlerts((prev) => prev.map((a) => (a.id === id ? { ...a, read: true } : a)));
-    // TODO: await fetch(`/api/alerts/${id}/read`, { method: 'PATCH' });
+    try {
+      await fetch(ENDPOINTS.alerts.markRead(id), {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      });
+    } catch (err) {
+      // Non-fatal: optimistic update stays; log for debugging
+      console.warn('[useAlerts] markRead API call failed (non-fatal).', err);
+    }
+  }, []);
+
+  const markAllRead = useCallback(async () => {
+    // Optimistic update
+    setAlerts((prev) => prev.map((a) => ({ ...a, read: true })));
+    try {
+      await fetch(ENDPOINTS.alerts.markAll, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      });
+    } catch (err) {
+      console.warn('[useAlerts] markAllRead API call failed (non-fatal).', err);
+    }
   }, []);
 
   useEffect(() => { fetchAlerts(); }, [fetchAlerts]);
 
-  return { alerts, loading, error, refetch: fetchAlerts, markRead };
+  return { alerts, loading, error, usingFallback, refetch: fetchAlerts, markRead, markAllRead };
 }

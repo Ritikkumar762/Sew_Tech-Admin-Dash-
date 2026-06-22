@@ -2,14 +2,149 @@
 import { useState, useMemo } from 'react';
 import { useAlerts } from './_hooks/useAlerts';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, TriangleAlert, ChevronRight } from 'lucide-react';
+import { AlertCircle, TriangleAlert, ChevronRight, Plus, X } from 'lucide-react';
 import styles from './alerts.module.css';
+import { ENDPOINTS } from '@/lib/endpoints';
+import { Alert } from '@/types';
+
+// ── Add Alert Modal ───────────────────────────────────────────────
+type FormData = {
+  title: string;
+  message: string;
+  type: Alert['type'];
+  module: Alert['module'];
+};
+
+const EMPTY_FORM: FormData = { title: '', message: '', type: 'info', module: 'Other' };
+
+function AddAlertModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [form, setForm] = useState<FormData>(EMPTY_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch(ENDPOINTS.alerts.list, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      onCreated(); // trigger refetch on parent
+      onClose();
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : 'Failed to create alert.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className={styles.modalHeader}>
+          <h2 className={styles.modalTitle}>Add New Alert</h2>
+          <button className={styles.modalClose} onClick={onClose} aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className={styles.modalForm}>
+          {/* Title */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel} htmlFor="alert-title">Title <span className={styles.required}>*</span></label>
+            <input
+              id="alert-title"
+              className={styles.fieldInput}
+              type="text"
+              placeholder="e.g. Stock-out Industrial Sewing Needle"
+              value={form.title}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              required
+            />
+          </div>
+
+          {/* Message */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.fieldLabel} htmlFor="alert-message">Message <span className={styles.required}>*</span></label>
+            <textarea
+              id="alert-message"
+              className={styles.fieldTextarea}
+              placeholder="e.g. SKU-102 stock is at 0."
+              rows={3}
+              value={form.message}
+              onChange={(e) => setForm((p) => ({ ...p, message: e.target.value }))}
+              required
+            />
+          </div>
+
+          {/* Type + Module side by side */}
+          <div className={styles.fieldRow}>
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel} htmlFor="alert-type">Type <span className={styles.required}>*</span></label>
+              <select
+                id="alert-type"
+                className={styles.fieldSelect}
+                value={form.type}
+                onChange={(e) => setForm((p) => ({ ...p, type: e.target.value as Alert['type'] }))}
+              >
+                <option value="error">Error (High Priority)</option>
+                <option value="warning">Warning (Medium Priority)</option>
+                <option value="info">Info (Low Priority)</option>
+                <option value="success">Success (Low Priority)</option>
+              </select>
+            </div>
+
+            <div className={styles.fieldGroup}>
+              <label className={styles.fieldLabel} htmlFor="alert-module">Module <span className={styles.required}>*</span></label>
+              <select
+                id="alert-module"
+                className={styles.fieldSelect}
+                value={form.module}
+                onChange={(e) => setForm((p) => ({ ...p, module: e.target.value as Alert['module'] }))}
+              >
+                <option value="ST Spares">ST Spares</option>
+                <option value="ST Mechanics">ST Mechanics</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          {submitError && <p className={styles.formError}>{submitError}</p>}
+
+          {/* Actions */}
+          <div className={styles.modalActions}>
+            <button type="button" className={styles.cancelBtn} onClick={onClose} disabled={submitting}>
+              Cancel
+            </button>
+            <button type="submit" className={styles.submitBtn} disabled={submitting}>
+              {submitting ? 'Adding…' : 'Add Alert'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────
 
 export default function AlertsPage() {
-  const { alerts, loading, error, markRead } = useAlerts();
+  const { alerts, loading, error, markRead, refetch } = useAlerts();
   const router = useRouter();
-  
+
   const [activeTab, setActiveTab] = useState<'All' | 'ST Spares' | 'ST Mechanics'>('All');
+  const [showAddModal, setShowAddModal] = useState(false);
 
   // Backend easily integratable filtering
   const filteredAlerts = useMemo(() => {
@@ -37,17 +172,29 @@ export default function AlertsPage() {
             Alerts • <span>All Alerts</span>
           </div>
         </div>
-        
-        <div className={styles.tabsContainer}>
-          {(['All', 'ST Spares', 'ST Mechanics'] as const).map(tab => (
-            <button 
-              key={tab}
-              className={`${styles.tabBtn} ${activeTab === tab ? styles.tabBtnActive : ''}`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-            </button>
-          ))}
+
+        {/* Right side: Add button + Tabs */}
+        <div className={styles.headerRight}>
+          <button
+            id="add-alert-btn"
+            className={styles.addBtn}
+            onClick={() => setShowAddModal(true)}
+          >
+            <Plus size={16} />
+            Add Alert
+          </button>
+
+          <div className={styles.tabsContainer}>
+            {(['All', 'ST Spares', 'ST Mechanics'] as const).map(tab => (
+              <button
+                key={tab}
+                className={`${styles.tabBtn} ${activeTab === tab ? styles.tabBtnActive : ''}`}
+                onClick={() => setActiveTab(tab)}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -128,6 +275,14 @@ export default function AlertsPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Add Alert Modal */}
+      {showAddModal && (
+        <AddAlertModal
+          onClose={() => setShowAddModal(false)}
+          onCreated={() => { refetch(); }}
+        />
       )}
     </div>
   );
