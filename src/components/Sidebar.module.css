@@ -207,3 +207,18 @@
   .closeBtn { display: block; }
   .sidebar { width: min(280px, 90vw); }
 }
+
+/* Sidebar image logos styling */
+.navIconImage img {
+  filter: grayscale(100%) opacity(0.6);
+  transition: filter var(--transition-fast), opacity var(--transition-fast);
+}
+
+.navLinkActive .navIconImage {
+  background-color: transparent !important;
+}
+
+.navLinkActive .navIconImage img {
+  filter: none !important;
+  opacity: 1 !important;
+}

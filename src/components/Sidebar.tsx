@@ -97,9 +97,9 @@ export default function Sidebar() {
                   onClick={() => toggleMenu(route.path)}
                 >
                   <div className={styles.navLinkContent}>
-                    <span className={styles.navIcon}>
+                    <span className={`${styles.navIcon} ${route.icon?.includes('.png') ? styles.navIconImage : ''}`}>
                       {route.icon?.includes('.png') ? (
-                        <img src={route.icon} alt={route.name} style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} className={isActive ? styles.activeImg : ''} />
+                        <img src={route.icon} alt={route.name} style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} />
                       ) : route.icon && iconMap[route.icon] ? (
                         iconMap[route.icon]
                       ) : (
@@ -118,9 +118,9 @@ export default function Sidebar() {
                   className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
                 >
                   <div className={styles.navLinkContent}>
-                    <span className={styles.navIcon}>
+                    <span className={`${styles.navIcon} ${route.icon?.includes('.png') ? styles.navIconImage : ''}`}>
                       {route.icon?.includes('.png') ? (
-                        <img src={route.icon} alt={route.name} style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} className={isActive ? styles.activeImg : ''} />
+                        <img src={route.icon} alt={route.name} style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} />
                       ) : route.icon && iconMap[route.icon] ? (
                         iconMap[route.icon]
                       ) : (
@@ -168,7 +168,7 @@ export default function Sidebar() {
             style={route.name === 'Logout' ? { color: 'var(--danger)' } : {}}
           >
             <div className={styles.navLinkContent}>
-              <span className={styles.navIcon} style={route.name === 'Logout' ? { color: '#ef4444' } : {}}>
+              <span className={`${styles.navIcon} ${route.icon?.includes('.png') ? styles.navIconImage : ''}`} style={route.name === 'Logout' ? { color: '#ef4444' } : {}}>
                 {route.icon?.includes('.png') ? (
                   <img src={route.icon} alt={route.name} style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} />
                 ) : route.icon && iconMap[route.icon] ? (
