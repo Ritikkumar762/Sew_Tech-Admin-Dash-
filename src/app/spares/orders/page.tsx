@@ -16,14 +16,13 @@ import {
 } from 'lucide-react';
 import FiltersDrawer from '@/components/orders/FiltersDrawer';
 
-// Rich Mock Data for Spares Orders
 const INITIAL_ORDERS = [
-  { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", itemsCount: 2, orderValue: 1850, status: 'Order Received', avatarLetter: 'b', paymentMethod: 'UPI' },
-  { id: 'sth-rh-2046', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", itemsCount: 2, orderValue: 1850, status: 'Processing', avatarLetter: 'b', paymentMethod: 'UPI' },
-  { id: 'sth-rh-2047', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", itemsCount: 2, orderValue: 1850, status: 'Shipped', avatarLetter: 'b', paymentMethod: 'UPI' },
-  { id: 'sth-rh-2048', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", itemsCount: 2, orderValue: 1850, status: 'Out for Delivery', avatarLetter: 'b', paymentMethod: 'UPI' },
-  { id: 'sth-rh-2049', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", itemsCount: 2, orderValue: 1850, status: 'Delivered', avatarLetter: 'b', paymentMethod: 'UPI' },
-  { id: 'sth-rh-2050', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", itemsCount: 2, orderValue: 1850, status: 'Return Requested', avatarLetter: 'b', paymentMethod: 'UPI' },
+  { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Items not arriving on time', orderValue: 1850, status: 'Requested', avatarLetter: 'b', paymentMethod: 'UPI' },
+  { id: 'sth-rh-2046', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Need to change address', orderValue: 1850, status: 'Pickup Scheduled', avatarLetter: 'b', paymentMethod: 'UPI' },
+  { id: 'sth-rh-2047', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Ordered by mistake', orderValue: 1850, status: 'Pickup Failed', avatarLetter: 'b', paymentMethod: 'UPI' },
+  { id: 'sth-rh-2048', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 1850, status: 'Return Requested', avatarLetter: 'b', paymentMethod: 'UPI' },
+  { id: 'sth-rh-2049', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Changed mind', orderValue: 1850, status: 'Replacement in Process', avatarLetter: 'b', paymentMethod: 'UPI' },
+  { id: 'sth-rh-2050', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Wrong item sent', orderValue: 1850, status: 'Refund Completed', avatarLetter: 'b', paymentMethod: 'UPI' },
 ];
 
 export default function SparesOrdersPage() {
@@ -59,12 +58,18 @@ export default function SparesOrdersPage() {
       { label: 'Completed', hasPlus: true }
     ],
     Return: [
-      { label: 'Return Requested' },
-      { label: 'Returned', count: 1983, hasPlus: true }
+      { label: 'Return Requested', hasPlus: true },
+      { label: 'Pickup Scheduled', hasPlus: true },
+      { label: 'Pickup Completed', hasPlus: true },
+      { label: 'Refund Initiated', hasPlus: true },
+      { label: 'Refund Completed', hasPlus: true }
     ],
     Replacement: [
-      { label: 'Replacement Requested' },
-      { label: 'Replacement', count: 1534, hasPlus: true }
+      { label: 'Return Requested', hasPlus: true },
+      { label: 'Pickup Scheduled', hasPlus: true },
+      { label: 'Pickup Completed', hasPlus: true },
+      { label: 'Refund Initiated', hasPlus: true },
+      { label: 'Refund Completed', hasPlus: true }
     ],
     Cancelled: [
       { label: 'Cancelled' },
@@ -226,13 +231,26 @@ export default function SparesOrdersPage() {
           .status-badge {
             display: inline-flex;
             align-items: center;
-            padding: 0.375rem 0.875rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+          }
+          .status-requested { color: #eab308; background-color: #fef9c3; }
+          .status-scheduled { color: #f59e0b; background-color: #fef3c7; }
+          .status-failed { color: #ef4444; background-color: #fee2e2; }
+          .status-completed { color: #10b981; background-color: #d1fae5; }
+          .status-default { color: #6b7280; background-color: #f3f4f6; }
+          
+          .reason-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.375rem 0.75rem;
             border-radius: 2rem;
             font-size: 0.75rem;
             font-weight: 500;
-            background-color: #eff6ff;
-            color: #2563eb;
-            border: 1px solid #dbeafe;
+            background-color: #f3f4f6;
+            color: #6b7280;
           }
           .order-row {
             border-bottom: 1px solid #f3f4f6;
@@ -525,8 +543,8 @@ export default function SparesOrdersPage() {
                 </th>
                 <th style={{ padding: '1rem', fontWeight: 600 }}>Order ↑↓</th>
                 <th style={{ padding: '1rem', fontWeight: 600 }}>Date ↑↓</th>
-                <th style={{ padding: '1rem', fontWeight: 600 }}>Items Count ↑↓</th>
                 <th style={{ padding: '1rem', fontWeight: 600 }}>Order Value ↑↓</th>
+                <th style={{ padding: '1rem', fontWeight: 600 }}>Reason ↑↓</th>
                 <th style={{ padding: '1rem', fontWeight: 600 }}>Status ↑↓</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600, textAlign: 'center' }}>Action</th>
               </tr>
@@ -602,10 +620,14 @@ export default function SparesOrdersPage() {
                       </div>
                     </td>
                     <td style={{ padding: '1rem', fontWeight: 500, color: '#374151' }}>{order.date}</td>
-                    <td style={{ padding: '1rem', fontWeight: 500, color: '#374151', paddingLeft: '2.5rem' }}>{order.itemsCount}</td>
                     <td style={{ padding: '1rem', fontWeight: 600, color: '#111827' }}>₹{order.orderValue.toLocaleString('en-IN')}</td>
                     <td style={{ padding: '1rem' }}>
-                      <span className="status-badge">
+                      <span className="reason-pill">
+                        {order.reason}
+                      </span>
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      <span className={`status-badge ${order.status === 'Requested' ? 'status-requested' : order.status === 'Pickup Scheduled' ? 'status-scheduled' : order.status === 'Pickup Failed' ? 'status-failed' : order.status.includes('Completed') ? 'status-completed' : 'status-default'}`}>
                         {order.status}
                       </span>
                     </td>

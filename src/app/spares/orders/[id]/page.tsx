@@ -103,7 +103,7 @@ export default function OrderDetailPage() {
 
   // State
   const [order, setOrder] = useState<OrderDetail>(initialOrder);
-  const [activeTab, setActiveTab] = useState<'summary' | 'tracking'>('summary');
+  const [activeTab, setActiveTab] = useState<'return' | 'summary' | 'tracking'>('return');
   const [isPaymentExpanded, setIsPaymentExpanded] = useState(true);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(true);
   const [copiedText, setCopiedText] = useState<string | null>(null);
@@ -428,77 +428,49 @@ export default function OrderDetailPage() {
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
             </button>
 
-            {order.status !== 'Cancelled' && (
-              <button 
-                onClick={() => setShowCancelModal(true)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: '1.5px solid #fecaca',
-                  backgroundColor: 'white',
-                  color: '#dc2626',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-              >
-                Cancel Order
-              </button>
-            )}
+            {/* Dynamic Action Button */}
+            <button 
+              onClick={() => {
+                if (order.status === 'Requested') handleUpdateStatus('Pickup Scheduled');
+                else if (order.status === 'Pickup Scheduled') handleUpdateStatus('Refund Initiated');
+                else if (order.status === 'Refund Initiated') handleUpdateStatus('Refund Completed');
+              }}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                backgroundColor: '#111827',
+                color: 'white',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+            >
+              {order.status === 'Requested' ? 'Initiate Return' : order.status === 'Pickup Scheduled' ? 'Initiate Pickup' : order.status === 'Refund Initiated' ? 'Initiate Refund' : 'Initiate Return'}
+            </button>
 
-            {/* Update Status Dropdown */}
-            <div>
-              <button 
-                onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: 'none',
-                  backgroundColor: '#111827',
-                  color: 'white',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.375rem',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
-              >
-                Update Status
-                <ChevronDown size={14} />
-              </button>
-              {isStatusMenuOpen && (
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '100%',
-                  marginTop: '0.5rem',
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  zIndex: 200,
-                  width: '180px',
-                  overflow: 'hidden'
-                }}>
-                  {['Order Received', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Completed', 'Return Requested'].map((statusOption) => (
-                    <button 
-                      key={statusOption} 
-                      className="status-item"
-                      onClick={() => handleUpdateStatus(statusOption)}
-                    >
-                      {statusOption}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Cancel Request Button */}
+            <button 
+              onClick={() => setShowCancelModal(true)}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                backgroundColor: '#ef4444',
+                color: 'white',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+            >
+              Cancel Request
+            </button>
           </div>
         </div>
 
@@ -545,6 +517,12 @@ export default function OrderDetailPage() {
       {/* Detail Pages Content Tabs Switcher */}
       <div style={{ borderBottom: '1px solid #e5e7eb', display: 'flex', gap: '1.5rem' }}>
         <button 
+          onClick={() => setActiveTab('return')}
+          className={`tab-btn ${activeTab === 'return' ? 'tab-btn-active' : ''}`}
+        >
+          Return Request Details
+        </button>
+        <button 
           onClick={() => setActiveTab('summary')}
           className={`tab-btn ${activeTab === 'summary' ? 'tab-btn-active' : ''}`}
         >
@@ -559,7 +537,37 @@ export default function OrderDetailPage() {
       </div>
 
       {/* Tab Panes */}
-      {activeTab === 'summary' ? (
+      {activeTab === 'return' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="detail-card">
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', marginBottom: '1.25rem' }}>Return Request Details</h3>
+            
+            {/* Reason Selected */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>Reason Selected</div>
+              <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', fontSize: '0.875rem', color: '#1f2937' }}>
+                Defected product received
+              </div>
+            </div>
+
+            {/* Supporting Media */}
+            <div>
+              <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>Supporting Media</div>
+              <div style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', display: 'flex', gap: '1rem' }}>
+                {[1, 2, 3].map((item) => (
+                  <div key={item} style={{ position: 'relative', width: '120px', height: '120px', backgroundColor: 'white', borderRadius: '0.5rem', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ position: 'absolute', top: '8px', right: '8px', backgroundColor: 'white', borderRadius: '50%', padding: '4px', boxShadow: '0 1px 2px rgba(0,0,0,0.1)', cursor: 'pointer', zIndex: 10, display: 'flex' }}>
+                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4b5563" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                    </div>
+                    {/* Image of rotary hook */}
+                    <img src="/rotary-hook.png" alt="Rotary Hook" style={{ width: '80%', height: '80%', objectFit: 'contain', borderRadius: '0.25rem' }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : activeTab === 'summary' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="detail-card">
             <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', marginBottom: '1.25rem' }}>Order Summary</h3>
@@ -582,18 +590,17 @@ export default function OrderDetailPage() {
                       <td style={{ padding: '1rem 1.25rem' }}>
                         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                           <div style={{ 
-                            width: '36px', 
-                            height: '36px', 
-                            borderRadius: '50%', 
-                            backgroundColor: '#ffedd5', 
-                            color: '#c2410c',
-                            fontWeight: 600,
+                            width: '40px', 
+                            height: '40px', 
+                            borderRadius: '0.375rem', 
+                            border: '1px solid #e5e7eb',
+                            backgroundColor: 'white', 
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '0.875rem'
+                            overflow: 'hidden'
                           }}>
-                            b
+                            <img src="/rotary-hook.png" alt="Product" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                           </div>
                           <div>
                             <div style={{ fontWeight: 600, color: '#1f2937' }}>{prod.name}</div>
@@ -834,60 +841,69 @@ export default function OrderDetailPage() {
         </div>
       )}
 
-      {/* Cancel Order Dialog Modal */}
+      {/* Cancel Order Dialog Modal -> Select Reason Modal */}
       {showCancelModal && (
         <div className="modal-overlay">
           <div style={{
             backgroundColor: 'white',
             borderRadius: '0.75rem',
             padding: '1.5rem',
-            width: '400px',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)',
+            width: '500px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
             display: 'flex',
             flexDirection: 'column',
             gap: '1rem',
-            animation: 'fadeIn 0.2s ease-out'
+            animation: 'fadeIn 0.2s ease-out',
+            position: 'relative'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#dc2626' }}>
-              <AlertCircle size={24} />
-              <h3 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>Cancel Order</h3>
-            </div>
-            
-            <p style={{ fontSize: '0.875rem', color: '#4b5563', margin: 0, lineHeight: 1.5 }}>
-              Are you sure you want to cancel order <strong>{order.id.toUpperCase()}</strong>? This action will refund the payment and update the status immediately.
-            </p>
+            <button 
+              onClick={() => setShowCancelModal(false)}
+              style={{ position: 'absolute', top: '-12px', right: '-12px', background: '#1f2937', color: 'white', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
+            >
+              <X size={14} />
+            </button>
 
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', margin: 0, marginBottom: '0.5rem' }}>Select Reason</h3>
+            
+            <div style={{ backgroundColor: '#f8fafc', borderRadius: '0.5rem', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {[
+                'Product is not eligible for return',
+                'Item shows signs of use or damage after delivery',
+                'Issue reported does not match the returned item',
+                'Original tags / packaging missing',
+                'Invoice / order details mismatch',
+                'Incorrect return reason selected'
+              ].map((reason) => (
+                <label key={reason} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.875rem', color: '#4b5563' }}>
+                  <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: '#111827', cursor: 'pointer' }} />
+                  {reason}
+                </label>
+              ))}
+              
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.875rem', color: '#111827', fontWeight: 500 }}>
+                <input type="checkbox" defaultChecked style={{ width: '16px', height: '16px', accentColor: '#111827', cursor: 'pointer' }} />
+                Other
+              </label>
+
+              <div style={{ marginTop: '0.5rem' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>Add Note</div>
+                <input type="text" placeholder="Add Note" style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #e5e7eb', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem' }} />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
               <button 
                 onClick={() => setShowCancelModal(false)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: '1px solid #d1d5db',
-                  backgroundColor: 'white',
-                  color: '#4b5563',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
+                style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #111827', backgroundColor: 'white', color: '#111827', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}
               >
-                No, Keep Order
+                Back
               </button>
               
               <button 
                 onClick={handleCancelOrder}
-                style={{
-                  padding: '0.5rem 1rem',
-                  borderRadius: '0.5rem',
-                  border: 'none',
-                  backgroundColor: '#dc2626',
-                  color: 'white',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
+                style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: 'none', backgroundColor: '#ff4444', color: 'white', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}
               >
-                Yes, Cancel Order
+                Reject Request
               </button>
             </div>
           </div>

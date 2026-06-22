@@ -928,4 +928,118 @@
   color: #111827;
 }
 
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mainContent {
+  animation: fadeIn 0.4s ease-out;
+}
+
+.statCard {
+  animation: slideUpFade 0.5s ease-out forwards;
+  opacity: 0;
+}
+.statCard:nth-child(1) { animation-delay: 0.1s; }
+.statCard:nth-child(2) { animation-delay: 0.2s; }
+.statCard:nth-child(3) { animation-delay: 0.3s; }
+.statCard:nth-child(4) { animation-delay: 0.4s; }
+
+.tableCard {
+  animation: slideUpFade 0.6s ease-out forwards;
+  animation-delay: 0.2s;
+  opacity: 0;
+}
+
+/* Table Row Animation */
+.table tbody tr {
+  transition: all 0.2s ease-in-out;
+}
+.table tbody tr:hover {
+  background-color: #f8fafc;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  position: relative;
+  z-index: 10;
+}
+
+/* Responsive Media Queries */
+@media (max-width: 1200px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .pageHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageContainer {
+    flex-direction: column;
+    height: auto;
+    overflow-y: visible;
+  }
+  
+  .mainContent {
+    padding: 1rem;
+  }
+  
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .tableControls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .searchInputWrapper {
+    width: 100%;
+  }
+
+  .controlGroupRight {
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .filterSidebar {
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1050;
+    box-shadow: -5px 0 25px rgba(0,0,0,0.1);
+  }
+
+  .addOptionsGrid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modalCard {
+    width: 95vw;
+    margin: 1rem;
+  }
+}
