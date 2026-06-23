@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import { useUsers } from '../_hooks/useUsers';
 import Link from 'next/link';
+import { User } from '@/types';
 import styles from './page.module.css';
 import { 
   Copy, 

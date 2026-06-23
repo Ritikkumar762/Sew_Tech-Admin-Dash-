@@ -55,7 +55,10 @@ export default function DashboardPage() {
               {m.label}
             </div>
             <div className={styles.metricValueRow}>
-              <div className={styles.metricValue}>{m.value}</div>
+              <div className={styles.metricValue}>
+                {m.value}
+                {m.unit && <span className={styles.metricUnit}>{m.unit}</span>}
+              </div>
               <button className={styles.metricRefresh} onClick={refetch} title="Refresh">↻</button>
             </div>
           </div>

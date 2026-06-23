@@ -1,10 +1,77 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { apiClient, ENDPOINTS } from '@/lib';
 
+const WauIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v2h20v-2c0-3.33-6.67-5-10-5z" />
+  </svg>
+);
+
+const ClockIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 6.5v5.5h5.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const NpsIcon = (
+  <img src="/checkmark-badge-01.png" alt="NPS Badge" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+);
+
+const LaptopIcon = (
+  <img src="/laptop-issue.png" alt="Laptop Issue" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+);
+
+const PackageIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 5.5V18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5.5l-10 5-10-5Z" />
+    <path d="M2 5.5L12 2l10 3.5M12 10.5V20" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const MoneyBagIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M16 6c0-1.66-1.34-3-3-3h-2c-1.66 0-3 1.34-3 3a3 3 0 0 0-1 2.2c0 .8.3 1.56.8 2.16C7.3 12.3 7 14.1 7 16c0 3.3 2.7 6 6 6s6-2.7 6-6c0-1.9-.3-3.7-.8-5.64.5-.6.8-1.36.8-2.16 0-.84-.36-1.63-1-2.2z" />
+    <path d="M9.5 9h4M9.5 11h4M12.5 9a2.5 2.5 0 0 1-2.5 2.5h-1M9 14.5l3.5 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+  </svg>
+);
+
+const WarningTriangleIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2L1 21h22L12 2z" />
+    <path d="M12 9v5M12 17h.01" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
+const LightningIcon = (
+  <img src="/zap.png" alt="Zap" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+);
+
+const WrenchIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="3" width="18" height="18" rx="4" />
+    <path d="M14.7 7.8a3 3 0 0 0-4.2 0l-4 4a1 1 0 0 0 0 1.4l1.5 1.5a1 1 0 0 0 1.4 0l4-4a3 3 0 0 0 1.3-2.9M13 11l-3 3" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
+  </svg>
+);
+
+const CalendarIcon = (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="3" width="18" height="18" rx="4" />
+    <rect x="6" y="8" width="12" height="10" rx="1.5" fill="none" stroke="white" strokeWidth="2" />
+    <line x1="8" y1="6" x2="8" y2="9" stroke="white" strokeWidth="2" strokeLinecap="round" />
+    <line x1="16" y1="6" x2="16" y2="9" stroke="white" strokeWidth="2" strokeLinecap="round" />
+    <line x1="6" y1="12" x2="18" y2="12" stroke="white" strokeWidth="1.5" />
+  </svg>
+);
+
+const AvatarIcon = (
+  <img src="/mechnaics%20_online_logo.png" alt="Mechanics Online" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+);
+
 // ─── Types ──────────────────────────────────────────────────────
-export type TopMetric = { label: string; value: string; icon: string; iconColor: string };
-export type KpiMetric = { label: string; value: string | number; subValue?: string; trendLabel?: string; trendUp?: boolean; icon: string; iconColor: string; iconBg: string };
+export type TopMetric = { label: string; value: string; unit?: string; icon: React.ReactNode; iconColor: string };
+export type KpiMetric = { label: string; value: string | number; subValue?: string; trendLabel?: string; trendUp?: boolean; icon: React.ReactNode; iconColor: string; iconBg: string };
 export type DonutMetric = { label: string; centerValue: string; centerLabel: string; data: { name: string; value: number; color: string }[] };
 export type LineChartData = { name: string; [key: string]: string | number };
 export type BarChartData = { name: string; [key: string]: string | number | undefined; color?: string };
@@ -140,31 +207,31 @@ function parseSmartViewPayload(payload: unknown) {
 
   const topKpis = asRecord(getValue(dataRoot, ['top_kpis', 'topKpis', 'topMetrics', 'top_metrics']));
   const topMetrics: TopMetric[] = [
-    { label: 'WAU', value: formatMetricValue(getValue(topKpis, ['wau', 'active_users', 'activeUsers'])), icon: '👤', iconColor: '#3b82f6' },
-    { label: 'Avg Time / User', value: formatMetricValue(getValue(topKpis, ['avg_time_per_user', 'avgTimePerUser', 'averageTimePerUser'])), icon: '⏱️', iconColor: '#3b82f6' },
-    { label: 'Avg NPS', value: formatMetricValue(getValue(topKpis, ['avg_nps', 'avgNps'])), icon: '✅', iconColor: '#10b981' },
-    { label: 'Open Reports', value: formatMetricValue(getValue(topKpis, ['open_reports', 'openReports'])), icon: '🚨', iconColor: '#ef4444' },
+    { label: 'WAU', value: formatMetricValue(getValue(topKpis, ['wau', 'active_users', 'activeUsers'])), icon: WauIcon, iconColor: '#3b82f6' },
+    { label: 'Avg Time/ User', value: formatMetricValue(getValue(topKpis, ['avg_time_per_user', 'avgTimePerUser', 'averageTimePerUser'])), unit: 'min', icon: ClockIcon, iconColor: '#3b82f6' },
+    { label: 'Avg NPS', value: formatMetricValue(getValue(topKpis, ['avg_nps', 'avgNps'])), icon: NpsIcon, iconColor: '#10b981' },
+    { label: 'Open Reports', value: formatMetricValue(getValue(topKpis, ['open_reports', 'openReports'])), icon: LaptopIcon, iconColor: '#ef4444' },
   ];
 
   const moduleHealth = asRecord(getValue(dataRoot, ['module_health_kpis', 'moduleHealthKpis', 'module_health', 'moduleHealth']));
   const sparesData = asRecord(getValue(moduleHealth, ['st_spares', 'stSpares', 'spares']));
   const mechanicData = asRecord(getValue(moduleHealth, ['st_mechanic', 'stMechanic', 'mechanic']));
 
-  const sparesKpis = sparesData
+  const sparesKpis: KpiMetric[] = sparesData
     ? [
-        { label: 'Total Orders (Today)', value: formatMetricValue(getValue(sparesData, ['total_orders_today', 'totalOrdersToday'])), icon: '📦', iconColor: '#3b82f6', iconBg: '#eff6ff' },
-        { label: 'Revenue (Today)', value: formatCurrencyValue(getValue(sparesData, ['revenue_today', 'revenueToday'])), icon: '💰', iconColor: '#3b82f6', iconBg: '#eff6ff' },
-        { label: 'Refund Rate %', value: formatMetricValue(getValue(sparesData, ['refund_rate', 'refundRate'])), icon: '⚠️', iconColor: '#f59e0b', iconBg: '#fffbeb' },
-        { label: 'Open Issues', value: formatMetricValue(getValue(sparesData, ['open_issues', 'openIssues'])), icon: '🚨', iconColor: '#ef4444', iconBg: '#fef2f2' },
+        { label: 'Total Orders (Today)', value: formatMetricValue(getValue(sparesData, ['total_orders_today', 'totalOrdersToday'])), icon: PackageIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'Revenue (Today)', value: formatCurrencyValue(getValue(sparesData, ['revenue_today', 'revenueToday'])), icon: MoneyBagIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'Refund Rate %', value: formatMetricValue(getValue(sparesData, ['refund_rate', 'refundRate'])), icon: WarningTriangleIcon, iconColor: '#f59e0b', iconBg: '#fffbeb' },
+        { label: 'Open Issues', value: formatMetricValue(getValue(sparesData, ['open_issues', 'openIssues'])), icon: LaptopIcon, iconColor: '#ef4444', iconBg: '#fef2f2' },
       ]
     : [];
 
-  const mechanicKpis = mechanicData
+  const mechanicKpis: KpiMetric[] = mechanicData
     ? [
-        { label: 'New Requests', value: formatMetricValue(getValue(mechanicData, ['new_requests', 'newRequests'])), icon: '⚡', iconColor: '#3b82f6', iconBg: '#eff6ff' },
-        { label: 'Open Requests', value: formatMetricValue(getValue(mechanicData, ['open_requests', 'openRequests'])), icon: '🔧', iconColor: '#3b82f6', iconBg: '#eff6ff' },
-        { label: 'AMC Visits Due', value: formatMetricValue(getValue(mechanicData, ['amc_visits_due', 'amcVisitsDue'])), icon: '📅', iconColor: '#3b82f6', iconBg: '#eff6ff' },
-        { label: 'Mechanics Online', value: formatMetricValue(getValue(mechanicData, ['mechanics_online', 'mechanicsOnline'])), icon: '👷', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'New Requests', value: formatMetricValue(getValue(mechanicData, ['new_requests', 'newRequests'])), icon: LightningIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'Open Requests', value: formatMetricValue(getValue(mechanicData, ['open_requests', 'openRequests'])), icon: WrenchIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'AMC Visits Due', value: formatMetricValue(getValue(mechanicData, ['amc_visits_due', 'amcVisitsDue'])), icon: CalendarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'Mechanics Online', value: formatMetricValue(getValue(mechanicData, ['mechanics_online', 'mechanicsOnline'])), icon: AvatarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
       ]
     : [];
 
@@ -286,24 +353,24 @@ function parseSmartViewPayload(payload: unknown) {
 
 // ─── Mock Data ──────────────────────────────────────────────────
 const MOCK_TOP_METRICS: TopMetric[] = [
-  { label: 'WAU', value: '200', icon: '👤', iconColor: '#3b82f6' },
-  { label: 'Avg Time/ User', value: '20 min', icon: '⏱️', iconColor: '#3b82f6' },
-  { label: 'Avg NPS', value: '9', icon: '✅', iconColor: '#10b981' },
-  { label: 'Open Reports', value: '10', icon: '🚨', iconColor: '#ef4444' },
+  { label: 'WAU', value: '200', icon: WauIcon, iconColor: '#3b82f6' },
+  { label: 'Avg Time/ User', value: '20', unit: 'min', icon: ClockIcon, iconColor: '#3b82f6' },
+  { label: 'Avg NPS', value: '9', icon: NpsIcon, iconColor: '#10b981' },
+  { label: 'Open Reports', value: '10', icon: LaptopIcon, iconColor: '#ef4444' },
 ];
 
 const MOCK_SPARES_KPIS: KpiMetric[] = [
-  { label: 'Total Orders (Today)', value: '12', icon: '📦', iconColor: '#3b82f6', iconBg: '#eff6ff' },
-  { label: 'Revenue (Today)', value: '₹15,000', icon: '💰', iconColor: '#3b82f6', iconBg: '#eff6ff' },
-  { label: 'Refund Rate %', value: '15', icon: '⚠️', iconColor: '#f59e0b', iconBg: '#fffbeb' },
-  { label: 'Open Issues', value: '10', icon: '🚨', iconColor: '#ef4444', iconBg: '#fef2f2' },
+  { label: 'Total Orders (Today)', value: '12', icon: PackageIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'Revenue (Today)', value: '₹15,000', icon: MoneyBagIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'Refund Rate %', value: '15', icon: WarningTriangleIcon, iconColor: '#f59e0b', iconBg: '#fffbeb' },
+  { label: 'Open Issues', value: '10', icon: LaptopIcon, iconColor: '#ef4444', iconBg: '#fef2f2' },
 ];
 
 const MOCK_MECHANIC_KPIS: KpiMetric[] = [
-  { label: 'New Requests', value: '140', subValue: '10 Assigned', trendLabel: '▲5% (L7D)', trendUp: true, icon: '⚡', iconColor: '#3b82f6', iconBg: '#eff6ff' },
-  { label: 'Open Requests', value: '140', trendLabel: '▲5% (L7D)', trendUp: true, icon: '🔧', iconColor: '#3b82f6', iconBg: '#eff6ff' },
-  { label: 'AMC Visits Due', value: '140', subValue: '110 Assigned', trendLabel: '▲5% (L7D)', trendUp: true, icon: '📅', iconColor: '#3b82f6', iconBg: '#eff6ff' },
-  { label: 'Mechanics Online', value: '10 (10%)', trendLabel: '▼5% (L7D)', trendUp: false, icon: '👷', iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'New Requests', value: '140', subValue: '10 Assigned', trendLabel: '▲5% (L7D)', trendUp: true, icon: LightningIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'Open Requests', value: '140', trendLabel: '▲5% (L7D)', trendUp: true, icon: WrenchIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'AMC Visits Due', value: '140', subValue: '110 Assigned', trendLabel: '▲5% (L7D)', trendUp: true, icon: CalendarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'Mechanics Online', value: '10 (10%)', trendLabel: '▼5% (L7D)', trendUp: false, icon: AvatarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
 ];
 
 const MOCK_PERF_DONUTS: DonutMetric[] = [
