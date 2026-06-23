@@ -10,7 +10,7 @@ export type Route = {
 
 export const NAVIGATION_ROUTES: Route[] = [
   { name: 'Dashboard', path: '/dashboard', icon: '/home-03.png' },
-  { name: 'Alerts', path: '/alerts', icon: 'AlertTriangle' },
+  { name: 'Alerts', path: '/alerts', icon: '/alert-02.svg' },
   { 
     name: 'Sewtech Spares', 
     path: '/spares', 
@@ -71,7 +71,7 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'Finance', 
     path: '/finance', 
-    icon: 'Coins',
+    icon: '/money-bag-02.svg',
     subItems: [
       { name: 'Overview', path: '/finance' },
       { name: 'Gold Membership', path: '/finance/gold-membership' },

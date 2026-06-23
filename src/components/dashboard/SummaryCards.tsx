@@ -6,9 +6,7 @@ export default function SummaryCards() {
       title: 'Total Service Requests',
       value: '200',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line>
-        </svg>
+        <img src="/sewtech_spare_logo.png" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />
       ),
       iconBg: '#eff6ff',
       link: true
@@ -17,9 +15,7 @@ export default function SummaryCards() {
       title: 'Active Service Requests',
       value: '₹15,000',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-        </svg>
+        <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />
       ),
       iconBg: '#eff6ff',
       link: false
@@ -28,9 +24,7 @@ export default function SummaryCards() {
       title: 'First-Visit Fix Rate (%)',
       value: '15',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path>
-        </svg>
+        <img src="/alert-02.svg" alt="Fix Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />
       ),
       iconBg: '#fef3c7',
       link: true
@@ -39,9 +33,7 @@ export default function SummaryCards() {
       title: 'Repeat Service Rate (%)',
       value: '10',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M12 8v4"></path><path d="M12 16h.01"></path>
-        </svg>
+        <img src="/laptop-issue.svg" alt="Repeat Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />
       ),
       iconBg: '#fee2e2',
       link: true

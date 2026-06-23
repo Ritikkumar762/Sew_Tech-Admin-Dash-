@@ -20,28 +20,19 @@ const NpsIcon = (
 );
 
 const LaptopIcon = (
-  <img src="/laptop-issue.png" alt="Laptop Issue" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/laptop-issue.svg" alt="Laptop Issue" style={{ width: 20, height: 20, objectFit: 'contain' }} />
 );
 
 const PackageIcon = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-    <path d="M2 5.5V18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5.5l-10 5-10-5Z" />
-    <path d="M2 5.5L12 2l10 3.5M12 10.5V20" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
+  <img src="/sewtech_spare_logo.png" alt="Total Orders" style={{ width: 20, height: 20, objectFit: 'contain' }} />
 );
 
 const MoneyBagIcon = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-    <path d="M16 6c0-1.66-1.34-3-3-3h-2c-1.66 0-3 1.34-3 3a3 3 0 0 0-1 2.2c0 .8.3 1.56.8 2.16C7.3 12.3 7 14.1 7 16c0 3.3 2.7 6 6 6s6-2.7 6-6c0-1.9-.3-3.7-.8-5.64.5-.6.8-1.36.8-2.16 0-.84-.36-1.63-1-2.2z" />
-    <path d="M9.5 9h4M9.5 11h4M12.5 9a2.5 2.5 0 0 1-2.5 2.5h-1M9 14.5l3.5 4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
+  <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />
 );
 
 const WarningTriangleIcon = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2L1 21h22L12 2z" />
-    <path d="M12 9v5M12 17h.01" stroke="white" strokeWidth="2.5" strokeLinecap="round" />
-  </svg>
+  <img src="/alert-02.svg" alt="Refund Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />
 );
 
 const LightningIcon = (
@@ -49,20 +40,11 @@ const LightningIcon = (
 );
 
 const WrenchIcon = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="3" width="18" height="18" rx="4" />
-    <path d="M14.7 7.8a3 3 0 0 0-4.2 0l-4 4a1 1 0 0 0 0 1.4l1.5 1.5a1 1 0 0 0 1.4 0l4-4a3 3 0 0 0 1.3-2.9M13 11l-3 3" stroke="white" strokeWidth="2" strokeLinecap="round" fill="none" />
-  </svg>
+  <img src="/wrench-01.svg" alt="Open Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />
 );
 
 const CalendarIcon = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-    <rect x="3" y="3" width="18" height="18" rx="4" />
-    <rect x="6" y="8" width="12" height="10" rx="1.5" fill="none" stroke="white" strokeWidth="2" />
-    <line x1="8" y1="6" x2="8" y2="9" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    <line x1="16" y1="6" x2="16" y2="9" stroke="white" strokeWidth="2" strokeLinecap="round" />
-    <line x1="6" y1="12" x2="18" y2="12" stroke="white" strokeWidth="1.5" />
-  </svg>
+  <img src="/exchange-01.svg" alt="AMC Visits Due" style={{ width: 20, height: 20, objectFit: 'contain' }} />
 );
 
 const AvatarIcon = (

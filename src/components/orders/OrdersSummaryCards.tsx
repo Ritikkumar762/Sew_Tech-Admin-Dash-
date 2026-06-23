@@ -9,9 +9,7 @@ export default function OrdersSummaryCards() {
       trend: '▲ 5% (L7D)',
       trendColor: '#10b981',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-        </svg>
+        <img src="/zap.png" alt="New Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />
       )
     },
     {
@@ -21,9 +19,7 @@ export default function OrdersSummaryCards() {
       trend: '▲ 5% (L7D)',
       trendColor: '#10b981',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line>
-        </svg>
+        <img src="/wrench-01.svg" alt="Open Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />
       )
     },
     {
@@ -33,9 +29,7 @@ export default function OrdersSummaryCards() {
       trend: '▲ 5% (L7D)',
       trendColor: '#10b981',
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-        </svg>
+        <img src="/exchange-01.svg" alt="AMC Visits Due" style={{ width: 20, height: 20, objectFit: 'contain' }} />
       )
     },
     {
@@ -46,9 +40,7 @@ export default function OrdersSummaryCards() {
       trend: '▼ 5% (L7D)',
       trendColor: '#10b981', // In mockup it is green despite down arrow
       icon: (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line>
-        </svg>
+        <img src="/mechnaics%20_online_logo.png" alt="Mechanics Online" style={{ width: 20, height: 20, objectFit: 'contain' }} />
       )
     }
   ];
