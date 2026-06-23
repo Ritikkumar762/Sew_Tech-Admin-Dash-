@@ -491,7 +491,7 @@ const MOCK_PERFORMANCE_TOP_METRICS: TopMetric[] = [
   { 
     label: 'Total Service Requests', 
     value: '200', 
-    icon: <img src="/piechart_logo.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    icon: <img src="/total order.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
     iconColor: '#3b82f6',
     iconBg: '#eff6ff',
     link: true

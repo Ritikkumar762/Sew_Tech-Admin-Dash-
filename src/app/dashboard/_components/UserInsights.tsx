@@ -11,6 +11,41 @@ type Props = {
   newRepeat: LineChartData[];
 };
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({
+  cx, cy, midAngle, innerRadius, outerRadius, value
+}: any) => {
+  const radius = outerRadius + 18;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <g>
+      <rect
+        x={x - 18}
+        y={y - 8}
+        width={36}
+        height={16}
+        rx={4}
+        fill="white"
+        stroke="#e5e7eb"
+        strokeWidth={1}
+      />
+      <text
+        x={x}
+        y={y + 3}
+        fill="#374151"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="10px"
+        fontWeight="bold"
+      >
+        {`${value}%`}
+      </text>
+    </g>
+  );
+};
+
 export default function UserInsights({ userDonuts, newRepeat }: Props) {
   return (
     <div className={styles.container}>
@@ -21,13 +56,24 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
           <div key={donut.label} className={styles.chartCard} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ flex: 1 }}>
               <h3 className={styles.cardTitle}>{donut.label}</h3>
-              <div className={styles.donutWrapper}>
+              <div className={styles.donutWrapper} style={{ width: 220, height: 220 }}>
                 <div className={styles.donutCenter}>
                   <div className={styles.donutTotal}>{donut.centerValue}</div>
                   <div className={styles.donutSub}>{donut.centerLabel}</div>
                 </div>
-                <PieChart width={160} height={160}>
-                  <Pie data={donut.data} cx={80} cy={80} innerRadius={50} outerRadius={70} dataKey="value" startAngle={90} endAngle={-270}>
+                <PieChart width={220} height={220}>
+                  <Pie 
+                    data={donut.data} 
+                    cx={110} 
+                    cy={110} 
+                    innerRadius={50} 
+                    outerRadius={70} 
+                    dataKey="value" 
+                    startAngle={90} 
+                    endAngle={-270}
+                    label={renderCustomizedLabel}
+                    labelLine={false}
+                  >
                     {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>
                   <Tooltip />
