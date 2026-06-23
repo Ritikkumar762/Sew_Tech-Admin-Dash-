@@ -18,7 +18,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('module_health');
   
   const { 
-    topMetrics, sparesKpis, mechanicKpis, 
+    topMetrics, performanceTopMetrics, sparesKpis, mechanicKpis, 
     perfDonuts, trendModule, trendUserType, trendCity,
     userDonuts, newRepeat,
     loading, error, refetch 
@@ -49,7 +49,9 @@ export default function DashboardPage() {
       {/* ── Header Section ────────────────────────────────────────── */}
       <div className={styles.dashboardHeader}>
         <div>
-          <h1 className={styles.dashboardTitle}>Dashboard</h1>
+          <h1 className={styles.dashboardTitle}>
+            {activeTab === 'performance' ? 'Smart View Dashboard' : 'Dashboard'}
+          </h1>
           <div className={styles.dashboardSubtitle}>
             Sewtech Spare <span style={{ margin: '0 0.5rem', color: '#d1d5db' }}>•</span> Order Management
           </div>
@@ -60,16 +62,15 @@ export default function DashboardPage() {
             <option>Last 30 Days</option>
             <option>This Month</option>
           </select>
-          <button className={styles.exportButton}>
-            Export
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <button style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+            <img src="/Export button _logo.svg" alt="Export" style={{ width: '112px', height: '40px', display: 'block' }} />
           </button>
         </div>
       </div>
 
       {/* Top Metrics Row */}
       <div className={styles.metricsGrid}>
-        {topMetrics.map((m) => (
+        {(activeTab === 'performance' ? performanceTopMetrics : topMetrics).map((m) => (
           <div key={m.label} className={styles.metricCard}>
             <div className={styles.metricLabel}>
               <span className={styles.metricIcon} style={{ color: m.iconColor, background: m.iconBg ?? `${m.iconColor}15` }}>{m.icon}</span>

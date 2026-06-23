@@ -41,8 +41,12 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
               </div>
 
               {/* absolute-positioned pills matching screenshot */}
-              <div className={styles.donutPill} style={{ top: '12px', right: '12px' }}>40%</div>
-              <div className={styles.donutPill} style={{ bottom: '12px', left: '12px' }}>60%</div>
+              <div className={styles.donutPill} style={{ top: '12px', right: '12px' }}>
+                {donut.data[1]?.value ?? 40}%
+              </div>
+              <div className={styles.donutPill} style={{ bottom: '12px', left: '12px' }}>
+                {donut.data[0]?.value ?? 60}%
+              </div>
             </div>
           </div>
         ))}

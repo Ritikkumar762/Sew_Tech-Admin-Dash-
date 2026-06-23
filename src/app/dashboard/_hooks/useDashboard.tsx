@@ -184,6 +184,15 @@ function formatCurrencyValue(value: unknown): string {
   return formatMetricValue(value);
 }
 
+function formatCurrencyValueLakhs(value: unknown): string {
+  const num = toNumeric(value);
+  if (num >= 100000) {
+    const lakhs = num / 100000;
+    return `₹ ${lakhs.toLocaleString('en-IN', { maximumFractionDigits: 2 })} L`;
+  }
+  return formatCurrencyValue(value);
+}
+
 function toNumeric(value: unknown): number {
   const parsed = typeof value === 'number' ? value : Number(value);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -194,7 +203,7 @@ function parseSmartViewPayload(payload: unknown) {
   const dataRoot = asRecord(getValue(root, ['data', 'result', 'payload', 'response'])) ?? root;
 
   const topKpis = asRecord(getValue(dataRoot, ['top_kpis', 'topKpis', 'topMetrics', 'top_metrics']));
-  const topMetrics: TopMetric[] = [
+  const moduleHealthTopMetrics: TopMetric[] = [
     { 
       label: 'WAU', 
       value: formatMetricValue(getValue(topKpis, ['wau', 'active_users', 'activeUsers']) ?? 200), 
@@ -224,6 +233,41 @@ function parseSmartViewPayload(payload: unknown) {
       label: 'Open Reports', 
       value: formatMetricValue(getValue(topKpis, ['open_reports', 'openReports', 'reports']) ?? 10), 
       icon: <img src="/alert-02.svg" alt="Open Reports" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      iconColor: '#ef4444',
+      iconBg: '#fee2e2',
+      link: true
+    },
+  ];
+
+  const performanceTopMetrics: TopMetric[] = [
+    { 
+      label: 'Total Service Requests', 
+      value: formatMetricValue(getValue(topKpis, ['total_service_requests', 'wau', 'active_users', 'activeUsers']) ?? 200), 
+      icon: <img src="/total order.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      iconColor: '#3b82f6',
+      iconBg: '#eff6ff',
+      link: true
+    },
+    { 
+      label: 'Active Service Requests', 
+      value: formatCurrencyValue(getValue(topKpis, ['active_service_requests', 'revenue_today', 'revenueToday', 'revenue']) ?? 15000), 
+      icon: <img src="/money-bag-02.svg" alt="Active Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      iconColor: '#3b82f6',
+      iconBg: '#eff6ff',
+      link: false
+    },
+    { 
+      label: 'First-Visit Fix Rate (%)', 
+      value: formatMetricValue(getValue(topKpis, ['first_visit_fix_rate', 'refund_rate', 'refundRate']) ?? 15), 
+      icon: <img src="/alert-02.svg" alt="First-Visit Fix Rate (%)" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      iconColor: '#f59e0b',
+      iconBg: '#fef3c7',
+      link: true
+    },
+    { 
+      label: 'Repeat Service Rate (%)', 
+      value: formatMetricValue(getValue(topKpis, ['repeat_service_rate', 'open_reports', 'openReports', 'open_issues', 'openIssues']) ?? 10), 
+      icon: <img src="/laptop-issue.svg" alt="Repeat Service Rate (%)" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
       iconColor: '#ef4444',
       iconBg: '#fee2e2',
       link: true
@@ -263,7 +307,7 @@ function parseSmartViewPayload(payload: unknown) {
         },
         {
           label: 'Revenue Contribution',
-          centerValue: formatCurrencyValue(getValue(performance, ['revenue_contribution', 'revenueContribution']) ?? 150000),
+          centerValue: formatCurrencyValueLakhs(getValue(performance, ['revenue_contribution', 'revenueContribution']) ?? 150000),
           centerLabel: 'Total Revenue',
           data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }],
         },
@@ -365,7 +409,7 @@ function parseSmartViewPayload(payload: unknown) {
     return acc;
   }, []);
 
-  return { topMetrics, sparesKpis, mechanicKpis, perfDonuts, trendModule, trendUserType, trendCity, userDonuts, newRepeat };
+  return { moduleHealthTopMetrics, performanceTopMetrics, sparesKpis, mechanicKpis, perfDonuts, trendModule, trendUserType, trendCity, userDonuts, newRepeat };
 }
 
 // ─── Mock Data ──────────────────────────────────────────────────
@@ -405,6 +449,41 @@ const MOCK_TOP_METRICS: TopMetric[] = [
   },
 ];
 
+const MOCK_PERFORMANCE_TOP_METRICS: TopMetric[] = [
+  { 
+    label: 'Total Service Requests', 
+    value: '200', 
+    icon: <img src="/piechart_logo.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    iconColor: '#3b82f6',
+    iconBg: '#eff6ff',
+    link: true
+  },
+  { 
+    label: 'Active Service Requests', 
+    value: '₹15,000', 
+    icon: <img src="/money-bag-02.svg" alt="Active Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    iconColor: '#3b82f6',
+    iconBg: '#eff6ff',
+    link: false
+  },
+  { 
+    label: 'First-Visit Fix Rate (%)', 
+    value: '15', 
+    icon: <img src="/alert-02.svg" alt="First-Visit Fix Rate (%)" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    iconColor: '#f59e0b',
+    iconBg: '#fef3c7',
+    link: true
+  },
+  { 
+    label: 'Repeat Service Rate (%)', 
+    value: '10', 
+    icon: <img src="/laptop-issue.svg" alt="Repeat Service Rate (%)" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    iconColor: '#ef4444',
+    iconBg: '#fee2e2',
+    link: true
+  },
+];
+
 const MOCK_SPARES_KPIS: KpiMetric[] = [
   { label: 'Total Orders (Today)', value: '12', icon: PackageIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
   { label: 'Revenue (Today)', value: '₹15,000', icon: MoneyBagIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
@@ -421,7 +500,7 @@ const MOCK_MECHANIC_KPIS: KpiMetric[] = [
 
 const MOCK_PERF_DONUTS: DonutMetric[] = [
   { label: 'Active Users', centerValue: '15,000', centerLabel: 'DAU', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
-  { label: 'Revenue Contribution', centerValue: '₹1.5 L', centerLabel: 'Total Revenue', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
+  { label: 'Revenue Contribution', centerValue: '₹ 1.5 L', centerLabel: 'Total Revenue', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
   { label: 'Disputes / Reports', centerValue: '400', centerLabel: 'Reports', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
   { label: 'Avg Time spent by user', centerValue: '30', centerLabel: 'min', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
 ];
@@ -498,6 +577,7 @@ const MOCK_NEW_REPEAT: LineChartData[] = [
 // ─── Hook ────────────────────────────────────────────────────────
 export function useDashboard() {
   const [topMetrics, setTopMetrics] = useState<TopMetric[]>([]);
+  const [performanceTopMetrics, setPerformanceTopMetrics] = useState<TopMetric[]>([]);
   const [sparesKpis, setSparesKpis] = useState<KpiMetric[]>([]);
   const [mechanicKpis, setMechanicKpis] = useState<KpiMetric[]>([]);
   
@@ -514,6 +594,7 @@ export function useDashboard() {
 
   const applyMockState = useCallback(() => {
     setTopMetrics(MOCK_TOP_METRICS);
+    setPerformanceTopMetrics(MOCK_PERFORMANCE_TOP_METRICS);
     setSparesKpis(MOCK_SPARES_KPIS);
     setMechanicKpis(MOCK_MECHANIC_KPIS);
 
@@ -540,7 +621,8 @@ export function useDashboard() {
         const response = await apiClient.get<unknown>(ENDPOINTS.admin.dashboard.smartView);
         const parsed = parseSmartViewPayload(response);
 
-        setTopMetrics(parsed.topMetrics);
+        setTopMetrics(parsed.moduleHealthTopMetrics);
+        setPerformanceTopMetrics(parsed.performanceTopMetrics);
         setSparesKpis(parsed.sparesKpis);
         setMechanicKpis(parsed.mechanicKpis);
         setPerfDonuts(parsed.perfDonuts);
@@ -552,6 +634,7 @@ export function useDashboard() {
       }
     } catch (err) {
       setTopMetrics([]);
+      setPerformanceTopMetrics([]);
       setSparesKpis([]);
       setMechanicKpis([]);
       setPerfDonuts([]);
@@ -569,7 +652,7 @@ export function useDashboard() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   return { 
-    topMetrics, sparesKpis, mechanicKpis, 
+    topMetrics, performanceTopMetrics, sparesKpis, mechanicKpis, 
     perfDonuts, trendModule, trendUserType, trendCity,
     userDonuts, newRepeat,
     loading, error, refetch: fetchAll 
