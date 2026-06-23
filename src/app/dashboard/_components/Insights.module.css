@@ -37,6 +37,18 @@
   width: 100%;
 }
 
+.donutContainerBox {
+  position: relative;
+  background-color: #f3f4f6;
+  border-radius: 12px;
+  width: 100%;
+  padding: 1.25rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 180px;
+}
+
 .donutWrapper {
   position: relative;
   display: flex;
@@ -64,10 +76,16 @@
   color: #6b7280;
 }
 
-.donutPcts {
+.donutPill {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: #374151;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .trendCard {

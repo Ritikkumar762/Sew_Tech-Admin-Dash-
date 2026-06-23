@@ -49,7 +49,15 @@ const AvatarIcon = (
 );
 
 // ─── Types ──────────────────────────────────────────────────────
-export type TopMetric = { label: string; value: string; unit?: string; icon: React.ReactNode; iconColor: string };
+export type TopMetric = { 
+  label: string; 
+  value: string; 
+  unit?: string; 
+  icon: React.ReactNode; 
+  iconColor: string; 
+  iconBg?: string;
+  link?: boolean;
+};
 export type KpiMetric = { label: string; value: string | number; subValue?: string; trendLabel?: string; trendUp?: boolean; icon: React.ReactNode; iconColor: string; iconBg: string };
 export type DonutMetric = { label: string; centerValue: string; centerLabel: string; data: { name: string; value: number; color: string }[] };
 export type LineChartData = { name: string; [key: string]: string | number };
@@ -186,10 +194,38 @@ function parseSmartViewPayload(payload: unknown) {
 
   const topKpis = asRecord(getValue(dataRoot, ['top_kpis', 'topKpis', 'topMetrics', 'top_metrics']));
   const topMetrics: TopMetric[] = [
-    { label: 'WAU', value: formatMetricValue(getValue(topKpis, ['wau', 'active_users', 'activeUsers'])), icon: WauIcon, iconColor: '#3b82f6' },
-    { label: 'Avg Time/ User', value: formatMetricValue(getValue(topKpis, ['avg_time_per_user', 'avgTimePerUser', 'averageTimePerUser'])), unit: 'min', icon: ClockIcon, iconColor: '#3b82f6' },
-    { label: 'Avg NPS', value: formatMetricValue(getValue(topKpis, ['avg_nps', 'avgNps'])), icon: NpsIcon, iconColor: '#10b981' },
-    { label: 'Open Reports', value: formatMetricValue(getValue(topKpis, ['open_reports', 'openReports'])), icon: LaptopIcon, iconColor: '#ef4444' },
+    { 
+      label: 'Total Service Requests', 
+      value: formatMetricValue(getValue(topKpis, ['total_service_requests', 'wau', 'active_users', 'activeUsers']) ?? 200), 
+      icon: <img src="/total order.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      iconColor: '#3b82f6',
+      iconBg: '#eff6ff',
+      link: true
+    },
+    { 
+      label: 'Active Service Requests', 
+      value: formatCurrencyValue(getValue(topKpis, ['active_service_requests', 'revenue_today', 'revenueToday', 'revenue']) ?? 15000), 
+      icon: <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      iconColor: '#3b82f6',
+      iconBg: '#eff6ff',
+      link: false
+    },
+    { 
+      label: 'First-Visit Fix Rate (%)', 
+      value: formatMetricValue(getValue(topKpis, ['first_visit_fix_rate', 'refund_rate', 'refundRate']) ?? 15), 
+      icon: <img src="/alert-02.svg" alt="Fix Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      iconColor: '#f59e0b',
+      iconBg: '#fef3c7',
+      link: true
+    },
+    { 
+      label: 'Repeat Service Rate (%)', 
+      value: formatMetricValue(getValue(topKpis, ['repeat_service_rate', 'open_reports', 'openReports', 'open_issues', 'openIssues']) ?? 10), 
+      icon: <img src="/laptop-issue.svg" alt="Repeat Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      iconColor: '#ef4444',
+      iconBg: '#fee2e2',
+      link: true
+    },
   ];
 
   const moduleHealth = asRecord(getValue(dataRoot, ['module_health_kpis', 'moduleHealthKpis', 'module_health', 'moduleHealth']));
@@ -219,27 +255,27 @@ function parseSmartViewPayload(payload: unknown) {
     ? [
         {
           label: 'Active Users',
-          centerValue: formatMetricValue(getValue(performance, ['active_users_dau', 'activeUsersDau'])),
+          centerValue: formatMetricValue(getValue(performance, ['active_users_dau', 'activeUsersDau']) ?? '15,000'),
           centerLabel: 'DAU',
-          data: [{ name: 'Users', value: Math.max(toNumeric(getValue(performance, ['active_users_dau', 'activeUsersDau'])), 1), color: '#10b981' }],
+          data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }],
         },
         {
           label: 'Revenue Contribution',
-          centerValue: formatCurrencyValue(getValue(performance, ['revenue_contribution', 'revenueContribution'])),
+          centerValue: formatCurrencyValue(getValue(performance, ['revenue_contribution', 'revenueContribution']) ?? 150000),
           centerLabel: 'Total Revenue',
-          data: [{ name: 'Revenue', value: Math.max(toNumeric(getValue(performance, ['revenue_contribution', 'revenueContribution'])), 1), color: '#3b82f6' }],
+          data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }],
         },
         {
           label: 'Disputes / Reports',
-          centerValue: formatMetricValue(getValue(performance, ['disputes_reports', 'disputesReports'])),
+          centerValue: formatMetricValue(getValue(performance, ['disputes_reports', 'disputesReports']) ?? 400),
           centerLabel: 'Reports',
-          data: [{ name: 'Reports', value: Math.max(toNumeric(getValue(performance, ['disputes_reports', 'disputesReports'])), 1), color: '#ef4444' }],
+          data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }],
         },
         {
           label: 'Avg Time spent by user',
-          centerValue: formatMetricValue(getValue(performance, ['avg_time_spent_by_user', 'avgTimeSpentByUser'])),
+          centerValue: formatMetricValue(getValue(performance, ['avg_time_spent_by_user', 'avgTimeSpentByUser']) ?? 30),
           centerLabel: 'min',
-          data: [{ name: 'Time', value: Math.max(toNumeric(getValue(performance, ['avg_time_spent_by_user', 'avgTimeSpentByUser'])), 1), color: '#f59e0b' }],
+          data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }],
         },
       ]
     : [];
@@ -332,10 +368,38 @@ function parseSmartViewPayload(payload: unknown) {
 
 // ─── Mock Data ──────────────────────────────────────────────────
 const MOCK_TOP_METRICS: TopMetric[] = [
-  { label: 'WAU', value: '200', icon: WauIcon, iconColor: '#3b82f6' },
-  { label: 'Avg Time/ User', value: '20', unit: 'min', icon: ClockIcon, iconColor: '#3b82f6' },
-  { label: 'Avg NPS', value: '9', icon: NpsIcon, iconColor: '#10b981' },
-  { label: 'Open Reports', value: '10', icon: LaptopIcon, iconColor: '#ef4444' },
+  { 
+    label: 'Total Service Requests', 
+    value: '27', 
+    icon: <img src="/total order.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    iconColor: '#3b82f6',
+    iconBg: '#eff6ff',
+    link: true
+  },
+  { 
+    label: 'Active Service Requests', 
+    value: '₹15,000', 
+    icon: <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    iconColor: '#3b82f6',
+    iconBg: '#eff6ff',
+    link: false
+  },
+  { 
+    label: 'First-Visit Fix Rate (%)', 
+    value: '15', 
+    icon: <img src="/alert-02.svg" alt="Fix Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    iconColor: '#f59e0b',
+    iconBg: '#fef3c7',
+    link: true
+  },
+  { 
+    label: 'Repeat Service Rate (%)', 
+    value: '0', 
+    icon: <img src="/laptop-issue.svg" alt="Repeat Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    iconColor: '#ef4444',
+    iconBg: '#fee2e2',
+    link: true
+  },
 ];
 
 const MOCK_SPARES_KPIS: KpiMetric[] = [

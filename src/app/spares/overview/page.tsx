@@ -62,7 +62,9 @@ export default function SparesOverviewPage() {
             </div>
             <div className={styles.metricValueRow}>
               <div className={styles.metricValue}>{kpi.value}</div>
-              <button className={styles.metricRefresh} onClick={refetch} title="Refresh">↻</button>
+              <button className={styles.metricRefresh} onClick={refetch} title="Refresh">
+                <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '16px', height: '16px', display: 'block' }} />
+              </button>
             </div>
           </div>
         ))}

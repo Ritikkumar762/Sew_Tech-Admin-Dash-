@@ -324,7 +324,7 @@ export default function SparesOrdersPage() {
           </div>
           <span style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>{stats.totalOrders}</span>
           <button className="refresh-btn" onClick={() => handleRefreshCard(0)}>
-            <RefreshCw size={14} className={refreshingCard === 0 ? 'refreshing' : ''} />
+            <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} className={refreshingCard === 0 ? 'refreshing' : ''} />
           </button>
         </div>
 
@@ -339,7 +339,7 @@ export default function SparesOrdersPage() {
             <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>({stats.cancelled * 10}%)</span>
           </div>
           <button className="refresh-btn" onClick={() => handleRefreshCard(1)}>
-            <RefreshCw size={14} className={refreshingCard === 1 ? 'refreshing' : ''} />
+            <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} className={refreshingCard === 1 ? 'refreshing' : ''} />
           </button>
         </div>
 
@@ -354,7 +354,7 @@ export default function SparesOrdersPage() {
             <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>({stats.returned * 10}%)</span>
           </div>
           <button className="refresh-btn" onClick={() => handleRefreshCard(2)}>
-            <RefreshCw size={14} className={refreshingCard === 2 ? 'refreshing' : ''} />
+            <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} className={refreshingCard === 2 ? 'refreshing' : ''} />
           </button>
         </div>
 
@@ -369,7 +369,7 @@ export default function SparesOrdersPage() {
             <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>({stats.replacement * 10}%)</span>
           </div>
           <button className="refresh-btn" onClick={() => handleRefreshCard(3)}>
-            <RefreshCw size={14} className={refreshingCard === 3 ? 'refreshing' : ''} />
+            <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} className={refreshingCard === 3 ? 'refreshing' : ''} />
           </button>
         </div>
       </div>
