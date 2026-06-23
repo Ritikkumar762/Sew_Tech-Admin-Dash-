@@ -14,7 +14,7 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'Sewtech Spares', 
     path: '/spares', 
-    icon: '/sewtech_spare_logo.png',
+    icon: '/sewtech spares.svg',
     activeBg: '#fee2e2',
     activeColor: '#dc2626',
     activeHoverBg: '#fecaca',
@@ -30,7 +30,7 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'Sewtech Mechanic', 
     path: '/mechanic', 
-    icon: '/sewtech_mechincs_logo.png',
+    icon: '/sewtech mechanic_logo.svg',
     activeBg: '#d1fae5',
     activeColor: '#059669',
     activeHoverBg: '#a7f3d0',
@@ -46,7 +46,7 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'Sewtech Exchange', 
     path: '/exchange', 
-    icon: '/Exchange_logo.png',
+    icon: '/Exchnage_sidebar_logo.svg',
     activeBg: '#fff3e0',
     activeColor: '#d97706',
     activeHoverBg: '#ffe0b2',

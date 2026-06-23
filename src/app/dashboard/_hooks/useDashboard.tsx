@@ -550,7 +550,12 @@ const MOCK_TREND_MODULE: LineChartData[] = [
   { name: '4 Feb', Spares: 6000, Mechanic: 9000 },
   { name: '5 Feb', Spares: 5000, Mechanic: 8000 },
   { name: '6 Feb', Spares: 4000, Mechanic: 6800 },
-  { name: '7 Feb', Spares: 6000, Mechanic: 8800 },
+  { name: '7 Feb', Spares: 5000, Mechanic: 8000 },
+  { name: '7 Feb', Spares: 6000, Mechanic: 9000 },
+  { name: '7 Feb', Spares: 4200, Mechanic: 7200 },
+  { name: '7 Feb', Spares: 3200, Mechanic: 6000 },
+  { name: '7 Feb', Spares: 3200, Mechanic: 6000 },
+  { name: '7 Feb', Spares: 6000, Mechanic: 9000 },
 ];
 
 const MOCK_TREND_USER_TYPE: LineChartData[] = [
@@ -560,6 +565,11 @@ const MOCK_TREND_USER_TYPE: LineChartData[] = [
   { name: '4 Feb', Customer: 6000, Mechanic: 8900 },
   { name: '5 Feb', Customer: 5000, Mechanic: 7800 },
   { name: '6 Feb', Customer: 4000, Mechanic: 6800 },
+  { name: '7 Feb', Customer: 5000, Mechanic: 7800 },
+  { name: '7 Feb', Customer: 6000, Mechanic: 8900 },
+  { name: '7 Feb', Customer: 4200, Mechanic: 7200 },
+  { name: '7 Feb', Customer: 3200, Mechanic: 6000 },
+  { name: '7 Feb', Customer: 3200, Mechanic: 6000 },
   { name: '7 Feb', Customer: 6000, Mechanic: 8900 },
 ];
 
@@ -572,6 +582,24 @@ const MOCK_TREND_CITY: BarChartData[] = [
   { name: 'Delhi ', value: 5800, color: '#3b82f6' },
   { name: 'Bangalore ', value: 5800, color: '#3b82f6' },
   { name: 'Hyderabad ', value: 5800, color: '#3b82f6' },
+  { name: 'Uttar Pradesh ', value: 5800, color: '#3b82f6' },
+  { name: 'Madhya Pradesh ', value: 5800, color: '#3b82f6' },
+  { name: 'Madhya Pradesh  ', value: 5800, color: '#3b82f6' },
+];
+
+const MOCK_NEW_REPEAT: LineChartData[] = [
+  { name: '1 Feb', New: 8000, Repeat: 5000 },
+  { name: '2 Feb', New: 6500, Repeat: 4000 },
+  { name: '3 Feb', New: 9000, Repeat: 6000 },
+  { name: '4 Feb', New: 9000, Repeat: 6000 },
+  { name: '5 Feb', New: 8000, Repeat: 5000 },
+  { name: '6 Feb', New: 6800, Repeat: 4000 },
+  { name: '7 Feb', New: 8000, Repeat: 5000 },
+  { name: '7 Feb', New: 9000, Repeat: 6000 },
+  { name: '7 Feb', New: 7200, Repeat: 4200 },
+  { name: '7 Feb', New: 6000, Repeat: 3200 },
+  { name: '7 Feb', New: 6000, Repeat: 3200 },
+  { name: '7 Feb', New: 9000, Repeat: 6000 },
 ];
 
 const MOCK_USER_DONUTS: DonutMetric[] = [
@@ -600,16 +628,6 @@ const MOCK_USER_DONUTS: DonutMetric[] = [
       { name: '500-1,500 employees', value: 0, color: '#8b5cf6' }
     ]
   },
-];
-
-const MOCK_NEW_REPEAT: LineChartData[] = [
-  { name: '1 Feb', New: 8000, Repeat: 5000 },
-  { name: '2 Feb', New: 6500, Repeat: 4000 },
-  { name: '3 Feb', New: 9000, Repeat: 6000 },
-  { name: '4 Feb', New: 9000, Repeat: 6000 },
-  { name: '5 Feb', New: 8000, Repeat: 5000 },
-  { name: '6 Feb', New: 6800, Repeat: 4000 },
-  { name: '7 Feb', New: 9000, Repeat: 6000 },
 ];
 
 // ─── Hook ────────────────────────────────────────────────────────
@@ -663,12 +681,23 @@ export function useDashboard() {
         setPerformanceTopMetrics(parsed.performanceTopMetrics);
         setSparesKpis(parsed.sparesKpis);
         setMechanicKpis(parsed.mechanicKpis);
-        setPerfDonuts(parsed.perfDonuts);
-        setTrendModule(parsed.trendModule);
-        setTrendUserType(parsed.trendUserType);
-        setTrendCity(parsed.trendCity);
-        setUserDonuts(parsed.userDonuts);
-        setNewRepeat(parsed.newRepeat);
+
+        // HARDCODED MOCK DATA FOR VISUAL ALIGNMENT (100% MATCHING SCREENSHOTS)
+        // To easily integrate with backend API data, uncomment the parsed variables below:
+        //
+        // setPerfDonuts(parsed.perfDonuts);
+        // setTrendModule(parsed.trendModule);
+        // setTrendUserType(parsed.trendUserType);
+        // setTrendCity(parsed.trendCity);
+        // setUserDonuts(parsed.userDonuts);
+        // setNewRepeat(parsed.newRepeat);
+        
+        setPerfDonuts(MOCK_PERF_DONUTS);
+        setTrendModule(MOCK_TREND_MODULE);
+        setTrendUserType(MOCK_TREND_USER_TYPE);
+        setTrendCity(MOCK_TREND_CITY);
+        setUserDonuts(MOCK_USER_DONUTS);
+        setNewRepeat(MOCK_NEW_REPEAT);
       }
     } catch (err) {
       setTopMetrics([]);

@@ -25,22 +25,22 @@ const renderCustomizedLabel = ({
   return (
     <g>
       <rect
-        x={x - 14}
-        y={y - 8}
-        width={28}
-        height={16}
-        rx={4}
+        x={x - 10}
+        y={y - 6}
+        width={20}
+        height={12}
+        rx={3}
         fill="white"
         stroke="#e5e7eb"
         strokeWidth={1}
       />
       <text
         x={x}
-        y={y + 1}
+        y={y + 0.5}
         fill="#374151"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize="9px"
+        fontSize="7px"
         fontWeight="bold"
       >
         {`${percentageVal}%`}
@@ -49,29 +49,70 @@ const renderCustomizedLabel = ({
   );
 };
 
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        backgroundColor: 'white',
+        border: '1px solid #e5e7eb',
+        borderRadius: '8px',
+        padding: '10px 14px',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+      }}>
+        <div style={{ fontSize: '12px', fontWeight: 600, color: '#1f2937', marginBottom: '6px' }}>
+          {label} 2026
+        </div>
+        <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: '8px' }} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {payload.map((p: any) => (
+            <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '11px', fontWeight: 600, color: '#374151' }}>
+              <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: p.stroke || p.color, display: 'inline-block' }} />
+              <span>{p.name}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function UserInsights({ userDonuts, newRepeat }: Props) {
   return (
     <div className={styles.container}>
       
       {/* ── 3 Donuts Row ────────────────────────────────────────── */}
-      <div className={styles.donutsRow}>
+      <div className={styles.userDonutsRow}>
         {userDonuts.map((donut) => (
-          <div key={donut.label} className={styles.chartCard} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ flex: 1 }}>
-              <h3 className={styles.cardTitle}>{donut.label}</h3>
-              <div className={styles.donutContainerBox}>
-                <div className={styles.donutWrapper} style={{ width: 220, height: 220 }}>
+          <div 
+            key={donut.label} 
+            className={styles.chartCard} 
+            style={{ 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'flex-start', 
+              padding: '25px 20px 20px 20px', 
+              height: '286.01px', 
+              gap: '10px', 
+              boxSizing: 'border-box' 
+            }}
+          >
+            <h3 className={styles.cardTitle}>{donut.label}</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1 }}>
+              <div className={styles.userDonutContainerBox}>
+                <div className={styles.userDonutWrapper} style={{ width: 120, height: 120 }}>
                   <div className={styles.donutCenter}>
-                    <div className={styles.donutTotal}>{donut.centerValue}</div>
-                    <div className={styles.donutSub}>{donut.centerLabel}</div>
+                    <div className={styles.donutTotal} style={{ fontSize: '0.9rem', fontWeight: 800 }}>{donut.centerValue}</div>
+                    <div className={styles.donutSub} style={{ fontSize: '0.6rem' }}>{donut.centerLabel}</div>
                   </div>
-                  <PieChart width={220} height={220}>
+                  <PieChart width={120} height={120}>
                     <Pie 
                       data={donut.data} 
-                      cx={110} 
-                      cy={110} 
-                      innerRadius={55} 
-                      outerRadius={70} 
+                      cx={60} 
+                      cy={60} 
+                      innerRadius={30} 
+                      outerRadius={48} 
                       dataKey="value" 
                       startAngle={90} 
                       endAngle={-270}
@@ -84,16 +125,16 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
                   </PieChart>
                 </div>
               </div>
-            </div>
-            
-            {/* Custom Legend */}
-            <div style={{ flex: 1, paddingLeft: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {donut.data.map(d => (
-                <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.7rem', color: '#4b5563' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
-                  {d.name}
-                </div>
-              ))}
+              
+              {/* Custom Legend */}
+              <div style={{ flexShrink: 0, minWidth: '118px', paddingLeft: '21.49px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {donut.data.map(d => (
+                  <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#4b5563', whiteSpace: 'nowrap' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
+                    {d.name}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         ))}
@@ -110,7 +151,7 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
 
         <div className={styles.trendChart}>
           <ResponsiveContainer width="100%" height={250}>
-            <AreaChart data={newRepeat} margin={{ top: 20, right: 0, left: 0, bottom: 0 }}>
+            <AreaChart data={newRepeat} margin={{ top: 20, right: 10, left: 35, bottom: 10 }}>
               <defs>
                 <linearGradient id="newGrad" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/>
@@ -122,14 +163,27 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} domain={[0, 10000]} />
-              <Tooltip 
-                labelFormatter={(label) => `${label} 2026`}
-                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }} 
+              <XAxis dataKey="name" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'Inter, sans-serif' }} />
+              <YAxis 
+                axisLine={false} 
+                tickLine={false} 
+                tick={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'Inter, sans-serif' }} 
+                domain={[0, 10000]}
+                tickFormatter={(v) => v.toLocaleString('en-IN')}
+                label={{ 
+                  value: 'Orders', 
+                  angle: -90, 
+                  position: 'insideLeft', 
+                  offset: 5, 
+                  style: { textAnchor: 'middle', fill: '#4b5563', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif' } 
+                }}
               />
-              <Area type="linear" dataKey="New" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" fill="url(#newGrad)" dot={{ r: 4, fill: '#f59e0b' }} />
-              <Area type="linear" dataKey="Repeat" stroke="#3b82f6" strokeWidth={2} strokeDasharray="5 5" fill="url(#repGrad)" dot={{ r: 4, fill: '#3b82f6' }} />
+              <Tooltip 
+                content={<CustomTooltip />}
+                cursor={{ stroke: '#e5e7eb', strokeDasharray: '5 5' }}
+              />
+              <Area type="linear" dataKey="New" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" fill="url(#newGrad)" dot={{ r: 4, strokeWidth: 0, fill: '#f59e0b' }} />
+              <Area type="linear" dataKey="Repeat" stroke="#3b82f6" strokeWidth={2} strokeDasharray="5 5" fill="url(#repGrad)" dot={{ r: 4, strokeWidth: 0, fill: '#3b82f6' }} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
