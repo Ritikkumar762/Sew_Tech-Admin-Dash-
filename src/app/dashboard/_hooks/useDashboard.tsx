@@ -232,7 +232,7 @@ function parseSmartViewPayload(payload: unknown) {
     { 
       label: 'Open Reports', 
       value: formatMetricValue(getValue(topKpis, ['open_reports', 'openReports', 'reports']) ?? 10), 
-      icon: <img src="/alert-02.svg" alt="Open Reports" style={{ width: 28, height: 28, objectFit: 'contain' }} />, 
+      icon: <img src="/laptop-issue.svg" alt="Open Reports" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
       iconColor: '#ef4444',
       iconBg: '#fee2e2',
       link: true
@@ -289,10 +289,48 @@ function parseSmartViewPayload(payload: unknown) {
 
   const mechanicKpis: KpiMetric[] = mechanicData
     ? [
-        { label: 'New Requests', value: formatMetricValue(getValue(mechanicData, ['new_requests', 'newRequests'])), icon: LightningIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
-        { label: 'Open Requests', value: formatMetricValue(getValue(mechanicData, ['open_requests', 'openRequests'])), icon: WrenchIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
-        { label: 'AMC Visits Due', value: formatMetricValue(getValue(mechanicData, ['amc_visits_due', 'amcVisitsDue'])), icon: CalendarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
-        { label: 'Mechanics Online', value: formatMetricValue(getValue(mechanicData, ['mechanics_online', 'mechanicsOnline'])), icon: AvatarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
+        { 
+          label: 'New Requests', 
+          value: formatMetricValue(getValue(mechanicData, ['new_requests', 'newRequests'])), 
+          subValue: '10 Assigned', 
+          trendLabel: '▲5% (L7D)', 
+          trendUp: true, 
+          icon: LightningIcon, 
+          iconColor: '#3b82f6', 
+          iconBg: '#eff6ff', 
+          link: false 
+        },
+        { 
+          label: 'Open Requests', 
+          value: formatMetricValue(getValue(mechanicData, ['open_requests', 'openRequests'])), 
+          trendLabel: '▲5% (L7D)', 
+          trendUp: true, 
+          icon: WrenchIcon, 
+          iconColor: '#3b82f6', 
+          iconBg: '#eff6ff', 
+          link: false 
+        },
+        { 
+          label: 'AMC Visits Due', 
+          value: formatMetricValue(getValue(mechanicData, ['amc_visits_due', 'amcVisitsDue'])), 
+          subValue: '110 Assigned', 
+          trendLabel: '▲5% (L7D)', 
+          trendUp: true, 
+          icon: CalendarIcon, 
+          iconColor: '#3b82f6', 
+          iconBg: '#eff6ff', 
+          link: false 
+        },
+        { 
+          label: 'Mechanics Online', 
+          value: formatMetricValue(getValue(mechanicData, ['mechanics_online', 'mechanicsOnline'])), 
+          trendLabel: '▼5% (L7D)', 
+          trendUp: false, 
+          icon: AvatarIcon, 
+          iconColor: '#3b82f6', 
+          iconBg: '#eff6ff', 
+          link: true 
+        },
       ]
     : [];
 
@@ -442,7 +480,7 @@ const MOCK_TOP_METRICS: TopMetric[] = [
   { 
     label: 'Open Reports', 
     value: '10', 
-    icon: <img src="/alert-02.svg" alt="Open Reports" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    icon: <img src="/laptop-issue.svg" alt="Open Reports" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
     iconColor: '#ef4444',
     iconBg: 'transparent',
     link: true
