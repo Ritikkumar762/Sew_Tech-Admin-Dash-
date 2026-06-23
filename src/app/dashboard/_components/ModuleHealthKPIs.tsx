@@ -22,10 +22,12 @@ export default function ModuleHealthKPIs({ sparesKpis, mechanicKpis }: Props) {
                 <span className={styles.kpiLabel}>{kpi.label}</span>
               </div>
               <div className={styles.kpiValueRow}>
-                <div className={styles.kpiValue}>{kpi.value}</div>
-                <button className={styles.kpiRefresh} title="Refresh">
-                  <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <span className={styles.kpiValue}>{kpi.value}</span>
+                  {kpi.link && (
+                    <img src="/refresh_logo.svg" alt="Link" style={{ width: '14px', height: '14px', marginLeft: '0.4rem', cursor: 'pointer' }} />
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -50,15 +52,13 @@ export default function ModuleHealthKPIs({ sparesKpis, mechanicKpis }: Props) {
                 )}
               </div>
               <div className={styles.kpiValueRow}>
-                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '0.5rem' }}>
                   <div className={styles.kpiValue}>{kpi.value}</div>
                   {kpi.subValue && <div className={styles.kpiSubValue}>{kpi.subValue}</div>}
+                  {kpi.link && (
+                    <img src="/refresh_logo.svg" alt="Link" style={{ width: '14px', height: '14px', marginLeft: '0.25rem', cursor: 'pointer', marginBottom: '0.15rem' }} />
+                  )}
                 </div>
-                {!kpi.subValue && (
-                  <button className={styles.kpiRefresh} title="Refresh">
-                    <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} />
-                  </button>
-                )}
               </div>
             </div>
           ))}

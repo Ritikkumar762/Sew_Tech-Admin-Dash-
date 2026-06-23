@@ -80,14 +80,9 @@ export default function DashboardPage() {
                 {m.value}
                 {m.unit && <span className={styles.metricUnit}>{m.unit}</span>}
                 {m.link && (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ cursor: 'pointer', marginLeft: '0.4rem', alignSelf: 'center' }}>
-                    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line>
-                  </svg>
+                  <img src="/refresh_logo.svg" alt="Link" style={{ width: '14px', height: '14px', marginLeft: '0.4rem', cursor: 'pointer', alignSelf: 'center' }} />
                 )}
               </div>
-              <button className={styles.metricRefresh} onClick={refetch} title="Refresh">
-                <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '16px', height: '16px', display: 'block' }} />
-              </button>
             </div>
           </div>
         ))}

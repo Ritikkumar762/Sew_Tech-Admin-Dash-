@@ -58,7 +58,7 @@ export type TopMetric = {
   iconBg?: string;
   link?: boolean;
 };
-export type KpiMetric = { label: string; value: string | number; subValue?: string; trendLabel?: string; trendUp?: boolean; icon: React.ReactNode; iconColor: string; iconBg: string };
+export type KpiMetric = { label: string; value: string | number; subValue?: string; trendLabel?: string; trendUp?: boolean; icon: React.ReactNode; iconColor: string; iconBg: string; link?: boolean };
 export type DonutMetric = { label: string; centerValue: string; centerLabel: string; data: { name: string; value: number; color: string }[] };
 export type LineChartData = { name: string; [key: string]: string | number };
 export type BarChartData = { name: string; [key: string]: string | number | undefined; color?: string };
@@ -111,6 +111,7 @@ function toKpiMetric(value: unknown): KpiMetric | null {
     icon,
     iconColor,
     iconBg,
+    link: typeof item.link === 'boolean' ? item.link : undefined,
   };
 }
 
@@ -195,33 +196,34 @@ function parseSmartViewPayload(payload: unknown) {
   const topKpis = asRecord(getValue(dataRoot, ['top_kpis', 'topKpis', 'topMetrics', 'top_metrics']));
   const topMetrics: TopMetric[] = [
     { 
-      label: 'Total Service Requests', 
-      value: formatMetricValue(getValue(topKpis, ['total_service_requests', 'wau', 'active_users', 'activeUsers']) ?? 200), 
-      icon: <img src="/total order.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
-      iconColor: '#3b82f6',
-      iconBg: '#eff6ff',
-      link: true
-    },
-    { 
-      label: 'Active Service Requests', 
-      value: formatCurrencyValue(getValue(topKpis, ['active_service_requests', 'revenue_today', 'revenueToday', 'revenue']) ?? 15000), 
-      icon: <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      label: 'WAU', 
+      value: formatMetricValue(getValue(topKpis, ['wau', 'active_users', 'activeUsers']) ?? 200), 
+      icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>, 
       iconColor: '#3b82f6',
       iconBg: '#eff6ff',
       link: false
     },
     { 
-      label: 'First-Visit Fix Rate (%)', 
-      value: formatMetricValue(getValue(topKpis, ['first_visit_fix_rate', 'refund_rate', 'refundRate']) ?? 15), 
-      icon: <img src="/alert-02.svg" alt="Fix Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
-      iconColor: '#f59e0b',
-      iconBg: '#fef3c7',
-      link: true
+      label: 'Avg Time/ User', 
+      value: formatMetricValue(getValue(topKpis, ['avg_time_spent_by_user', 'avgTimeSpentByUser', 'avg_time', 'avgTime']) ?? 20), 
+      unit: 'min',
+      icon: <img src="/Avg_time%20_logo.svg" alt="Avg Time" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      iconColor: '#3b82f6',
+      iconBg: '#eff6ff',
+      link: false
     },
     { 
-      label: 'Repeat Service Rate (%)', 
-      value: formatMetricValue(getValue(topKpis, ['repeat_service_rate', 'open_reports', 'openReports', 'open_issues', 'openIssues']) ?? 10), 
-      icon: <img src="/laptop-issue.svg" alt="Repeat Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      label: 'Avg NPS', 
+      value: formatMetricValue(getValue(topKpis, ['avg_nps', 'avgNps', 'nps']) ?? 9), 
+      icon: <img src="/Overlay.svg" alt="Avg NPS" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      iconColor: '#10b981',
+      iconBg: '#ecfdf5',
+      link: false
+    },
+    { 
+      label: 'Open Reports', 
+      value: formatMetricValue(getValue(topKpis, ['open_reports', 'openReports', 'reports']) ?? 10), 
+      icon: <img src="/alert-02.svg" alt="Open Reports" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
       iconColor: '#ef4444',
       iconBg: '#fee2e2',
       link: true
@@ -234,19 +236,19 @@ function parseSmartViewPayload(payload: unknown) {
 
   const sparesKpis: KpiMetric[] = sparesData
     ? [
-        { label: 'Total Orders (Today)', value: formatMetricValue(getValue(sparesData, ['total_orders_today', 'totalOrdersToday'])), icon: PackageIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
-        { label: 'Revenue (Today)', value: formatCurrencyValue(getValue(sparesData, ['revenue_today', 'revenueToday'])), icon: MoneyBagIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
-        { label: 'Refund Rate %', value: formatMetricValue(getValue(sparesData, ['refund_rate', 'refundRate'])), icon: WarningTriangleIcon, iconColor: '#f59e0b', iconBg: '#fffbeb' },
-        { label: 'Open Issues', value: formatMetricValue(getValue(sparesData, ['open_issues', 'openIssues'])), icon: LaptopIcon, iconColor: '#ef4444', iconBg: '#fef2f2' },
+        { label: 'Total Orders (Today)', value: formatMetricValue(getValue(sparesData, ['total_orders_today', 'totalOrdersToday'])), icon: PackageIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
+        { label: 'Revenue (Today)', value: formatCurrencyValue(getValue(sparesData, ['revenue_today', 'revenueToday'])), icon: MoneyBagIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+        { label: 'Refund Rate %', value: formatMetricValue(getValue(sparesData, ['refund_rate', 'refundRate'])), icon: WarningTriangleIcon, iconColor: '#f59e0b', iconBg: '#fffbeb', link: true },
+        { label: 'Open Issues', value: formatMetricValue(getValue(sparesData, ['open_issues', 'openIssues'])), icon: LaptopIcon, iconColor: '#ef4444', iconBg: '#fef2f2', link: true },
       ]
     : [];
 
   const mechanicKpis: KpiMetric[] = mechanicData
     ? [
-        { label: 'New Requests', value: formatMetricValue(getValue(mechanicData, ['new_requests', 'newRequests'])), icon: LightningIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
-        { label: 'Open Requests', value: formatMetricValue(getValue(mechanicData, ['open_requests', 'openRequests'])), icon: WrenchIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
-        { label: 'AMC Visits Due', value: formatMetricValue(getValue(mechanicData, ['amc_visits_due', 'amcVisitsDue'])), icon: CalendarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
-        { label: 'Mechanics Online', value: formatMetricValue(getValue(mechanicData, ['mechanics_online', 'mechanicsOnline'])), icon: AvatarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+        { label: 'New Requests', value: formatMetricValue(getValue(mechanicData, ['new_requests', 'newRequests'])), icon: LightningIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+        { label: 'Open Requests', value: formatMetricValue(getValue(mechanicData, ['open_requests', 'openRequests'])), icon: WrenchIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+        { label: 'AMC Visits Due', value: formatMetricValue(getValue(mechanicData, ['amc_visits_due', 'amcVisitsDue'])), icon: CalendarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+        { label: 'Mechanics Online', value: formatMetricValue(getValue(mechanicData, ['mechanics_online', 'mechanicsOnline'])), icon: AvatarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
       ]
     : [];
 
@@ -369,33 +371,34 @@ function parseSmartViewPayload(payload: unknown) {
 // ─── Mock Data ──────────────────────────────────────────────────
 const MOCK_TOP_METRICS: TopMetric[] = [
   { 
-    label: 'Total Service Requests', 
-    value: '27', 
-    icon: <img src="/total order.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
-    iconColor: '#3b82f6',
-    iconBg: '#eff6ff',
-    link: true
-  },
-  { 
-    label: 'Active Service Requests', 
-    value: '₹15,000', 
-    icon: <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    label: 'WAU', 
+    value: '200', 
+    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>, 
     iconColor: '#3b82f6',
     iconBg: '#eff6ff',
     link: false
   },
   { 
-    label: 'First-Visit Fix Rate (%)', 
-    value: '15', 
-    icon: <img src="/alert-02.svg" alt="Fix Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
-    iconColor: '#f59e0b',
-    iconBg: '#fef3c7',
-    link: true
+    label: 'Avg Time/ User', 
+    value: '20', 
+    unit: 'min',
+    icon: <img src="/Avg_time%20_logo.svg" alt="Avg Time" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    iconColor: '#3b82f6',
+    iconBg: '#eff6ff',
+    link: false
   },
   { 
-    label: 'Repeat Service Rate (%)', 
-    value: '0', 
-    icon: <img src="/laptop-issue.svg" alt="Repeat Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    label: 'Avg NPS', 
+    value: '9', 
+    icon: <img src="/Overlay.svg" alt="Avg NPS" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    iconColor: '#10b981',
+    iconBg: '#ecfdf5',
+    link: false
+  },
+  { 
+    label: 'Open Reports', 
+    value: '10', 
+    icon: <img src="/alert-02.svg" alt="Open Reports" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
     iconColor: '#ef4444',
     iconBg: '#fee2e2',
     link: true
@@ -403,17 +406,17 @@ const MOCK_TOP_METRICS: TopMetric[] = [
 ];
 
 const MOCK_SPARES_KPIS: KpiMetric[] = [
-  { label: 'Total Orders (Today)', value: '12', icon: PackageIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
-  { label: 'Revenue (Today)', value: '₹15,000', icon: MoneyBagIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
-  { label: 'Refund Rate %', value: '15', icon: WarningTriangleIcon, iconColor: '#f59e0b', iconBg: '#fffbeb' },
-  { label: 'Open Issues', value: '10', icon: LaptopIcon, iconColor: '#ef4444', iconBg: '#fef2f2' },
+  { label: 'Total Orders (Today)', value: '12', icon: PackageIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
+  { label: 'Revenue (Today)', value: '₹15,000', icon: MoneyBagIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+  { label: 'Refund Rate %', value: '15', icon: WarningTriangleIcon, iconColor: '#f59e0b', iconBg: '#fffbeb', link: true },
+  { label: 'Open Issues', value: '10', icon: LaptopIcon, iconColor: '#ef4444', iconBg: '#fef2f2', link: true },
 ];
 
 const MOCK_MECHANIC_KPIS: KpiMetric[] = [
-  { label: 'New Requests', value: '140', subValue: '10 Assigned', trendLabel: '▲5% (L7D)', trendUp: true, icon: LightningIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
-  { label: 'Open Requests', value: '140', trendLabel: '▲5% (L7D)', trendUp: true, icon: WrenchIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
-  { label: 'AMC Visits Due', value: '140', subValue: '110 Assigned', trendLabel: '▲5% (L7D)', trendUp: true, icon: CalendarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
-  { label: 'Mechanics Online', value: '10 (10%)', trendLabel: '▼5% (L7D)', trendUp: false, icon: AvatarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff' },
+  { label: 'New Requests', value: '140', subValue: '10 Assigned', trendLabel: '▲5% (L7D)', trendUp: true, icon: LightningIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+  { label: 'Open Requests', value: '140', trendLabel: '▲5% (L7D)', trendUp: true, icon: WrenchIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+  { label: 'AMC Visits Due', value: '140', subValue: '110 Assigned', trendLabel: '▲5% (L7D)', trendUp: true, icon: CalendarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+  { label: 'Mechanics Online', value: '10 (10%)', trendLabel: '▼5% (L7D)', trendUp: false, icon: AvatarIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
 ];
 
 const MOCK_PERF_DONUTS: DonutMetric[] = [
