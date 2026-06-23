@@ -333,50 +333,47 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     }
   }, []);
 
-  // Create a new user
-  const createUser = useCallback(async (userData: Omit<User, 'id' | 'joinedAt' | 'lastLogin' | 'lifetimeValue' | 'location'> & { location?: string }) => {
+  // Create a new user (Admin API)
+  const createUser = useCallback(async (userData: Omit<User, 'id' | 'joinedAt' | 'lastLogin' | 'lifetimeValue' | 'location'> & { location?: string, industryIds?: number[], serviceIds?: number[], gender?: string }) => {
     try {
       let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
       if (!token) {
         token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
       }
 
-      // Format payload for backend
       const payload = {
         full_name: userData.name,
         email: userData.email,
         phone_number: userData.phone,
-        role: userData.role.toLowerCase(),
-        date_of_birth: userData.dob ? new Date(userData.dob).toISOString().split('T')[0] : null,
-        business_owner_type: userData.userType ? userData.userType.toLowerCase() : null,
+        role: userData.role?.toLowerCase() || 'customer',
+        gender: userData.gender?.toLowerCase() || 'others',
+        date_of_birth: userData.dob ? new Date(userData.dob).toISOString().split('T')[0] : "1990-01-01",
+        business_owner_type: (userData.userType && userData.userType.toUpperCase() === 'BUSINESS OWNER') ? 'BUSINESS' : 'INDIVIDUAL',
         business_name: userData.businessName || null,
         business_type: userData.businessType || null,
         gst_number: userData.gstNumber || null,
-        membership_type: userData.membership || 'Free',
-        is_active: userData.status === 'Active'
+        industry_ids: userData.industryIds?.length ? userData.industryIds : [1],
+        service_ids: userData.serviceIds?.length ? userData.serviceIds : [1]
       };
 
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/`, {
+      const res = await fetch(`http://127.0.0.1:8000/api/v1/users`, {
         method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
+        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
       
-      if (!response.ok) {
-        const errData = await response.json();
-        console.error("Create User Error:", errData);
-        throw new Error('Failed to create user');
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const errorMsg = Array.isArray(err.detail) ? JSON.stringify(err.detail) : (err.detail || err.message || `User Creation Failed`);
+        throw new Error(errorMsg);
       }
       
-      const newBackendUser = await response.json();
+      const finalData = await res.json();
       
       const newUser: User = {
         location: 'Unknown',
         ...userData,
-        id: String(newBackendUser.user_id || Math.random().toString(36).substr(2, 9)),
+        id: String(finalData.user_id || Math.random().toString(36).substr(2, 9)),
         joinedAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
         lastLogin: '-',
         lifetimeValue: '-',
