@@ -207,7 +207,7 @@ function parseSmartViewPayload(payload: unknown) {
     { 
       label: 'WAU', 
       value: formatMetricValue(getValue(topKpis, ['wau', 'active_users', 'activeUsers']) ?? 200), 
-      icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>, 
+      icon: <img src="/WAU_logo.svg" alt="WAU" style={{ width: 28, height: 28, objectFit: 'contain' }} />, 
       iconColor: '#3b82f6',
       iconBg: '#eff6ff',
       link: false
@@ -216,7 +216,7 @@ function parseSmartViewPayload(payload: unknown) {
       label: 'Avg Time/ User', 
       value: formatMetricValue(getValue(topKpis, ['avg_time_spent_by_user', 'avgTimeSpentByUser', 'avg_time', 'avgTime']) ?? 20), 
       unit: 'min',
-      icon: <img src="/Avg_time%20_logo.svg" alt="Avg Time" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      icon: <img src="/Avg_time%20_logo.svg" alt="Avg Time" style={{ width: 28, height: 28, objectFit: 'contain' }} />, 
       iconColor: '#3b82f6',
       iconBg: '#eff6ff',
       link: false
@@ -224,7 +224,7 @@ function parseSmartViewPayload(payload: unknown) {
     { 
       label: 'Avg NPS', 
       value: formatMetricValue(getValue(topKpis, ['avg_nps', 'avgNps', 'nps']) ?? 9), 
-      icon: <img src="/Overlay.svg" alt="Avg NPS" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      icon: <img src="/Overlay.svg" alt="Avg NPS" style={{ width: 28, height: 28, objectFit: 'contain' }} />, 
       iconColor: '#10b981',
       iconBg: '#ecfdf5',
       link: false
@@ -232,7 +232,7 @@ function parseSmartViewPayload(payload: unknown) {
     { 
       label: 'Open Reports', 
       value: formatMetricValue(getValue(topKpis, ['open_reports', 'openReports', 'reports']) ?? 10), 
-      icon: <img src="/alert-02.svg" alt="Open Reports" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      icon: <img src="/alert-02.svg" alt="Open Reports" style={{ width: 28, height: 28, objectFit: 'contain' }} />, 
       iconColor: '#ef4444',
       iconBg: '#fee2e2',
       link: true
@@ -417,7 +417,7 @@ const MOCK_TOP_METRICS: TopMetric[] = [
   { 
     label: 'WAU', 
     value: '200', 
-    icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>, 
+    icon: <img src="/kaarigar_logo.png" alt="WAU" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
     iconColor: '#3b82f6',
     iconBg: '#eff6ff',
     link: false
