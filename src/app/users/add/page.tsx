@@ -27,6 +27,9 @@ export default function AddUserPage() {
   // Roles available matching the design spec
   const rolesList = [
     'Customer',
+    'Buyer',
+    'Seller',
+    'Admin',
     'Mechanic',
     'Kaarigar',
     'Audit',

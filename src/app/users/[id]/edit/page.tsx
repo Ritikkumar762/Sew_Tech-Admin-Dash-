@@ -64,7 +64,21 @@ export default function EditUserPage() {
   // Available options
   const languageOptions = ['English', 'Hindi', 'Punjabi', 'Bengali', 'Tamil', 'Telugu', 'Gujarati', 'Marathi'];
   const businessTypes = ['Demo Type', 'Retail', 'Wholesale', 'Service Provider', 'Manufacturer'];
-  const rolesList = ['Customer', 'Mechanic', 'Kaarigar', 'Audit', 'Super-Admin', 'Spares Admin', 'Kaarigar Admin', 'Mechanic Admin', 'Academic Admin', 'Exchange Admin'];
+  const rolesList = [
+    'Customer',
+    'Buyer',
+    'Seller',
+    'Admin',
+    'Mechanic',
+    'Kaarigar',
+    'Audit',
+    'Super-Admin',
+    'Spares Admin',
+    'Kaarigar Admin',
+    'Mechanic Admin',
+    'Academic Admin',
+    'Exchange Admin'
+  ];
   const userTypesList = ['Individual', 'Business Owner', 'Partner', 'Corporate'];
 
   // Initialize form fields once user details load

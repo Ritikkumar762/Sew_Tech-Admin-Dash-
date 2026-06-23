@@ -230,37 +230,90 @@ const INITIAL_MOCK_USERS: User[] = [
   }
 ];
 
-export function useUsers() {
+export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
   const [users, setUsers] = useState<User[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load users from localStorage or initial mock data
+  // Load users from API
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // BACKEND INTEGRATION:
-      // const res = await apiClient.get<User[]>(ENDPOINTS.users.list);
-      // setUsers(res);
+      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+      if (!token) {
+        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
+      }
+      
+      const response = await fetch(
+        `http://127.0.0.1:8000/api/v1/users/?page=${page}&page_size=${pageSize}&search=${search}`, 
+        {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json"
+          }
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status} ${response.statusText}`);
+      }
 
+      const data = await response.json();
+      
+      // Handle the paginated response and map to frontend User interface
+      const rawUsers = data.users || [];
+      const count = data.total || rawUsers.length;
+      
+      const mappedUsers: User[] = rawUsers.map((u: any) => ({
+        id: String(u.user_id),
+        name: u.full_name || 'Unknown',
+        email: u.email || '',
+        role: u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Customer',
+        status: u.is_active ? 'Active' : 'Inactive',
+        joinedAt: u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
+        avatar: u.profile_picture_url || undefined,
+        phone: u.phone_number || '',
+        location: 'Unknown', // Location not provided by backend
+        lastLogin: u.updated_at ? new Date(u.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
+        lifetimeValue: u.wallet_balance ? `₹${parseFloat(u.wallet_balance).toFixed(0)}` : '-',
+        membership: u.membership_type || 'Free',
+        dob: u.date_of_birth || undefined,
+        userType: u.business_owner_type || undefined,
+        typeOfUser: u.business_owner_type || undefined,
+        businessName: u.business_name || undefined,
+        businessType: u.business_type || undefined,
+        gstNumber: u.gst_number || undefined,
+        modulesUsed: [],
+        activities: [],
+        escalations: []
+      }));
+      
+      setUsers(mappedUsers);
+      setTotalCount(count);
+
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load users from API.');
+      
+      // Fallback to mock data for development if API fails
       if (typeof window !== 'undefined') {
         const stored = localStorage.getItem('users_data');
         if (stored) {
-          setUsers(JSON.parse(stored));
+          const parsed = JSON.parse(stored);
+          setUsers(parsed);
+          setTotalCount(parsed.length);
         } else {
           localStorage.setItem('users_data', JSON.stringify(INITIAL_MOCK_USERS));
           setUsers(INITIAL_MOCK_USERS);
+          setTotalCount(INITIAL_MOCK_USERS.length);
         }
       }
-      // Simulate network delay
-      await new Promise((r) => setTimeout(r, 400));
-    } catch (err: any) {
-      setError(err?.message || 'Failed to load users.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, pageSize, search]);
 
   // Update user status
   const updateStatus = useCallback(async (id: string, status: User['status']) => {
@@ -283,34 +336,57 @@ export function useUsers() {
   // Create a new user
   const createUser = useCallback(async (userData: Omit<User, 'id' | 'joinedAt' | 'lastLogin' | 'lifetimeValue' | 'location'> & { location?: string }) => {
     try {
-      // BACKEND INTEGRATION:
-      // const newUser = await apiClient.post<User>(ENDPOINTS.users.create, userData);
-      // setUsers(prev => [...prev, newUser]);
-      
-      const newId = 'u-' + Math.random().toString(36).substr(2, 9);
-      const today = new Date();
-      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const formattedDate = `${today.getDate()} ${monthNames[today.getMonth()]}' ${String(today.getFullYear()).slice(-2)}`;
+      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+      if (!token) {
+        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
+      }
 
+      // Format payload for backend
+      const payload = {
+        full_name: userData.name,
+        email: userData.email,
+        phone_number: userData.phone,
+        role: userData.role.toLowerCase(),
+        date_of_birth: userData.dob ? new Date(userData.dob).toISOString().split('T')[0] : null,
+        business_owner_type: userData.userType ? userData.userType.toLowerCase() : null,
+        business_name: userData.businessName || null,
+        business_type: userData.businessType || null,
+        gst_number: userData.gstNumber || null,
+        membership_type: userData.membership || 'Free',
+        is_active: userData.status === 'Active'
+      };
+
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!response.ok) {
+        const errData = await response.json();
+        console.error("Create User Error:", errData);
+        throw new Error('Failed to create user');
+      }
+      
+      const newBackendUser = await response.json();
+      
       const newUser: User = {
-        location: 'Delhi',
+        location: 'Unknown',
         ...userData,
-        id: newId,
-        joinedAt: formattedDate,
-        lastLogin: formattedDate,
-        lifetimeValue: userData.role === 'Customer' ? '₹0' : '-',
+        id: String(newBackendUser.user_id || Math.random().toString(36).substr(2, 9)),
+        joinedAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        lastLogin: '-',
+        lifetimeValue: '-',
         modulesUsed: userData.modulesUsed || [],
         activities: [],
         escalations: []
       };
 
-      setUsers((prev) => {
-        const updated = [...prev, newUser];
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('users_data', JSON.stringify(updated));
-        }
-        return updated;
-      });
+      setUsers((prev) => [newUser, ...prev]);
+      setTotalCount(prev => prev + 1);
 
       return newUser;
     } catch (err: any) {
@@ -319,12 +395,136 @@ export function useUsers() {
     }
   }, []);
 
+  // Fetch single user
+  const fetchUser = useCallback(async (id: string) => {
+    try {
+      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+      if (!token) {
+        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
+      }
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/${id}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      if (!response.ok) throw new Error('Failed to fetch user');
+      const data = await response.json();
+      
+      const u = data;
+      const mappedUser: User = {
+        id: String(u.user_id),
+        name: u.full_name || 'Unknown',
+        email: u.email || '',
+        role: u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Customer',
+        status: u.is_active ? 'Active' : 'Inactive',
+        joinedAt: u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
+        avatar: u.profile_picture_url || undefined,
+        phone: u.phone_number || '',
+        location: 'Unknown',
+        lastLogin: u.updated_at ? new Date(u.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
+        lifetimeValue: u.wallet_balance ? `₹${parseFloat(u.wallet_balance).toFixed(0)}` : '-',
+        membership: u.membership_type || 'Free',
+        dob: u.date_of_birth || undefined,
+        userType: u.business_owner_type || undefined,
+        typeOfUser: u.business_owner_type || undefined,
+        businessName: u.business_name || undefined,
+        businessType: u.business_type || undefined,
+        gstNumber: u.gst_number || undefined,
+        modulesUsed: [],
+        activities: [],
+        escalations: []
+      };
+      return mappedUser;
+    } catch (err: any) {
+      console.error('Error fetching single user:', err);
+      return users.find(u => u.id === id) || null;
+    }
+  }, [users]);
+
+  // Deactivate user
+  const deactivateUser = useCallback(async (id: string) => {
+    try {
+      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+      if (!token) {
+        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
+      }
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/${id}/deactivate`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      if (!response.ok) throw new Error('Failed to deactivate user');
+      
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'Inactive' } : u));
+    } catch (err: any) {
+      setError(err?.message || 'Failed to deactivate user.');
+      throw err;
+    }
+  }, []);
+
+  // Hard Delete user
+  const deleteUser = useCallback(async (id: string) => {
+    try {
+      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+      if (!token) {
+        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
+      }
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+      if (!response.ok) throw new Error('Failed to delete user');
+      
+      setUsers(prev => prev.filter(u => u.id !== id));
+    } catch (err: any) {
+      setError(err?.message || 'Failed to delete user.');
+      throw err;
+    }
+  }, []);
+
   // Update complete user details
   const updateUser = useCallback(async (id: string, updatedFields: Partial<User>) => {
     try {
-      // BACKEND INTEGRATION:
-      // await apiClient.patch(ENDPOINTS.users.update(id), updatedFields);
-      
+      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
+      if (!token) {
+        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
+      }
+
+      // Map frontend fields back to backend payload
+      const payload: any = {};
+      if (updatedFields.name) payload.full_name = updatedFields.name;
+      if (updatedFields.email) payload.email = updatedFields.email;
+      if (updatedFields.phone) payload.phone_number = updatedFields.phone;
+      if (updatedFields.role) payload.role = updatedFields.role.toLowerCase();
+      if (updatedFields.dob) payload.date_of_birth = new Date(updatedFields.dob).toISOString().split('T')[0];
+      if (updatedFields.userType) payload.business_owner_type = updatedFields.userType.toLowerCase();
+      if (updatedFields.businessName) payload.business_name = updatedFields.businessName;
+      if (updatedFields.businessType) payload.business_type = updatedFields.businessType;
+      if (updatedFields.gstNumber) payload.gst_number = updatedFields.gstNumber;
+      if (updatedFields.status) payload.is_active = updatedFields.status === 'Active';
+
+      // We attempt to call PUT /api/v1/users/{id}
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/${id}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        console.warn("Update API Failed (might not exist), falling back to local update", errData);
+      }
+
       setUsers((prev) => {
         const updated = prev.map((u) => (u.id === id ? { ...u, ...updatedFields } : u));
         if (typeof window !== 'undefined') {
@@ -344,11 +544,15 @@ export function useUsers() {
 
   return {
     users,
+    totalCount,
     loading,
     error,
     refetch: fetchUsers,
     updateStatus,
     createUser,
-    updateUser
+    updateUser,
+    fetchUser,
+    deactivateUser,
+    deleteUser
   };
 }

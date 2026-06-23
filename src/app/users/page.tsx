@@ -20,9 +20,6 @@ import {
 
 export default function UsersPage() {
   const router = useRouter();
-  const { users, loading, error, updateStatus } = useUsers();
-
-  // ── States ──────────────────────────────────────────────────
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
   const [addedOnFilter, setAddedOnFilter] = useState('All Time');
@@ -33,6 +30,12 @@ export default function UsersPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const { users, totalCount, loading, error, updateStatus } = useUsers({
+    page: currentPage,
+    pageSize: rowsPerPage,
+    search: activeSearch
+  });
 
   // ── Role Color Map ──────────────────────────────────────────
   const getRoleStyle = (role: string) => {
@@ -114,17 +117,6 @@ export default function UsersPage() {
   const filteredAndSortedUsers = useMemo(() => {
     let result = [...users];
 
-    // Filter by name
-    if (activeSearch) {
-      const q = activeSearch.toLowerCase();
-      result = result.filter(u => u.name.toLowerCase().includes(q));
-    }
-
-    // Filter by "Added on" mockup placeholder logic
-    if (addedOnFilter !== 'All Time') {
-      // In a real application, parse dates. For mock, we keep it simple.
-    }
-
     // Sort
     if (sortField) {
       result.sort((a, b) => {
@@ -149,15 +141,13 @@ export default function UsersPage() {
     }
 
     return result;
-  }, [users, activeSearch, addedOnFilter, sortField, sortDirection]);
+  }, [users, sortField, sortDirection]);
 
   // ── Pagination calculations ──────────────────────────────────
-  const totalRows = filteredAndSortedUsers.length;
+  const totalRows = totalCount;
   const totalPages = Math.ceil(totalRows / rowsPerPage);
+  const paginatedUsers = filteredAndSortedUsers; // API already paginates
   const startIndex = (currentPage - 1) * rowsPerPage;
-  const paginatedUsers = useMemo(() => {
-    return filteredAndSortedUsers.slice(startIndex, startIndex + rowsPerPage);
-  }, [filteredAndSortedUsers, startIndex, rowsPerPage]);
 
   return (
     <div className={styles.container}>

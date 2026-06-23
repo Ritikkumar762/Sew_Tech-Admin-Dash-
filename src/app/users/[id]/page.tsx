@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import { useUsers } from '../_hooks/useUsers';
 import Link from 'next/link';
@@ -16,17 +16,27 @@ import {
 export default function UserDetailPage() {
   const router = useRouter();
   const { id } = useParams<{ id: string }>();
-  const { users, loading } = useUsers();
+  const { fetchUser, deactivateUser, deleteUser } = useUsers();
   
   // ── States ──────────────────────────────────────────────────
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'personal' | 'activity' | 'escalations'>('personal');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedDisputeId, setCopiedDisputeId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeactivating, setIsDeactivating] = useState(false);
 
-  // Find current user
-  const user = useMemo(() => {
-    return users.find((u) => u.id === id);
-  }, [users, id]);
+  // Fetch current user
+  useEffect(() => {
+    const loadUser = async () => {
+      setLoading(true);
+      const fetchedUser = await fetchUser(id);
+      if (fetchedUser) setUser(fetchedUser);
+      setLoading(false);
+    };
+    loadUser();
+  }, [id, fetchUser]);
 
   if (loading) {
     return (
@@ -39,6 +49,35 @@ export default function UserDetailPage() {
   if (!user) {
     return notFound();
   }
+
+  const handleDeactivate = async () => {
+    if (confirm('Are you sure you want to deactivate this user?')) {
+      setIsDeactivating(true);
+      try {
+        await deactivateUser(id);
+        alert('User deactivated successfully');
+        setUser({ ...user, status: 'Inactive' });
+      } catch (err: any) {
+        alert(err.message || 'Failed to deactivate');
+      } finally {
+        setIsDeactivating(false);
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (confirm('Are you sure you want to PERMANENTLY delete this user?')) {
+      setIsDeleting(true);
+      try {
+        await deleteUser(id);
+        alert('User deleted successfully');
+        router.push('/users');
+      } catch (err: any) {
+        alert(err.message || 'Failed to delete');
+        setIsDeleting(false);
+      }
+    }
+  };
 
   // ── Handlers ────────────────────────────────────────────────
   const handleCopy = (val: string, type: 'id' | 'dispute') => {
@@ -84,12 +123,30 @@ export default function UserDetailPage() {
           </div>
         </div>
 
-        <button 
-          className={styles.editBtn}
-          onClick={() => router.push(`/users/${user.id}/edit`)}
-        >
-          <Edit size={16} /> Edit {user.role} Details
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button 
+            className={styles.editBtn}
+            onClick={() => router.push(`/users/${user.id}/edit`)}
+          >
+            <Edit size={16} /> Edit
+          </button>
+          <button 
+            className="btn btn-outline"
+            style={{ color: '#d97706', borderColor: '#d97706' }}
+            onClick={handleDeactivate}
+            disabled={isDeactivating}
+          >
+            {isDeactivating ? 'Deactivating...' : 'Deactivate'}
+          </button>
+          <button 
+            className="btn btn-outline"
+            style={{ color: '#ef4444', borderColor: '#ef4444' }}
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
       </div>
 
       {/* Summary Card Strip */}
