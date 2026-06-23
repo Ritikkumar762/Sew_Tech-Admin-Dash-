@@ -17,18 +17,21 @@ type Props = {
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({
-  cx, cy, midAngle, innerRadius, outerRadius, value
+  cx, cy, midAngle, innerRadius, outerRadius, percent
 }: any) => {
-  const radius = outerRadius + 18;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  const percentageVal = Math.round(percent * 100);
+  if (percentageVal === 0) return null;
 
   return (
     <g>
       <rect
-        x={x - 18}
+        x={x - 14}
         y={y - 8}
-        width={36}
+        width={28}
         height={16}
         rx={4}
         fill="white"
@@ -37,14 +40,14 @@ const renderCustomizedLabel = ({
       />
       <text
         x={x}
-        y={y + 3}
+        y={y + 1}
         fill="#374151"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize="10px"
+        fontSize="9px"
         fontWeight="bold"
       >
-        {`${value}%`}
+        {`${percentageVal}%`}
       </text>
     </g>
   );
@@ -61,7 +64,7 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
         {perfDonuts.map((donut, idx) => (
           <div key={donut.label} className={styles.chartCard}>
             <h3 className={styles.cardTitle}>{donut.label}</h3>
-            <div className={styles.donutContainerBox} style={{ minHeight: '240px' }}>
+            <div className={styles.donutContainerBox}>
               <div className={styles.donutWrapper} style={{ width: 220, height: 220 }}>
                 <div className={styles.donutCenter}>
                   <div className={styles.donutTotal}>{donut.centerValue}</div>

@@ -39,14 +39,15 @@
 
 .donutContainerBox {
   position: relative;
-  background-color: #f3f4f6;
+  background-color: rgba(242, 243, 247, 0.8);
   border-radius: 12px;
-  width: 100%;
-  padding: 1.25rem;
+  width: 226px;
+  height: 211.01px;
+  padding: 30px 20px;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 180px;
+  box-sizing: border-box;
 }
 
 .donutWrapper {

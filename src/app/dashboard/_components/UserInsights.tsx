@@ -13,18 +13,21 @@ type Props = {
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({
-  cx, cy, midAngle, innerRadius, outerRadius, value
+  cx, cy, midAngle, innerRadius, outerRadius, percent
 }: any) => {
-  const radius = outerRadius + 18;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  const percentageVal = Math.round(percent * 100);
+  if (percentageVal === 0) return null;
 
   return (
     <g>
       <rect
-        x={x - 18}
+        x={x - 14}
         y={y - 8}
-        width={36}
+        width={28}
         height={16}
         rx={4}
         fill="white"
@@ -33,14 +36,14 @@ const renderCustomizedLabel = ({
       />
       <text
         x={x}
-        y={y + 3}
+        y={y + 1}
         fill="#374151"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize="10px"
+        fontSize="9px"
         fontWeight="bold"
       >
-        {`${value}%`}
+        {`${percentageVal}%`}
       </text>
     </g>
   );
@@ -56,28 +59,30 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
           <div key={donut.label} className={styles.chartCard} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ flex: 1 }}>
               <h3 className={styles.cardTitle}>{donut.label}</h3>
-              <div className={styles.donutWrapper} style={{ width: 220, height: 220 }}>
-                <div className={styles.donutCenter}>
-                  <div className={styles.donutTotal}>{donut.centerValue}</div>
-                  <div className={styles.donutSub}>{donut.centerLabel}</div>
+              <div className={styles.donutContainerBox}>
+                <div className={styles.donutWrapper} style={{ width: 220, height: 220 }}>
+                  <div className={styles.donutCenter}>
+                    <div className={styles.donutTotal}>{donut.centerValue}</div>
+                    <div className={styles.donutSub}>{donut.centerLabel}</div>
+                  </div>
+                  <PieChart width={220} height={220}>
+                    <Pie 
+                      data={donut.data} 
+                      cx={110} 
+                      cy={110} 
+                      innerRadius={55} 
+                      outerRadius={70} 
+                      dataKey="value" 
+                      startAngle={90} 
+                      endAngle={-270}
+                      label={renderCustomizedLabel}
+                      labelLine={false}
+                    >
+                      {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
                 </div>
-                <PieChart width={220} height={220}>
-                  <Pie 
-                    data={donut.data} 
-                    cx={110} 
-                    cy={110} 
-                    innerRadius={50} 
-                    outerRadius={70} 
-                    dataKey="value" 
-                    startAngle={90} 
-                    endAngle={-270}
-                    label={renderCustomizedLabel}
-                    labelLine={false}
-                  >
-                    {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
               </div>
             </div>
             
@@ -119,7 +124,10 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
               <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} domain={[0, 10000]} />
-              <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+              <Tooltip 
+                labelFormatter={(label) => `${label} 2026`}
+                contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }} 
+              />
               <Area type="linear" dataKey="New" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" fill="url(#newGrad)" dot={{ r: 4, fill: '#f59e0b' }} />
               <Area type="linear" dataKey="Repeat" stroke="#3b82f6" strokeWidth={2} strokeDasharray="5 5" fill="url(#repGrad)" dot={{ r: 4, fill: '#3b82f6' }} />
             </AreaChart>
