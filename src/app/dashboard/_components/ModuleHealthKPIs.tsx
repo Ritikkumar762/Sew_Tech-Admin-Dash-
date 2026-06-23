@@ -46,8 +46,15 @@ export default function ModuleHealthKPIs({ sparesKpis, mechanicKpis }: Props) {
                   <span className={styles.kpiLabel}>{kpi.label}</span>
                 </div>
                 {kpi.trendLabel && (
-                  <span className={styles.trendLabel} style={{ color: kpi.trendUp ? '#10b981' : '#6b7280' }}>
-                    {kpi.trendLabel}
+                  <span className={styles.trendLabel} style={{ color: '#374151', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                    {kpi.trendLabel.includes('▲') ? (
+                      <img src="/green_up _logo.svg" alt="Up" style={{ width: '10px', height: '8px', objectFit: 'contain' }} />
+                    ) : (
+                      <span style={{ color: '#13B87E', fontSize: '0.8rem', lineHeight: 1, display: 'inline-block', transform: 'translateY(1px)' }}>▼</span>
+                    )}
+                    <span>
+                      {kpi.trendLabel.replace('▲', '').replace('▼', '')}
+                    </span>
                   </span>
                 )}
               </div>

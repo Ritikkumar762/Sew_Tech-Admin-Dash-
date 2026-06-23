@@ -114,8 +114,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6.8px;
+  border-radius: 6.59px;
   font-size: 0.85rem;
+  background-color: #ECF3FE !important;
 }
 .metricValueRow { display: flex; align-items: center; justify-content: space-between; }
 .metricValue { font-size: 1.625rem; font-weight: 800; color: #111827; display: flex; align-items: center; }

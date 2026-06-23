@@ -17,35 +17,35 @@ const NpsIcon = (
 );
 
 const LaptopIcon = (
-  <img src="/laptop-issue.svg" alt="Laptop Issue" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/laptop-issue.svg" alt="Laptop Issue" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const PackageIcon = (
-  <img src="/total order.svg" alt="Total Orders" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/total order.svg" alt="Total Orders" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const MoneyBagIcon = (
-  <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const WarningTriangleIcon = (
-  <img src="/alert-02.svg" alt="Refund Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/alert-02.svg" alt="Refund Rate" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const LightningIcon = (
-  <img src="/zap.png" alt="Zap" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/zap.png" alt="Zap" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const WrenchIcon = (
-  <img src="/wrench-01.svg" alt="Open Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/wrench-01.svg" alt="Open Requests" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const CalendarIcon = (
-  <img src="/exchange-01.svg" alt="AMC Visits Due" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/exchange-01.svg" alt="AMC Visits Due" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const AvatarIcon = (
-  <img src="/mechnaics%20_online_logo.png" alt="Mechanics Online" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/mechanics_online_logo.svg" alt="Mechanics Online" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 // ─── Types ──────────────────────────────────────────────────────
@@ -209,7 +209,7 @@ function parseSmartViewPayload(payload: unknown) {
       value: formatMetricValue(getValue(topKpis, ['wau', 'active_users', 'activeUsers']) ?? 200), 
       icon: <img src="/WAU_logo.svg" alt="WAU" style={{ width: 28, height: 28, objectFit: 'contain' }} />, 
       iconColor: '#3b82f6',
-      iconBg: '#eff6ff',
+      iconBg: 'transparent',
       link: false
     },
     { 
@@ -417,26 +417,26 @@ const MOCK_TOP_METRICS: TopMetric[] = [
   { 
     label: 'WAU', 
     value: '200', 
-    icon: <img src="/kaarigar_logo.png" alt="WAU" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    icon: <img src="/WAU_logo.svg" alt="WAU" style={{ width: 28, height: 28, objectFit: 'contain' }} />, 
     iconColor: '#3b82f6',
-    iconBg: '#eff6ff',
+    iconBg: 'transparent',
     link: false
   },
   { 
     label: 'Avg Time/ User', 
     value: '20', 
     unit: 'min',
-    icon: <img src="/Avg_time%20_logo.svg" alt="Avg Time" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    icon: <img src="/Avg_time%20_logo.svg" alt="Avg Time" style={{ width: 28, height: 28, objectFit: 'contain' }} />, 
     iconColor: '#3b82f6',
-    iconBg: '#eff6ff',
+    iconBg: 'transparent',
     link: false
   },
   { 
     label: 'Avg NPS', 
     value: '9', 
-    icon: <img src="/Overlay.svg" alt="Avg NPS" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    icon: <img src="/Overlay.svg" alt="Avg NPS" style={{ width: 28, height: 28, objectFit: 'contain' }} />, 
     iconColor: '#10b981',
-    iconBg: '#ecfdf5',
+    iconBg: 'transparent',
     link: false
   },
   { 
@@ -444,7 +444,7 @@ const MOCK_TOP_METRICS: TopMetric[] = [
     value: '10', 
     icon: <img src="/alert-02.svg" alt="Open Reports" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
     iconColor: '#ef4444',
-    iconBg: '#fee2e2',
+    iconBg: 'transparent',
     link: true
   },
 ];

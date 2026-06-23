@@ -57,9 +57,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6.8px;
+  border-radius: 6.59px;
   font-size: 0.85rem;
   margin-right: 0.5rem;
+  background-color: #ECF3FE !important;
 }
 
 .kpiLabel {
