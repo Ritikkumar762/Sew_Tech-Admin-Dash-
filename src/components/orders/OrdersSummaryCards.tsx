@@ -54,7 +54,7 @@ export default function OrdersSummaryCards() {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563', fontSize: '0.875rem', fontWeight: 600 }}>
-              <div style={{ backgroundColor: '#eff6ff', padding: '0.25rem', borderRadius: '0.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ backgroundColor: '#eff6ff', width: '28px', height: '28px', borderRadius: '6.8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {card.icon}
               </div>
               {card.title}

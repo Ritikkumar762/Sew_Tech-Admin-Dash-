@@ -6,7 +6,7 @@ export default function SummaryCards() {
       title: 'Total Service Requests',
       value: '200',
       icon: (
-        <img src="/sewtech_spare_logo.png" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+        <img src="/total order.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />
       ),
       iconBg: '#eff6ff',
       link: true
@@ -45,7 +45,7 @@ export default function SummaryCards() {
       {cards.map((card, idx) => (
         <div key={idx} style={{ backgroundColor: '#f8fafc', padding: '1.25rem', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563', fontSize: '0.875rem', fontWeight: 500 }}>
-            <div style={{ backgroundColor: card.iconBg, padding: '0.25rem', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ backgroundColor: card.iconBg, width: '28px', height: '28px', borderRadius: '6.8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {card.icon}
             </div>
             {card.title}

@@ -9,14 +9,11 @@ const WauIcon = (
 );
 
 const ClockIcon = (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="12" cy="12" r="10" />
-    <path d="M12 6.5v5.5h5.5" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-  </svg>
+  <img src="/Avg_time%20_logo.svg" alt="Avg Time" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const NpsIcon = (
-  <img src="/checkmark-badge-01.png" alt="NPS Badge" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/Overlay.svg" alt="NPS Badge" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const LaptopIcon = (
@@ -24,7 +21,7 @@ const LaptopIcon = (
 );
 
 const PackageIcon = (
-  <img src="/sewtech_spare_logo.png" alt="Total Orders" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+  <img src="/total order.svg" alt="Total Orders" style={{ width: 20, height: 20, objectFit: 'contain' }} />
 );
 
 const MoneyBagIcon = (

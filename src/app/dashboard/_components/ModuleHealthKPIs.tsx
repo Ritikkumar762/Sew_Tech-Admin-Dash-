@@ -23,7 +23,9 @@ export default function ModuleHealthKPIs({ sparesKpis, mechanicKpis }: Props) {
               </div>
               <div className={styles.kpiValueRow}>
                 <div className={styles.kpiValue}>{kpi.value}</div>
-                <button className={styles.kpiRefresh} title="Refresh">↻</button>
+                <button className={styles.kpiRefresh} title="Refresh">
+                  <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} />
+                </button>
               </div>
             </div>
           ))}
@@ -52,7 +54,11 @@ export default function ModuleHealthKPIs({ sparesKpis, mechanicKpis }: Props) {
                   <div className={styles.kpiValue}>{kpi.value}</div>
                   {kpi.subValue && <div className={styles.kpiSubValue}>{kpi.subValue}</div>}
                 </div>
-                {!kpi.subValue && <button className={styles.kpiRefresh} title="Refresh">↻</button>}
+                {!kpi.subValue && (
+                  <button className={styles.kpiRefresh} title="Refresh">
+                    <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} />
+                  </button>
+                )}
               </div>
             </div>
           ))}

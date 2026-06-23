@@ -59,7 +59,9 @@ export default function DashboardPage() {
                 {m.value}
                 {m.unit && <span className={styles.metricUnit}>{m.unit}</span>}
               </div>
-              <button className={styles.metricRefresh} onClick={refetch} title="Refresh">↻</button>
+              <button className={styles.metricRefresh} onClick={refetch} title="Refresh">
+                <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '16px', height: '16px', display: 'block' }} />
+              </button>
             </div>
           </div>
         ))}
