@@ -137,19 +137,15 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
             }}
           >
             <h3 className={styles.cardTitle}>{donut.label}</h3>
-            <div className={styles.donutContainerBox} style={{ width: '100%', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <div className={styles.donutWrapper} style={{ width: 140, height: 140 }}>
-                <div className={styles.donutCenter}>
-                  <div className={styles.donutTotal} style={{ fontSize: '0.9rem', fontWeight: 800 }}>{donut.centerValue}</div>
-                  <div className={styles.donutSub} style={{ fontSize: '0.6rem' }}>{donut.centerLabel}</div>
-                </div>
-                <PieChart width={140} height={140}>
+            <div className={styles.donutContainerBox} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div className={styles.donutWrapper} style={{ width: 180, height: 180 }}>
+                <PieChart width={180} height={180}>
                   <Pie 
                     data={donut.data} 
-                    cx={70} 
-                    cy={70} 
-                    innerRadius={30} 
-                    outerRadius={48} 
+                    cx={90} 
+                    cy={90} 
+                    innerRadius={45} 
+                    outerRadius={65} 
                     dataKey="value" 
                     startAngle={90} 
                     endAngle={-270}
@@ -160,6 +156,10 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
                   </Pie>
                   <Tooltip />
                 </PieChart>
+                <div className={styles.donutCenter}>
+                  <div className={styles.donutTotal} style={{ fontSize: '0.9rem', fontWeight: 800 }}>{donut.centerValue}</div>
+                  <div className={styles.donutSub} style={{ fontSize: '0.6rem' }}>{donut.centerLabel}</div>
+                </div>
               </div>
             </div>
           </div>

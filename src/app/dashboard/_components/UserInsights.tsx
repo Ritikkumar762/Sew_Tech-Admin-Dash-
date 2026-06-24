@@ -101,18 +101,14 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
             
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1 }}>
               <div className={styles.userDonutContainerBox}>
-                <div className={styles.userDonutWrapper} style={{ width: 140, height: 140 }}>
-                  <div className={styles.donutCenter}>
-                    <div className={styles.donutTotal} style={{ fontSize: '0.9rem', fontWeight: 800 }}>{donut.centerValue}</div>
-                    <div className={styles.donutSub} style={{ fontSize: '0.6rem' }}>{donut.centerLabel}</div>
-                  </div>
-                  <PieChart width={140} height={140}>
+                <div className={styles.userDonutWrapper} style={{ width: 150, height: 150 }}>
+                  <PieChart width={150} height={150}>
                     <Pie 
                       data={donut.data} 
-                      cx={70} 
-                      cy={70} 
-                      innerRadius={30} 
-                      outerRadius={48} 
+                      cx={75} 
+                      cy={75} 
+                      innerRadius={45} 
+                      outerRadius={65} 
                       dataKey="value" 
                       startAngle={90} 
                       endAngle={-270}
@@ -123,6 +119,10 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
                     </Pie>
                     <Tooltip />
                   </PieChart>
+                  <div className={styles.donutCenter}>
+                    <div className={styles.donutTotal} style={{ fontSize: '0.9rem', fontWeight: 800 }}>{donut.centerValue}</div>
+                    <div className={styles.donutSub} style={{ fontSize: '0.6rem' }}>{donut.centerLabel}</div>
+                  </div>
                 </div>
               </div>
               

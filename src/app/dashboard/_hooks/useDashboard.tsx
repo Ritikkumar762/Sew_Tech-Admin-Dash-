@@ -37,15 +37,15 @@ const LightningIcon = (
 );
 
 const WrenchIcon = (
-  <img src="/wrench-01.svg" alt="Open Requests" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+  <img src="/wrench-clean.svg" alt="Open Requests" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const CalendarIcon = (
-  <img src="/exchange-01.svg" alt="AMC Visits Due" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+  <img src="/exchange-clean.svg" alt="AMC Visits Due" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 const AvatarIcon = (
-  <img src="/mechanics_online_logo.svg" alt="Mechanics Online" style={{ width: 28, height: 28, objectFit: 'contain' }} />
+  <img src="/avatar-clean.svg" alt="Mechanics Online" style={{ width: 28, height: 28, objectFit: 'contain' }} />
 );
 
 // ─── Types ──────────────────────────────────────────────────────
@@ -341,25 +341,25 @@ function parseSmartViewPayload(payload: unknown) {
           label: 'Active Users',
           centerValue: formatMetricValue(getValue(performance, ['active_users_dau', 'activeUsersDau']) ?? '15,000'),
           centerLabel: 'DAU',
-          data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }],
+          data: [{ name: 'B', value: 40, color: '#ef4444' }, { name: 'A', value: 60, color: '#10b981' }],
         },
         {
           label: 'Revenue Contribution',
           centerValue: formatCurrencyValueLakhs(getValue(performance, ['revenue_contribution', 'revenueContribution']) ?? 150000),
           centerLabel: 'Total Revenue',
-          data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }],
+          data: [{ name: 'B', value: 40, color: '#ef4444' }, { name: 'A', value: 60, color: '#10b981' }],
         },
         {
           label: 'Disputes / Reports',
           centerValue: formatMetricValue(getValue(performance, ['disputes_reports', 'disputesReports']) ?? 400),
           centerLabel: 'Reports',
-          data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }],
+          data: [{ name: 'B', value: 40, color: '#ef4444' }, { name: 'A', value: 60, color: '#10b981' }],
         },
         {
           label: 'Avg Time spent by user',
           centerValue: formatMetricValue(getValue(performance, ['avg_time_spent_by_user', 'avgTimeSpentByUser']) ?? 30),
           centerLabel: 'min',
-          data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }],
+          data: [{ name: 'B', value: 40, color: '#ef4444' }, { name: 'A', value: 60, color: '#10b981' }],
         },
       ]
     : [];
@@ -537,10 +537,10 @@ const MOCK_MECHANIC_KPIS: KpiMetric[] = [
 ];
 
 const MOCK_PERF_DONUTS: DonutMetric[] = [
-  { label: 'Active Users', centerValue: '15,000', centerLabel: 'DAU', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
-  { label: 'Revenue Contribution', centerValue: '₹ 1.5 L', centerLabel: 'Total Revenue', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
-  { label: 'Disputes / Reports', centerValue: '400', centerLabel: 'Reports', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
-  { label: 'Avg Time spent by user', centerValue: '30', centerLabel: 'min', data: [{ name: 'A', value: 60, color: '#10b981' }, { name: 'B', value: 40, color: '#ef4444' }] },
+  { label: 'Active Users', centerValue: '15,000', centerLabel: 'DAU', data: [{ name: 'B', value: 40, color: '#ef4444' }, { name: 'A', value: 60, color: '#10b981' }] },
+  { label: 'Revenue Contribution', centerValue: '₹ 1.5 L', centerLabel: 'Total Revenue', data: [{ name: 'B', value: 40, color: '#ef4444' }, { name: 'A', value: 60, color: '#10b981' }] },
+  { label: 'Disputes / Reports', centerValue: '400', centerLabel: 'Reports', data: [{ name: 'B', value: 40, color: '#ef4444' }, { name: 'A', value: 60, color: '#10b981' }] },
+  { label: 'Avg Time spent by user', centerValue: '30', centerLabel: 'min', data: [{ name: 'B', value: 40, color: '#ef4444' }, { name: 'A', value: 60, color: '#10b981' }] },
 ];
 
 const MOCK_TREND_MODULE: LineChartData[] = [
