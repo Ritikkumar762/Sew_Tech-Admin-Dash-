@@ -8,6 +8,134 @@ import {
 import { FunnelStage, DonutData, BarChartData, ReasonChip } from '../_hooks/useOverview';
 import styles from '../Overview.module.css';
 
+const renderCustomLabel = (props: any) => {
+  const { cx, cy, midAngle, outerRadius, value } = props;
+  const RADIAN = Math.PI / 180;
+  const radius = outerRadius + 8;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  const pillW = 34;
+  const pillH = 18;
+
+  return (
+    <g>
+      <rect 
+        x={x - pillW / 2} 
+        y={y - pillH / 2 + 1} 
+        width={pillW} 
+        height={pillH} 
+        rx={3} 
+        fill="rgba(0,0,0,0.1)" 
+      />
+      <rect 
+        x={x - pillW / 2} 
+        y={y - pillH / 2} 
+        width={pillW} 
+        height={pillH} 
+        rx={3} 
+        fill="#ffffff" 
+        stroke="#e5e7eb"
+        strokeWidth={0.5}
+      />
+      <text 
+        x={x} 
+        y={y} 
+        fill="#1f2937" 
+        textAnchor="middle" 
+        dominantBaseline="central"
+        style={{ fontSize: '10px', fontWeight: 700 }}
+      >
+        {`${value}%`}
+      </text>
+    </g>
+  );
+};
+
+const CustomTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        backgroundColor: '#ffffff',
+        border: '1px solid #e5e7eb',
+        borderRadius: '12px',
+        padding: '16px 20px',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        minWidth: '180px',
+        position: 'relative'
+      }}>
+        {/* Title */}
+        <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#111827', marginBottom: '8px' }}>
+          {label} 2026
+        </div>
+        
+        {/* Separator */}
+        <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: '12px' }} />
+        
+        {/* Data Rows */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+          {payload.map((item: any) => (
+            <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', gap: '16px' }}>
+              <span style={{ color: '#6b7280', fontWeight: 500 }}>{item.name}:</span>
+              <span style={{ color: '#111827', fontWeight: 700 }}>{item.value}</span>
+            </div>
+          ))}
+        </div>
+        
+        {/* View Orders Link */}
+        <div>
+          <a href="#" style={{ fontSize: '0.8rem', color: '#3b82f6', textDecoration: 'underline', fontWeight: 600 }}>
+            View Orders
+          </a>
+        </div>
+        
+        {/* Triangle arrow indicator on the left side of the tooltip */}
+        <div style={{
+          position: 'absolute',
+          bottom: '24px',
+          left: '-6px',
+          width: '12px',
+          height: '12px',
+          backgroundColor: '#ffffff',
+          borderLeft: '1px solid #e5e7eb',
+          borderBottom: '1px solid #e5e7eb',
+          transform: 'rotate(45deg)'
+        }} />
+      </div>
+    );
+  }
+  return null;
+};
+
+const renderLegendText = (value: string, entry: any) => {
+  const { color } = entry;
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginRight: '16px', color: '#4b5563', fontWeight: 600, fontSize: '0.8rem' }}>
+      <span style={{ 
+        width: '24px', 
+        height: '12px', 
+        borderRadius: '6px', 
+        backgroundColor: color, 
+        position: 'relative', 
+        display: 'inline-block',
+        opacity: 0.9
+      }}>
+        <span style={{
+          width: '8px',
+          height: '8px',
+          borderRadius: '50%',
+          backgroundColor: '#ffffff',
+          position: 'absolute',
+          top: '2px',
+          left: value === 'Cancellation' ? '2px' : '14px',
+          transition: 'all 0.2s'
+        }} />
+      </span>
+      <span>{value}</span>
+    </span>
+  );
+};
+
 type Props = {
   funnel: FunnelStage[];
   orderOutcome: DonutData[];
@@ -122,30 +250,44 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
       <div className={styles.grid2ColEqual}>
         
         {/* ── Order Outcome Overview ─────────────────────────── */}
-        <div className={styles.card} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div className={styles.card} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <h2 className={styles.cardTitle} style={{ alignSelf: 'flex-start' }}>Order Outcome Overview</h2>
-          <div style={{ position: 'relative', width: 260, height: 260, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <div className={styles.donutCenter}>
-              <div className={styles.donutTotal}>400</div>
-              <div className={styles.donutSub}>Orders</div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', width: '100%', marginTop: '0.5rem' }}>
+            {/* Donut Chart */}
+            <div style={{ position: 'relative', width: 260, height: 260, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div className={styles.donutCenter}>
+                <div className={styles.donutTotal}>400</div>
+                <div className={styles.donutSub}>Orders</div>
+              </div>
+              <PieChart width={260} height={260}>
+                <Pie 
+                  data={orderOutcome} 
+                  cx={130} 
+                  cy={130} 
+                  innerRadius={50} 
+                  outerRadius={70} 
+                  dataKey="value"
+                  label={renderCustomLabel}
+                  labelLine={false}
+                >
+                  {orderOutcome.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                </Pie>
+                <Tooltip />
+              </PieChart>
             </div>
-            <PieChart width={260} height={260}>
-              <Pie 
-                data={orderOutcome} 
-                cx={130} 
-                cy={130} 
-                innerRadius={50} 
-                outerRadius={70} 
-                dataKey="value"
-                label={({ value }) => `${value}%`}
-                labelLine={true}
-              >
-                {orderOutcome.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-              </Pie>
-              <Tooltip />
-            </PieChart>
+
+            {/* Side Legend */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {orderOutcome.map((entry) => (
+                <div key={entry.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: '#4b5563', fontWeight: 600 }}>
+                  <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: entry.color, display: 'inline-block' }} />
+                  <span>{entry.name}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+
+          <div style={{ textAlign: 'center', marginTop: '1rem', width: '100%' }}>
             <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#111827' }}>Order Return Rate - 20%</div>
             <a href="#" style={{ fontSize: '0.8rem', color: '#3b82f6', textDecoration: 'underline' }}>View Return Reasons</a>
           </div>
@@ -162,8 +304,28 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
-                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', top: -30 }} />
+                <Tooltip 
+                  trigger="click" 
+                  wrapperStyle={{ pointerEvents: 'auto' }} 
+                  content={<CustomTooltip />} 
+                  cursor={{ fill: 'transparent' }} 
+                />
+                <Legend 
+                  iconSize={0} 
+                  formatter={renderLegendText} 
+                  align="right" 
+                  verticalAlign="top" 
+                  wrapperStyle={{ 
+                    fontSize: '11px', 
+                    paddingBottom: '16px',
+                    width: '100%',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    flexWrap: 'nowrap',
+                    top: -30,
+                    right: 0
+                  }} 
+                />
                 <Bar dataKey="Total Orders" fill="#3b82f6" radius={[4,4,0,0]} barSize={12} />
                 <Bar dataKey="Return" fill="#f87171" radius={[4,4,0,0]} barSize={12} />
                 <Bar dataKey="Replacement" fill="#fbbf24" radius={[4,4,0,0]} barSize={12} />

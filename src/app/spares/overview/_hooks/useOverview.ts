@@ -155,7 +155,7 @@ const MOCK_ORDER_OUTCOME: DonutData[] = [
 ];
 
 const MOCK_ORDER_TREND: BarChartData[] = [
-  { name: '1 Feb', 'Total Orders': 80, Return: 45, Replacement: 35, Cancellation: 10 },
+  { name: '1 Feb', 'Total Orders': 100, Return: 25, Replacement: 10, Cancellation: 5 },
   { name: '2 Feb', 'Total Orders': 50, Return: 20, Replacement: 15, Cancellation: 5 },
   { name: '3 Feb', 'Total Orders': 70, Return: 30, Replacement: 20, Cancellation: 8 },
   { name: '4 Feb', 'Total Orders': 90, Return: 40, Replacement: 30, Cancellation: 12 },
