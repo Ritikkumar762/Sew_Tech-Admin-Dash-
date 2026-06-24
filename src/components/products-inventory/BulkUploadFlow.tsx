@@ -6,7 +6,7 @@ interface BulkUploadFlowProps {
   onClose: () => void;
 }
 
-type UploadState = 'upload' | 'success' | 'error' | 'preview';
+type UploadState = 'upload' | 'success' | 'error' | 'preview' | 'confirmed';
 
 export function BulkUploadFlow({ isOpen, onClose }: BulkUploadFlowProps) {
   const [uploadState, setUploadState] = useState<UploadState>('upload');
@@ -47,7 +47,13 @@ export function BulkUploadFlow({ isOpen, onClose }: BulkUploadFlowProps) {
         style={{ position: 'relative', overflow: 'visible', margin: 'auto' }}
       >
         <div className={styles.modalHeader}>
-          <h3>{uploadState === 'preview' ? 'Preview Bulk Upload' : 'Bulk Upload'}</h3>
+          <h3>
+            {uploadState === 'confirmed' 
+              ? 'Confirmation' 
+              : uploadState === 'preview' 
+                ? 'Preview Bulk Upload' 
+                : 'Bulk Upload'}
+          </h3>
           <button className={styles.modalCloseBtn} onClick={resetAndClose}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
           </button>
@@ -125,30 +131,66 @@ export function BulkUploadFlow({ isOpen, onClose }: BulkUploadFlowProps) {
               </table>
             </div>
           )}
-        </div>
 
-        <div className={styles.modalFooter}>
-          {uploadState !== 'preview' ? (
-            <>
-              <button className={styles.modalBtnLight} onClick={resetAndClose}>Cancel</button>
+          {uploadState === 'confirmed' && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem', textAlign: 'center', gap: '1.25rem' }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                backgroundColor: '#10b981',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 10px rgba(16, 185, 129, 0.2)'
+              }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+              </div>
+
+              <h2 style={{ margin: '0.5rem 0 0.25rem 0', fontSize: '1.35rem', fontWeight: 700, color: '#111827' }}>
+                Bulk Upload Successful!
+              </h2>
+              <p style={{ margin: 0, fontSize: '0.875rem', color: '#4b5563', lineHeight: 1.5, maxWidth: '280px' }}>
+                File processed without errors. New entries are now visible in the system.
+              </p>
+
               <button 
-                className={`${styles.modalBtnDark} ${uploadState === 'upload' ? styles.btnDisabled : ''}`} 
-                onClick={uploadState === 'success' ? handlePreview : undefined}
-                disabled={uploadState === 'upload'}
+                className={styles.modalBtnDark} 
+                onClick={resetAndClose}
+                style={{ marginTop: '0.75rem', padding: '0.6rem 2rem', fontSize: '0.875rem', fontWeight: 600 }}
               >
-                Submit
+                View all Spares
               </button>
-            </>
-          ) : (
-            <>
-              <button className={styles.modalBtnLight} onClick={() => setUploadState('upload')}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
-                Re-Upload File
-              </button>
-              <button className={styles.modalBtnDark} onClick={resetAndClose}>Submit</button>
-            </>
+            </div>
           )}
         </div>
+
+        {uploadState !== 'confirmed' && (
+          <div className={styles.modalFooter}>
+            {uploadState !== 'preview' ? (
+              <>
+                <button className={styles.modalBtnLight} onClick={resetAndClose}>Cancel</button>
+                <button 
+                  className={`${styles.modalBtnDark} ${uploadState === 'upload' ? styles.btnDisabled : ''}`} 
+                  onClick={uploadState === 'success' ? handlePreview : undefined}
+                  disabled={uploadState === 'upload'}
+                >
+                  Submit
+                </button>
+              </>
+            ) : (
+              <>
+                <button className={styles.modalBtnLight} onClick={() => setUploadState('upload')}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                  Re-Upload File
+                </button>
+                <button className={styles.modalBtnDark} onClick={() => setUploadState('confirmed')}>Submit</button>
+              </>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

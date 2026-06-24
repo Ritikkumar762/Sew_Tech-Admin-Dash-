@@ -856,6 +856,8 @@
 .previewContainer {
   width: 100%;
   overflow-x: auto;
+  max-height: 380px;
+  overflow-y: auto;
 }
 
 .previewTable {
