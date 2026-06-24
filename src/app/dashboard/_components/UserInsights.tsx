@@ -101,12 +101,12 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
             
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1 }}>
               <div className={styles.userDonutContainerBox}>
-                <div className={styles.userDonutWrapper} style={{ width: 150, height: 150 }}>
-                  <PieChart width={150} height={150}>
+                <div className={styles.userDonutWrapper} style={{ width: 180, height: 180 }}>
+                  <PieChart width={180} height={180}>
                     <Pie 
                       data={donut.data} 
-                      cx={75} 
-                      cy={75} 
+                      cx={90} 
+                      cy={90} 
                       innerRadius={45} 
                       outerRadius={65} 
                       dataKey="value" 

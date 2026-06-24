@@ -319,7 +319,21 @@ export default function SparesOrdersPage() {
         {/* Card 1: Total Orders */}
         <div className="kpi-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Total Orders</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ 
+                width: '28px', 
+                height: '28px', 
+                borderRadius: '6.59px', 
+                backgroundColor: '#ECF3FE', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <img src="/total order.svg" alt="Total Orders" style={{ width: '14.93px', height: '14.93px', objectFit: 'contain' }} />
+              </span>
+              <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Total Orders</span>
+            </div>
             <span className="trend-pill trend-down">▼ 5% (L7D)</span>
           </div>
           <span style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>{stats.totalOrders}</span>
@@ -331,7 +345,21 @@ export default function SparesOrdersPage() {
         {/* Card 2: Cancelled */}
         <div className="kpi-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Cancelled</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ 
+                width: '28px', 
+                height: '28px', 
+                borderRadius: '6.59px', 
+                backgroundColor: '#fef2f2', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <img src="/cancelled-clean.svg" alt="Cancelled" style={{ width: '14.93px', height: '14.93px', objectFit: 'contain' }} />
+              </span>
+              <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Cancelled</span>
+            </div>
             <span className="trend-pill trend-up">▲ 5% (L7D)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
@@ -346,7 +374,21 @@ export default function SparesOrdersPage() {
         {/* Card 3: Returned */}
         <div className="kpi-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Returned</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ 
+                width: '28px', 
+                height: '28px', 
+                borderRadius: '6.59px', 
+                backgroundColor: '#ECF3FE', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <img src="/returned.svg" alt="Returned" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+              </span>
+              <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Returned</span>
+            </div>
             <span className="trend-pill trend-down">▼ 5% (L7D)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
@@ -361,7 +403,21 @@ export default function SparesOrdersPage() {
         {/* Card 4: Replacement */}
         <div className="kpi-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Replacement</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ 
+                width: '28px', 
+                height: '28px', 
+                borderRadius: '6.59px', 
+                backgroundColor: '#ECF3FE', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <img src="/exchange-clean.svg" alt="Replacement" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+              </span>
+              <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Replacement</span>
+            </div>
             <span className="trend-pill trend-down">▼ 5% (L7D)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
