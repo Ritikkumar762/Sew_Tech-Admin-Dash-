@@ -6,7 +6,7 @@ export default function SummaryCards() {
       title: 'Total Service Requests',
       value: '200',
       icon: (
-        <img src="/total order.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+        <img src="/total order.svg" alt="Total Service Requests" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />
       ),
       iconBg: '#eff6ff',
       link: true
@@ -15,7 +15,7 @@ export default function SummaryCards() {
       title: 'Active Service Requests',
       value: '₹15,000',
       icon: (
-        <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+        <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />
       ),
       iconBg: '#eff6ff',
       link: false
@@ -24,7 +24,7 @@ export default function SummaryCards() {
       title: 'First-Visit Fix Rate (%)',
       value: '15',
       icon: (
-        <img src="/alert-02.svg" alt="Fix Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+        <img src="/alert-02.svg" alt="Fix Rate" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />
       ),
       iconBg: '#fef3c7',
       link: true
@@ -33,7 +33,7 @@ export default function SummaryCards() {
       title: 'Repeat Service Rate (%)',
       value: '10',
       icon: (
-        <img src="/laptop-issue.svg" alt="Repeat Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />
+        <img src="/laptop-issue.svg" alt="Repeat Rate" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />
       ),
       iconBg: '#fee2e2',
       link: true

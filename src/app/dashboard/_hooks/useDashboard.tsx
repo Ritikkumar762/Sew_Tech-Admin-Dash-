@@ -243,7 +243,7 @@ function parseSmartViewPayload(payload: unknown) {
     { 
       label: 'Total Service Requests', 
       value: formatMetricValue(getValue(topKpis, ['total_service_requests', 'wau', 'active_users', 'activeUsers']) ?? 200), 
-      icon: <img src="/total order.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      icon: <img src="/total order.svg" alt="Total Service Requests" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, 
       iconColor: '#3b82f6',
       iconBg: '#eff6ff',
       link: true
@@ -251,7 +251,7 @@ function parseSmartViewPayload(payload: unknown) {
     { 
       label: 'Active Service Requests', 
       value: formatCurrencyValue(getValue(topKpis, ['active_service_requests', 'revenue_today', 'revenueToday', 'revenue']) ?? 15000), 
-      icon: <img src="/money-bag-02.svg" alt="Active Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      icon: <img src="/money-bag-02.svg" alt="Active Service Requests" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, 
       iconColor: '#3b82f6',
       iconBg: '#eff6ff',
       link: false
@@ -259,7 +259,7 @@ function parseSmartViewPayload(payload: unknown) {
     { 
       label: 'First-Visit Fix Rate (%)', 
       value: formatMetricValue(getValue(topKpis, ['first_visit_fix_rate', 'refund_rate', 'refundRate']) ?? 15), 
-      icon: <img src="/alert-02.svg" alt="First-Visit Fix Rate (%)" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      icon: <img src="/alert-02.svg" alt="First-Visit Fix Rate (%)" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, 
       iconColor: '#f59e0b',
       iconBg: '#fef3c7',
       link: true
@@ -267,7 +267,7 @@ function parseSmartViewPayload(payload: unknown) {
     { 
       label: 'Repeat Service Rate (%)', 
       value: formatMetricValue(getValue(topKpis, ['repeat_service_rate', 'open_reports', 'openReports', 'open_issues', 'openIssues']) ?? 10), 
-      icon: <img src="/laptop-issue.svg" alt="Repeat Service Rate (%)" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+      icon: <img src="/laptop-issue.svg" alt="Repeat Service Rate (%)" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, 
       iconColor: '#ef4444',
       iconBg: '#fee2e2',
       link: true
@@ -280,10 +280,10 @@ function parseSmartViewPayload(payload: unknown) {
 
   const sparesKpis: KpiMetric[] = sparesData
     ? [
-        { label: 'Total Orders (Today)', value: formatMetricValue(getValue(sparesData, ['total_orders_today', 'totalOrdersToday'])), icon: <img src="/total order.svg" alt="Total Orders" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
-        { label: 'Revenue (Today)', value: formatCurrencyValue(getValue(sparesData, ['revenue_today', 'revenueToday'])), icon: <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
-        { label: 'Refund Rate %', value: formatMetricValue(getValue(sparesData, ['refund_rate', 'refundRate'])), icon: <img src="/alert-02.svg" alt="Refund Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#f59e0b', iconBg: '#fffbeb', link: true },
-        { label: 'Open Issues', value: formatMetricValue(getValue(sparesData, ['open_issues', 'openIssues'])), icon: <img src="/laptop-issue.svg" alt="Open Issues" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#ef4444', iconBg: '#fef2f2', link: true },
+        { label: 'Total Orders (Today)', value: formatMetricValue(getValue(sparesData, ['total_orders_today', 'totalOrdersToday'])), icon: <img src="/total order.svg" alt="Total Orders" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
+        { label: 'Revenue (Today)', value: formatCurrencyValue(getValue(sparesData, ['revenue_today', 'revenueToday'])), icon: <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+        { label: 'Refund Rate %', value: formatMetricValue(getValue(sparesData, ['refund_rate', 'refundRate'])), icon: <img src="/alert-02.svg" alt="Refund Rate" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, iconColor: '#f59e0b', iconBg: '#fffbeb', link: true },
+        { label: 'Open Issues', value: formatMetricValue(getValue(sparesData, ['open_issues', 'openIssues'])), icon: <img src="/laptop-issue.svg" alt="Open Issues" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, iconColor: '#ef4444', iconBg: '#fef2f2', link: true },
       ]
     : [];
 
@@ -491,7 +491,7 @@ const MOCK_PERFORMANCE_TOP_METRICS: TopMetric[] = [
   { 
     label: 'Total Service Requests', 
     value: '200', 
-    icon: <img src="/total order.svg" alt="Total Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    icon: <img src="/total order.svg" alt="Total Service Requests" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, 
     iconColor: '#3b82f6',
     iconBg: '#eff6ff',
     link: true
@@ -499,7 +499,7 @@ const MOCK_PERFORMANCE_TOP_METRICS: TopMetric[] = [
   { 
     label: 'Active Service Requests', 
     value: '₹15,000', 
-    icon: <img src="/money-bag-02.svg" alt="Active Service Requests" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    icon: <img src="/money-bag-02.svg" alt="Active Service Requests" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, 
     iconColor: '#3b82f6',
     iconBg: '#eff6ff',
     link: false
@@ -507,7 +507,7 @@ const MOCK_PERFORMANCE_TOP_METRICS: TopMetric[] = [
   { 
     label: 'First-Visit Fix Rate (%)', 
     value: '15', 
-    icon: <img src="/alert-02.svg" alt="First-Visit Fix Rate (%)" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    icon: <img src="/alert-02.svg" alt="First-Visit Fix Rate (%)" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, 
     iconColor: '#f59e0b',
     iconBg: '#fef3c7',
     link: true
@@ -515,7 +515,7 @@ const MOCK_PERFORMANCE_TOP_METRICS: TopMetric[] = [
   { 
     label: 'Repeat Service Rate (%)', 
     value: '10', 
-    icon: <img src="/laptop-issue.svg" alt="Repeat Service Rate (%)" style={{ width: 20, height: 20, objectFit: 'contain' }} />, 
+    icon: <img src="/laptop-issue.svg" alt="Repeat Service Rate (%)" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, 
     iconColor: '#ef4444',
     iconBg: '#fee2e2',
     link: true
@@ -523,10 +523,10 @@ const MOCK_PERFORMANCE_TOP_METRICS: TopMetric[] = [
 ];
 
 const MOCK_SPARES_KPIS: KpiMetric[] = [
-  { label: 'Total Orders (Today)', value: '12', icon: <img src="/total order.svg" alt="Total Orders" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
-  { label: 'Revenue (Today)', value: '₹15,000', icon: <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
-  { label: 'Refund Rate %', value: '15', icon: <img src="/alert-02.svg" alt="Refund Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#f59e0b', iconBg: '#fffbeb', link: true },
-  { label: 'Open Issues', value: '10', icon: <img src="/laptop-issue.svg" alt="Open Issues" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#ef4444', iconBg: '#fef2f2', link: true },
+  { label: 'Total Orders (Today)', value: '12', icon: <img src="/total order.svg" alt="Total Orders" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
+  { label: 'Revenue (Today)', value: '₹15,000', icon: <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+  { label: 'Refund Rate %', value: '15', icon: <img src="/alert-02.svg" alt="Refund Rate" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, iconColor: '#f59e0b', iconBg: '#fffbeb', link: true },
+  { label: 'Open Issues', value: '10', icon: <img src="/laptop-issue.svg" alt="Open Issues" style={{ width: 14.93, height: 14.93, objectFit: 'contain' }} />, iconColor: '#ef4444', iconBg: '#fef2f2', link: true },
 ];
 
 const MOCK_MECHANIC_KPIS: KpiMetric[] = [

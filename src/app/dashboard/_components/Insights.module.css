@@ -12,7 +12,7 @@
 
 .userDonutsRow {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(358.67px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 
