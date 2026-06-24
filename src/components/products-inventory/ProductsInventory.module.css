@@ -142,17 +142,22 @@
 .searchInputWrapper {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  border: 1px solid #e5e7eb;
-  padding: 0.5rem 0.75rem;
-  border-radius: 6px;
-  width: 300px;
+  gap: 10px;
+  border: 1px solid #DCE0E4;
+  background-color: #F4F6F8;
+  padding: 0 12px;
+  border-radius: 8px;
+  width: 320px;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 .searchInput {
   border: none;
+  background: transparent;
   outline: none;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
+  font-weight: 500;
   width: 100%;
 }
 
@@ -162,16 +167,39 @@
 }
 
 .dropdownBtn {
-  background: white;
-  border: 1px solid #e5e7eb;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
+  background-color: #F4F6F8;
+  border: 1px solid #DCE0E4;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
   color: #374151;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 10px;
+  width: 109px;
+  justify-content: space-between;
+  height: 40px;
+  box-sizing: border-box;
+}
+
+.bulkActionsBtn {
+  background-color: #F4F6F8;
+  border: 1px solid #DCE0E4;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 130px;
+  justify-content: space-between;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 .dropdownSelect {
@@ -186,15 +214,18 @@
 }
 
 .calendarBtn {
-  background: white;
-  border: 1px solid #e5e7eb;
-  padding: 0.5rem;
-  border-radius: 6px;
-  color: #6b7280;
+  background-color: #F4F6F8;
+  border: 1px solid #DCE0E4;
+  padding: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  color: #374151;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
 }
 
 .chevron {
@@ -206,14 +237,16 @@
   background-color: #111827;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  font-weight: 500;
+  padding: 0 1rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  height: 40px;
+  box-sizing: border-box;
 }
 
 /* Data Table */
@@ -302,6 +335,7 @@
 
 .priceRange {
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .statusBadge {

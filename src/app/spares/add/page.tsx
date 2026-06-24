@@ -9,6 +9,8 @@ export default function AddSparePage() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [status, setStatus] = useState('Live');
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [banners, setBanners] = useState([
     { id: 1, url: '/sale 1.png', selected: true },
     { id: 2, url: '/sale 2.png', selected: false },
@@ -45,10 +47,91 @@ export default function AddSparePage() {
         <div className={styles.sectionCard}>
           <div className={styles.sectionHeader}>
             <h2 className={styles.sectionTitle}>General Details</h2>
-            <select className={styles.statusSelect} defaultValue="Live">
-              <option value="Live">Live</option>
-              <option value="Draft">Draft</option>
-            </select>
+            <div style={{ position: 'relative' }}>
+              <button 
+                type="button"
+                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                className={styles.statusSelect}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer'
+                }}
+              >
+                <span>{status}</span>
+                <svg 
+                  width="8" 
+                  height="5" 
+                  viewBox="0 0 10 6" 
+                  fill="none" 
+                  xmlns="http://www.w3.org/2000/svg"
+                  style={{
+                    transform: isStatusDropdownOpen ? 'rotate(180deg)' : 'none',
+                    transition: 'transform 0.15s ease'
+                  }}
+                >
+                  <path d="M1 1L5 5L9 1" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+              
+              {isStatusDropdownOpen && (
+                <>
+                  <div 
+                    onClick={() => setIsStatusDropdownOpen(false)}
+                    style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 49 }}
+                  />
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    right: 0,
+                    marginTop: '4px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                    zIndex: 50,
+                    minWidth: '150px',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    padding: '4px'
+                  }}>
+                    {['Live', 'Draft'].map((option, idx) => (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => {
+                          setStatus(option);
+                          setIsStatusDropdownOpen(false);
+                        }}
+                        style={{
+                          padding: '10px 16px',
+                          fontSize: '14px',
+                          fontWeight: 500,
+                          color: '#374151',
+                          backgroundColor: 'transparent',
+                          border: 'none',
+                          borderBottom: idx < 1 ? '1px solid #f1f5f9' : 'none',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          width: '100%',
+                          transition: 'background-color 0.15s ease'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f3f4f6';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
           
           <div className={styles.formGrid}>

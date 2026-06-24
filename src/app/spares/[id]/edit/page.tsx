@@ -41,6 +41,8 @@ export default function EditSparePage() {
   
   const [singleImages, setSingleImages] = useState<string[]>(['/rotary_hook.png']);
   const [singleCoverIndex, setSingleCoverIndex] = useState(0);
+  const [status, setStatus] = useState('Live');
+  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
   const [banners, setBanners] = useState([
     { id: 1, url: '/sale 1.png', selected: true },
@@ -181,12 +183,91 @@ export default function EditSparePage() {
           <div className={styles.sectionCard}>
             <div className={styles.sectionHeader}>
               <h2 className={styles.sectionTitle}>General Details</h2>
-              <select className={styles.statusSelect} defaultValue="Live">
-                <option value="Live">Live</option>
-                <option value="Draft">Draft</option>
-                <option value="Under Review">Under Review</option>
-                <option value="Disabled">Disabled</option>
-              </select>
+              <div style={{ position: 'relative' }}>
+                <button 
+                  type="button"
+                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+                  className={styles.statusSelect}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <span>{status}</span>
+                  <svg 
+                    width="8" 
+                    height="5" 
+                    viewBox="0 0 10 6" 
+                    fill="none" 
+                    xmlns="http://www.w3.org/2000/svg"
+                    style={{
+                      transform: isStatusDropdownOpen ? 'rotate(180deg)' : 'none',
+                      transition: 'transform 0.15s ease'
+                    }}
+                  >
+                    <path d="M1 1L5 5L9 1" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+                
+                {isStatusDropdownOpen && (
+                  <>
+                    <div 
+                      onClick={() => setIsStatusDropdownOpen(false)}
+                      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 49 }}
+                    />
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      marginTop: '4px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+                      zIndex: 50,
+                      minWidth: '150px',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      padding: '4px'
+                    }}>
+                      {['Live', 'Draft', 'Under Review', 'Disabled'].map((option, idx) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => {
+                            setStatus(option);
+                            setIsStatusDropdownOpen(false);
+                          }}
+                          style={{
+                            padding: '10px 16px',
+                            fontSize: '14px',
+                            fontWeight: 500,
+                            color: '#374151',
+                            backgroundColor: 'transparent',
+                            border: 'none',
+                            borderBottom: idx < 3 ? '1px solid #f1f5f9' : 'none',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            width: '100%',
+                            transition: 'background-color 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#f3f4f6';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'transparent';
+                          }}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
             
             <div className={styles.formGrid}>
@@ -440,39 +521,97 @@ export default function EditSparePage() {
                                   >
                                     ×
                                   </button>
-                                  <div 
-                                    className={`${styles.coverPhotoCheckboxWrapper} ${isCover ? styles.coverPhotoSelected : ''}`}
-                                    onClick={() => handleSetCoverPhoto(variant.id, i)}
-                                  >
-                                    <span className={`${styles.coverCheckboxBadge} ${isCover ? styles.coverCheckboxChecked : ''}`}>
-                                      {isCover && '✓'}
-                                    </span>
-                                    <span className={styles.coverCheckboxLabel}>Cover Photo</span>
-                                  </div>
+                                  {isCover ? (
+                                    <div 
+                                      onClick={() => handleSetCoverPhoto(variant.id, i)}
+                                      style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        height: '36px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                      }}
+                                    >
+                                      <img src="/cover photo.svg" alt="Cover Photo" style={{ width: '100%', height: '100%', display: 'block' }} />
+                                    </div>
+                                  ) : (
+                                    <div 
+                                      onClick={() => handleSetCoverPhoto(variant.id, i)}
+                                      style={{
+                                        position: 'absolute',
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        height: '36px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        backgroundColor: '#ffffff',
+                                        border: '1px solid #cbd5e1',
+                                        borderRadius: '8px',
+                                        boxSizing: 'border-box'
+                                      }}
+                                    >
+                                      <div style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: '6px',
+                                        color: '#64748B',
+                                        fontSize: '11px',
+                                        fontWeight: 600
+                                      }}>
+                                        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                          <rect width="16" height="16" rx="4" fill="#F1F5F9" />
+                                          <path d="M12 6L7 11L4 8" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                        </svg>
+                                        <span>Cover Photo</span>
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}
-                            <div className={styles.variantUploadBoxSmall} onClick={() => triggerFileInput(variant.id)}>
-                              <div className={styles.variantUploadBtn}>
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" style={{ marginBottom: '0.25rem' }}>
-                                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                  <polyline points="17 8 12 3 7 8"></polyline>
-                                  <line x1="12" y1="3" x2="12" y2="15"></line>
-                                </svg>
-                                Upload Photo 
-                              </div>
+                            <div 
+                              onClick={() => triggerFileInput(variant.id)}
+                              style={{
+                                border: '1.5px dashed #3B82F6',
+                                backgroundColor: '#EFF6FF',
+                                borderRadius: '8px',
+                                height: '120px',
+                                width: '120px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                boxSizing: 'border-box'
+                              }}
+                            >
+                              <img src="/upload photo.svg" alt="Upload Photo" style={{ width: '115px', height: '36px', objectFit: 'contain' }} />
                             </div>
                           </div>
                         ) : (
-                          <div className={styles.variantUploadBoxLarge} onClick={() => triggerFileInput(variant.id)}>
-                            <div className={styles.variantUploadBtnLarge}>
-                              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" style={{ marginBottom: '0.5rem' }}>
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                              </svg>
-                              <span>Upload Photo <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>☁</span></span>
-                            </div>
+                          <div 
+                            onClick={() => triggerFileInput(variant.id)}
+                            style={{
+                              border: '1.5px dashed #3B82F6',
+                              backgroundColor: '#EFF6FF',
+                              borderRadius: '8px',
+                              height: '120px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              width: '100%',
+                              boxSizing: 'border-box'
+                            }}
+                          >
+                            <img src="/upload photo.svg" alt="Upload Photo" style={{ width: '131px', height: '40px', objectFit: 'contain' }} />
                           </div>
                         )}
                       </div>
@@ -516,39 +655,97 @@ export default function EditSparePage() {
                             >
                               ×
                             </button>
-                            <div 
-                              className={`${styles.coverPhotoCheckboxWrapper} ${isCover ? styles.coverPhotoSelected : ''}`}
-                              onClick={() => setSingleCoverIndex(i)}
-                            >
-                              <span className={`${styles.coverCheckboxBadge} ${isCover ? styles.coverCheckboxChecked : ''}`}>
-                                {isCover && '✓'}
-                              </span>
-                              <span className={styles.coverCheckboxLabel}>Cover Photo</span>
-                            </div>
+                            {isCover ? (
+                              <div 
+                                onClick={() => setSingleCoverIndex(i)}
+                                style={{
+                                  position: 'absolute',
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  height: '36px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center'
+                                }}
+                              >
+                                <img src="/cover photo.svg" alt="Cover Photo" style={{ width: '100%', height: '100%', display: 'block' }} />
+                              </div>
+                            ) : (
+                              <div 
+                                onClick={() => setSingleCoverIndex(i)}
+                                style={{
+                                  position: 'absolute',
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  height: '36px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  backgroundColor: '#ffffff',
+                                  border: '1px solid #cbd5e1',
+                                  borderRadius: '8px',
+                                  boxSizing: 'border-box'
+                                }}
+                              >
+                                <div style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                  color: '#64748B',
+                                  fontSize: '11px',
+                                  fontWeight: 600
+                                }}>
+                                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect width="16" height="16" rx="4" fill="#F1F5F9" />
+                                    <path d="M12 6L7 11L4 8" stroke="#94A3B8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                  <span>Cover Photo</span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         );
                       })}
-                      <div className={styles.variantUploadBoxSmall} onClick={triggerSingleFileInput}>
-                        <div className={styles.variantUploadBtn}>
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2.5" style={{ marginBottom: '0.25rem' }}>
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                            <polyline points="17 8 12 3 7 8"></polyline>
-                            <line x1="12" y1="3" x2="12" y2="15"></line>
-                          </svg>
-                          Upload Photo 
-                        </div>
+                      <div 
+                        onClick={triggerSingleFileInput}
+                        style={{
+                          border: '1.5px dashed #3B82F6',
+                          backgroundColor: '#EFF6FF',
+                          borderRadius: '8px',
+                          height: '120px',
+                          width: '120px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          boxSizing: 'border-box'
+                        }}
+                      >
+                        <img src="/upload photo.svg" alt="Upload Photo" style={{ width: '115px', height: '36px', objectFit: 'contain' }} />
                       </div>
                     </div>
                   ) : (
-                    <div className={styles.variantUploadBoxLarge} onClick={triggerSingleFileInput}>
-                      <div className={styles.variantUploadBtnLarge}>
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" style={{ marginBottom: '0.5rem' }}>
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                          <polyline points="17 8 12 3 7 8"></polyline>
-                          <line x1="12" y1="3" x2="12" y2="15"></line>
-                        </svg>
-                        <span>Upload Photo <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>☁</span></span>
-                      </div>
+                    <div 
+                      onClick={triggerSingleFileInput}
+                      style={{
+                        border: '1.5px dashed #3B82F6',
+                        backgroundColor: '#EFF6FF',
+                        borderRadius: '8px',
+                        height: '120px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        width: '100%',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      <img src="/upload photo.svg" alt="Upload Photo" style={{ width: '131px', height: '40px', objectFit: 'contain' }} />
                     </div>
                   )}
                 </div>

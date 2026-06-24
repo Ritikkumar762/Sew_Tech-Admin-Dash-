@@ -35,14 +35,9 @@ export function DataTable({ data }: DataTableProps) {
                 <div className={styles.productCell}>
                   <div className={styles.productIconWrapper} style={{ overflow: 'hidden' }}>
                     {item.category === 'Rotary Hook' ? (
-                      <img src="/rotary_hook.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src="/rotary_hook.png" alt="" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
                     ) : (
-                      <span className={styles.productIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="3"></circle>
-                          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                        </svg>
-                      </span>
+                      <img src="/sewing_machine _needle.svg" alt="" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
                     )}
                   </div>
                   <div>
@@ -59,18 +54,24 @@ export function DataTable({ data }: DataTableProps) {
                 <span className={styles.priceRange}>₹{item.priceMin.toLocaleString()} - ₹{item.priceMax.toLocaleString()}</span>
               </td>
               <td>
-                <span className={`${styles.statusBadge} ${item.stockStatus === 'Out of Stock' ? styles.statusOut : styles.statusIn}`}>
-                  {item.stockStatus === 'In-Stock' ? item.stock : item.stockStatus}
-                </span>
+                {item.stockStatus === 'Out of Stock' ? (
+                  <img src="/out of stock.svg" alt="Out of Stock" style={{ height: '22px', width: 'auto', display: 'block' }} />
+                ) : (
+                  <span className={`${styles.statusBadge} ${styles.statusIn}`}>
+                    {item.stock}
+                  </span>
+                )}
               </td>
               <td>
-                <span className={`${styles.visibilityBadge} ${item.visibility === 'Live' ? styles.visLive : styles.visDraft}`}>
-                  {item.visibility}
-                </span>
+                {item.visibility === 'Live' ? (
+                  <img src="/live.svg" alt="Live" style={{ height: '22px', width: 'auto', display: 'block' }} />
+                ) : (
+                  <img src="/Draft.svg" alt="Draft" style={{ height: '22px', width: 'auto', display: 'block' }} />
+                )}
               </td>
               <td>
-                <Link href={`/spares/${item.id}`} className={styles.viewBtn}>
-                  View <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                <Link href={`/spares/${item.id}`} style={{ display: 'inline-block' }}>
+                  <img src="/View_button.svg" alt="View" style={{ height: '28px', width: 'auto', display: 'block' }} />
                 </Link>
               </td>
             </tr>

@@ -22,7 +22,7 @@ export function StatCards({ stats }: { stats: Stat[] }) {
               <span className={styles.statTitle}>{stat.title}</span>
             </div>
             <button className={styles.refreshBtn}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} />
             </button>
           </div>
           <div className={styles.statValue}>{stat.value}</div>
