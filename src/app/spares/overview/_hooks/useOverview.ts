@@ -166,7 +166,9 @@ const MOCK_ORDER_TREND: BarChartData[] = [
 
 const MOCK_CANCELLATION_REASONS: ReasonChip[] = [
   { label: 'Product quality', count: 25, percentage: '30%' },
+  { label: 'Product quality', count: 25, percentage: '30%' },
   { label: 'Wrong size ordered', count: 25, percentage: '30%' },
+  { label: 'Product damaged', count: 25, percentage: '30%' },
   { label: 'Received wrong item', count: 25, percentage: '30%' },
 ];
 

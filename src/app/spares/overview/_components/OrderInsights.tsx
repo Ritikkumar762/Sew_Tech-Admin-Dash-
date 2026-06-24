@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell,
@@ -144,6 +145,19 @@ type Props = {
 };
 
 export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancelReasons }: Props) {
+  const [visibleSeries, setVisibleSeries] = useState<Record<string, boolean>>({
+    'Total Orders': true,
+    'Return': true,
+    'Replacement': true,
+    'Cancellation': false
+  });
+
+  const toggleSeries = (name: string) => {
+    setVisibleSeries(prev => ({
+      ...prev,
+      [name]: !prev[name]
+    }));
+  };
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -295,8 +309,56 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
 
         {/* ── Orders Trend ─────────────────────────────────────── */}
         <div className={styles.card}>
-          <div className={styles.cardHeaderRow}>
+          <div className={styles.cardHeaderRow} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'nowrap' }}>
             <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Orders Trend</h2>
+            
+            {/* Custom Interactive Legend */}
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'nowrap' }}>
+              {[
+                { name: 'Cancellation', color: '#9ca3af' },
+                { name: 'Replacement', color: '#fbbf24' },
+                { name: 'Return', color: '#f87171' },
+                { name: 'Total Orders', color: '#3b82f6' }
+              ].map((item) => {
+                const isActive = visibleSeries[item.name];
+                return (
+                  <div 
+                    key={item.name} 
+                    onClick={() => toggleSeries(item.name)}
+                    style={{ 
+                      display: 'inline-flex', 
+                      alignItems: 'center', 
+                      gap: '6px', 
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                  >
+                    {/* Toggle Switch */}
+                    <span style={{ 
+                      width: '24px', 
+                      height: '12px', 
+                      borderRadius: '6px', 
+                      backgroundColor: isActive ? item.color : '#d1d5db', 
+                      position: 'relative', 
+                      display: 'inline-block',
+                      transition: 'background-color 0.2s'
+                    }}>
+                      <span style={{
+                        width: '8px',
+                        height: '8px',
+                        borderRadius: '50%',
+                        backgroundColor: '#ffffff',
+                        position: 'absolute',
+                        top: '2px',
+                        left: isActive ? '14px' : '2px',
+                        transition: 'left 0.2s'
+                      }} />
+                    </span>
+                    <span style={{ fontSize: '0.85rem', color: '#4b5563', fontWeight: 600 }}>{item.name}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           <div style={{ height: 220 }}>
             <ResponsiveContainer width="100%" height="100%">
@@ -310,26 +372,10 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
                   content={<CustomTooltip />} 
                   cursor={{ fill: 'transparent' }} 
                 />
-                <Legend 
-                  iconSize={0} 
-                  formatter={renderLegendText} 
-                  align="right" 
-                  verticalAlign="top" 
-                  wrapperStyle={{ 
-                    fontSize: '11px', 
-                    paddingBottom: '16px',
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'flex-end',
-                    flexWrap: 'nowrap',
-                    top: -30,
-                    right: 0
-                  }} 
-                />
-                <Bar dataKey="Total Orders" fill="#3b82f6" radius={[4,4,0,0]} barSize={12} />
-                <Bar dataKey="Return" fill="#f87171" radius={[4,4,0,0]} barSize={12} />
-                <Bar dataKey="Replacement" fill="#fbbf24" radius={[4,4,0,0]} barSize={12} />
-                <Bar dataKey="Cancellation" fill="#9ca3af" radius={[4,4,0,0]} barSize={12} />
+                {visibleSeries['Total Orders'] && <Bar dataKey="Total Orders" fill="#3b82f6" radius={[4,4,0,0]} barSize={12} />}
+                {visibleSeries['Return'] && <Bar dataKey="Return" fill="#f87171" radius={[4,4,0,0]} barSize={12} />}
+                {visibleSeries['Replacement'] && <Bar dataKey="Replacement" fill="#fbbf24" radius={[4,4,0,0]} barSize={12} />}
+                {visibleSeries['Cancellation'] && <Bar dataKey="Cancellation" fill="#9ca3af" radius={[4,4,0,0]} barSize={12} />}
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -339,25 +385,83 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
       {/* ── Cancellation & Return Reasons ────────────────────── */}
       <div className={styles.grid2ColEqual}>
         <div className={styles.card}>
-          <div className={styles.cardHeaderRow}>
-            <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Top Cancellation Reasons <span style={{color:'#3b82f6'}}>↗</span></h2>
+          <div className={styles.cardHeaderRow} style={{ marginBottom: '1.25rem' }}>
+            <h2 className={styles.cardTitle} style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              Top Cancellation Reasons
+              <img 
+                src="/refresh_logo.svg" 
+                alt="Link" 
+                style={{ width: '14px', height: '14px', cursor: 'pointer', display: 'inline-block' }}
+              />
+            </h2>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem 0.5rem' }}>
             {cancelReasons.map((reason, i) => (
-              <div key={i} style={{ background: '#f1f5f9', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', color: '#334155', fontWeight: 500 }}>
-                {reason.label} <span style={{ marginLeft: '4px', color: '#111827', fontWeight: 700 }}>{reason.count}</span> <span style={{ color: '#94a3b8' }}>({reason.percentage})</span>
+              <div key={i} style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: '#eff6ff', 
+                padding: '4px 4px 4px 12px', 
+                borderRadius: '20px', 
+                fontSize: '0.8rem', 
+                color: '#1e293b', 
+                fontWeight: 500,
+                gap: '8px'
+              }}>
+                <span>{reason.label}</span>
+                <span style={{ 
+                  background: '#dbeafe', 
+                  padding: '2px 8px', 
+                  borderRadius: '12px', 
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  color: '#1e293b'
+                }}>
+                  <strong style={{ fontWeight: 700 }}>{reason.count}</strong>
+                  <span style={{ color: '#64748b', fontSize: '0.75rem' }}>({reason.percentage})</span>
+                </span>
               </div>
             ))}
           </div>
         </div>
         <div className={styles.card}>
-          <div className={styles.cardHeaderRow}>
-            <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Top Return Reasons <span style={{color:'#3b82f6'}}>↗</span></h2>
+          <div className={styles.cardHeaderRow} style={{ marginBottom: '1.25rem' }}>
+            <h2 className={styles.cardTitle} style={{ marginBottom: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+              Top Return Reasons
+              <img 
+                src="/refresh_logo.svg" 
+                alt="Link" 
+                style={{ width: '14px', height: '14px', cursor: 'pointer', display: 'inline-block' }}
+              />
+            </h2>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem 0.5rem' }}>
             {cancelReasons.map((reason, i) => (
-              <div key={i} style={{ background: '#f1f5f9', padding: '0.4rem 0.8rem', borderRadius: '20px', fontSize: '0.8rem', color: '#334155', fontWeight: 500 }}>
-                {reason.label} <span style={{ marginLeft: '4px', color: '#111827', fontWeight: 700 }}>{reason.count}</span> <span style={{ color: '#94a3b8' }}>({reason.percentage})</span>
+              <div key={i} style={{ 
+                display: 'inline-flex',
+                alignItems: 'center',
+                background: '#eff6ff', 
+                padding: '4px 4px 4px 12px', 
+                borderRadius: '20px', 
+                fontSize: '0.8rem', 
+                color: '#1e293b', 
+                fontWeight: 500,
+                gap: '8px'
+              }}>
+                <span>{reason.label}</span>
+                <span style={{ 
+                  background: '#dbeafe', 
+                  padding: '2px 8px', 
+                  borderRadius: '12px', 
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  color: '#1e293b'
+                }}>
+                  <strong style={{ fontWeight: 700 }}>{reason.count}</strong>
+                  <span style={{ color: '#64748b', fontSize: '0.75rem' }}>({reason.percentage})</span>
+                </span>
               </div>
             ))}
           </div>
