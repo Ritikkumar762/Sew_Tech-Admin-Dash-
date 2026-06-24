@@ -8,6 +8,7 @@ export interface KpiMetric {
   icon?: any;
   iconBg?: string;
   iconColor?: string;
+  link?: boolean;
 }
 
 export interface FunnelStage {
@@ -102,7 +103,8 @@ function toKpiMetric(value: unknown): KpiMetric | null {
   }
   
   const iconColor = String(item.iconColor ?? item.color ?? '#3b82f6');
-  return { label, value: rawValue == null ? '—' : String(rawValue), icon, iconColor };
+  const link = !label.includes('Revenue');
+  return { label, value: rawValue == null ? '—' : String(rawValue), icon, iconColor, link };
 }
 
 function toInsightCard(value: unknown): InsightCard | null {
@@ -131,18 +133,18 @@ function parseSmartViewPayload(payload: unknown) {
 // --- Mock Data ---
 
 const MOCK_GLOBAL_KPIS: KpiMetric[] = [
-  { label: 'Total Orders (Today)', value: '12', icon: React.createElement('img', { src: '/total order.svg', alt: 'Total Orders', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#3b82f6' },
-  { label: 'Revenue (Today)', value: '₹15,000', icon: React.createElement('img', { src: '/money-bag-02.svg', alt: 'Revenue', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#3b82f6' },
-  { label: 'Refund Rate %', value: '15', icon: React.createElement('img', { src: '/alert-02.svg', alt: 'Refund Rate', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#f59e0b' },
-  { label: 'Open Issues', value: '10', icon: React.createElement('img', { src: '/laptop-issue.svg', alt: 'Open Issues', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#ef4444' },
+  { label: 'Total Orders (Today)', value: '12', icon: React.createElement('img', { src: '/total order.svg', alt: 'Total Orders', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#3b82f6', link: true },
+  { label: 'Revenue (Today)', value: '₹15,000', icon: React.createElement('img', { src: '/money-bag-02.svg', alt: 'Revenue', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#3b82f6', link: false },
+  { label: 'Refund Rate %', value: '15', icon: React.createElement('img', { src: '/alert-02.svg', alt: 'Refund Rate', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#f59e0b', link: true },
+  { label: 'Open Issues', value: '10', icon: React.createElement('img', { src: '/laptop-issue.svg', alt: 'Open Issues', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#ef4444', link: true },
 ];
 
 const MOCK_FUNNEL: FunnelStage[] = [
-  { name: 'Order Confirmed', value: 1000, subtitle: '▲ 5% (L7D)', color: '#93c5fd' },
-  { name: 'Packed', value: 200, subtitle: 'On-Schedule: 80%', color: '#3b82f6', badge: '#10b981' },
-  { name: 'Shipped', value: 150, subtitle: 'On-Schedule: 80%', color: '#1d4ed8', badge: '#10b981' },
-  { name: 'Out for Delivery', value: 50, subtitle: 'On-Schedule: 70%', color: '#1e3a8a', badge: '#f59e0b' },
-  { name: 'Delivered', value: 25, subtitle: 'On-Schedule: 10%', color: '#0f172a', badge: '#ef4444' },
+  { name: 'Order Confirmed', value: 1000, subtitle: '▲ 5% (L7D)', color: '#8CBAF0' },
+  { name: 'Packed', value: 200, subtitle: 'On-Schedule: 80%', color: '#0460CA', badge: '#10b981' },
+  { name: 'Shipped', value: 150, subtitle: 'On-Schedule: 80%', color: '#034B9E', badge: '#10b981' },
+  { name: 'Out for Delivery', value: 50, subtitle: 'On-Schedule: 70%', color: '#023A7A', badge: '#f59e0b' },
+  { name: 'Delivered', value: 25, subtitle: 'On-Schedule: 10%', color: '#001B3B', badge: '#ef4444' },
 ];
 
 const MOCK_ORDER_OUTCOME: DonutData[] = [

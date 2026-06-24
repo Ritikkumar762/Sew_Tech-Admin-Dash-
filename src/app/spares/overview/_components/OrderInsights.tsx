@@ -17,19 +17,6 @@ type Props = {
 
 export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancelReasons }: Props) {
   
-  // Custom Funnel Tick
-  const CustomXAxisTick = ({ x, y, payload }: any) => {
-    const stage = funnel.find(s => s.name === payload.value);
-    if (!stage) return null;
-    return (
-      <g transform={`translate(${x},${y})`}>
-        <text x={0} y={0} dy={16} textAnchor="middle" fill="#6b7280" fontSize={12} fontWeight={500}>{stage.name}</text>
-        <text x={0} y={0} dy={40} textAnchor="middle" fill="#111827" fontSize={24} fontWeight={800}>{stage.value}</text>
-        <text x={0} y={0} dy={60} textAnchor="middle" fill={stage.badge || '#6b7280'} fontSize={10} fontWeight={600}>{stage.subtitle}</text>
-      </g>
-    );
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       
@@ -39,21 +26,96 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
           <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Order Funnel</h2>
           <select className={styles.select}><option>Funnel View</option></select>
         </div>
-        <div style={{ height: 280, marginTop: '2rem' }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={funnel} margin={{ top: 20, right: 30, left: 30, bottom: 60 }}>
-              <defs>
-                <linearGradient id="colorFunnel" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="#0f172a" stopOpacity={0.8}/>
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={true} horizontal={false} stroke="#e5e7eb" strokeDasharray="3 3" />
-              <XAxis dataKey="name" tick={<CustomXAxisTick />} axisLine={false} tickLine={false} interval={0} />
-              <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-              <Area type="monotone" dataKey="value" stroke="none" fill="url(#colorFunnel)" />
-            </AreaChart>
-          </ResponsiveContainer>
+        
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(5, 1fr)', 
+          border: '1px solid #e5e7eb',
+          borderRadius: '12px',
+          overflow: 'hidden',
+          background: 'white',
+          marginTop: '1.5rem',
+          height: '240px',
+          position: 'relative'
+        }}>
+          {/* Vertical dividers & text */}
+          {funnel.map((stage, idx) => (
+            <div 
+              key={stage.name} 
+              style={{ 
+                padding: '24px 20px', 
+                borderRight: idx < 4 ? '1px solid #e5e7eb' : 'none',
+                display: 'flex', 
+                flexDirection: 'column', 
+                gap: '8px',
+                zIndex: 2,
+                position: 'relative'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', width: '100%' }}>
+                <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>{stage.name}</span>
+                {idx === 0 ? (
+                  <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                    ▲ 5% <span style={{ color: '#6b7280', fontWeight: 500 }}>(L7D)</span>
+                  </span>
+                ) : (
+                  <span style={{ 
+                    fontSize: '0.6rem', 
+                    fontWeight: 700, 
+                    padding: '2px 4px', 
+                    borderRadius: '4px', 
+                    background: idx === 1 || idx === 2 ? '#d1fae5' : idx === 3 ? '#fef3c7' : '#fee2e2',
+                    color: idx === 1 || idx === 2 ? '#065f46' : idx === 3 ? '#92400e' : '#991b1b',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {stage.subtitle}
+                  </span>
+                )}
+              </div>
+              <div>
+                <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#111827' }}>{stage.value}</span>
+              </div>
+            </div>
+          ))}
+
+          {/* AreaChart Wave rendered absolutely at the bottom */}
+          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '120px', zIndex: 1 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart 
+                data={[
+                  { x: 0, val: 109.32 },
+                  { x: 0.8, val: 109.32 },
+                  { x: 1.2, val: 86.87 },
+                  { x: 1.8, val: 86.87 },
+                  { x: 2.2, val: 54.66 },
+                  { x: 2.8, val: 54.66 },
+                  { x: 3.2, val: 32.21 },
+                  { x: 3.8, val: 32.21 },
+                  { x: 4.2, val: 16.59 },
+                  { x: 5.0, val: 16.59 }
+                ]} 
+                margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+              >
+                <XAxis dataKey="x" type="number" hide domain={[0, 5]} padding={{ left: 0, right: 0 }} allowDataOverflow />
+                <YAxis type="number" hide domain={[0, 120]} />
+                <defs>
+                  <linearGradient id="colorFunnel" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#8CBAF0" />
+                    <stop offset="20%" stopColor="#8CBAF0" />
+                    <stop offset="20%" stopColor="#0460CA" />
+                    <stop offset="40%" stopColor="#0460CA" />
+                    <stop offset="40%" stopColor="#034B9E" />
+                    <stop offset="60%" stopColor="#034B9E" />
+                    <stop offset="60%" stopColor="#023A7A" />
+                    <stop offset="80%" stopColor="#023A7A" />
+                    <stop offset="80%" stopColor="#001B3B" />
+                    <stop offset="100%" stopColor="#001B3B" />
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="val" stroke="none" fill="url(#colorFunnel)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
@@ -62,13 +124,22 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
         {/* ── Order Outcome Overview ─────────────────────────── */}
         <div className={styles.card} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <h2 className={styles.cardTitle} style={{ alignSelf: 'flex-start' }}>Order Outcome Overview</h2>
-          <div style={{ position: 'relative', width: 200, height: 200, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ position: 'relative', width: 260, height: 260, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <div className={styles.donutCenter}>
               <div className={styles.donutTotal}>400</div>
               <div className={styles.donutSub}>Orders</div>
             </div>
-            <PieChart width={200} height={200}>
-              <Pie data={orderOutcome} cx={100} cy={100} innerRadius={60} outerRadius={80} dataKey="value">
+            <PieChart width={260} height={260}>
+              <Pie 
+                data={orderOutcome} 
+                cx={130} 
+                cy={130} 
+                innerRadius={50} 
+                outerRadius={70} 
+                dataKey="value"
+                label={({ value }) => `${value}%`}
+                labelLine={true}
+              >
                 {orderOutcome.map((entry, i) => <Cell key={i} fill={entry.color} />)}
               </Pie>
               <Tooltip />

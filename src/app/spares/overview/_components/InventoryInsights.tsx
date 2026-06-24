@@ -27,8 +27,10 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
           <h2 className={styles.cardTitle} style={{ alignSelf: 'flex-start' }}>Fast vs Slow Moving Spares</h2>
           <div style={{ position: 'relative', width: 220, height: 220, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <div className={styles.donutCenter}>
-              <div className={styles.donutTotal}>400</div>
-              <div className={styles.donutSub}>Orders</div>
+              <div className={styles.donutTotal}>
+                {invDonut.reduce((acc, curr) => acc + curr.value, 0)}
+              </div>
+              <div className={styles.donutSub}>Spares</div>
             </div>
             <PieChart width={220} height={220}>
               <Pie data={invDonut} cx={110} cy={110} innerRadius={65} outerRadius={85} dataKey="value" startAngle={90} endAngle={-270}>
@@ -47,7 +49,9 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: '1.5rem' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#111827' }}>Order Return Rate - 20%</div>
+            <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#111827' }}>
+              Slow-Moving Spares - {invDonut.find(d => d.name.includes('Slow'))?.value ?? 40}%
+            </div>
             <a href="#" style={{ fontSize: '0.8rem', color: '#3b82f6', textDecoration: 'underline' }}>Download List</a>
           </div>
         </div>

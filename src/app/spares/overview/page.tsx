@@ -50,7 +50,26 @@ export default function SparesOverviewPage() {
   return (
     <div className={styles.dashboard}>
       
-
+      {/* ── Header Section ────────────────────────────────────────── */}
+      <div className={styles.headerRow}>
+        <div className={styles.titleGroup}>
+          <h1>Smart View Dashboard</h1>
+          <div className={styles.breadcrumb}>
+            Sewtech Spare <span style={{ margin: '0 0.5rem', color: '#d1d5db' }}>•</span> <span>Order Management</span>
+          </div>
+        </div>
+        <div className={styles.actions}>
+          <select className={styles.select}>
+            <option>Last 7 Days</option>
+            <option>Last 30 Days</option>
+            <option>This Month</option>
+          </select>
+          <button className={styles.exportBtn}>
+            Export
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+        </div>
+      </div>
 
       {/* ── Global KPIs ────────────────────────────────────────── */}
       <div className={styles.metricsGrid}>
@@ -62,9 +81,11 @@ export default function SparesOverviewPage() {
             </div>
             <div className={styles.metricValueRow}>
               <div className={styles.metricValue}>{kpi.value}</div>
-              <button className={styles.metricRefresh} onClick={refetch} title="Refresh">
-                <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '16px', height: '16px', display: 'block' }} />
-              </button>
+              {kpi.link && (
+                <button className={styles.metricRefresh} onClick={refetch} title="Refresh">
+                  <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '16px', height: '16px', display: 'block' }} />
+                </button>
+              )}
             </div>
           </div>
         ))}

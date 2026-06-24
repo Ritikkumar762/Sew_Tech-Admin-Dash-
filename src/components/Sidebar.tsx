@@ -82,8 +82,7 @@ export default function Sidebar() {
           style={{ 
             height: '56px', 
             width: 'auto', 
-            objectFit: 'contain',
-            filter: 'invert(27%) sepia(93%) saturate(2839%) hue-rotate(213deg) brightness(96%) contrast(107%)'
+            objectFit: 'contain'
           }} 
         />
         {/* Close button visible on mobile */}

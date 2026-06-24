@@ -117,8 +117,10 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
           <h2 className={styles.cardTitle} style={{ alignSelf: 'flex-start' }}>Transaction Insights</h2>
           <div style={{ position: 'relative', width: 220, height: 220, display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '1rem' }}>
             <div className={styles.donutCenter}>
-              <div className={styles.donutTotal}>400</div>
-              <div className={styles.donutSub}>Orders</div>
+              <div className={styles.donutTotal}>
+                {transactions.reduce((acc, curr) => acc + curr.value, 0)}
+              </div>
+              <div className={styles.donutSub}>Txns</div>
             </div>
             <PieChart width={220} height={220}>
               <Pie data={transactions} cx={110} cy={110} innerRadius={65} outerRadius={85} dataKey="value" startAngle={90} endAngle={-270}>
@@ -131,12 +133,12 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
             {transactions.map(d => (
               <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#4b5563' }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: d.color }} />
-                {d.name}
+                {d.name} ({d.value}%)
               </div>
             ))}
           </div>
           <div style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.85rem', fontWeight: 600, color: '#111827' }}>
-            Payment Success Rate - 75%
+            Payment Success Rate - {transactions.find(d => d.name === 'Completed')?.value ?? 60}%
           </div>
         </div>
 

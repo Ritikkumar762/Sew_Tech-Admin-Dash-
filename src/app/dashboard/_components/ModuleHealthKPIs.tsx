@@ -36,7 +36,7 @@ export default function ModuleHealthKPIs({ sparesKpis, mechanicKpis }: Props) {
 
       {/* ── ST Mechanic KPIs ──────────────────────────────────────── */}
       <div className={`${styles.section} ${styles.mechanicSection}`}>
-        <h2 className={styles.sectionTitle} style={{ color: '#10b981' }}>ST Spares KPIs</h2>
+        <h2 className={styles.sectionTitle} style={{ color: '#10b981' }}>ST Mechanic KPIs</h2>
         <div className={styles.kpiGrid}>
           {mechanicKpis.map(kpi => (
             <div key={kpi.label} className={styles.kpiCard}>
