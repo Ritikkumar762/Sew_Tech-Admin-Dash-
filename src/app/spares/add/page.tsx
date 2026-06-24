@@ -12,7 +12,7 @@ export default function AddSparePage() {
   const [status, setStatus] = useState('Live');
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
   const [banners, setBanners] = useState([
-    { id: 1, url: '/sale 1.png', selected: true },
+    { id: 1, url: '/sale 4.png', selected: true },
     { id: 2, url: '/sale 2.png', selected: false },
     { id: 3, url: '/sale 3.png', selected: false },
     { id: 4, url: '/sale 4.png', selected: false },

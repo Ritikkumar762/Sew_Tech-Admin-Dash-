@@ -249,6 +249,8 @@
   height: 16px;
   border-radius: 4px;
   border: 1.5px solid #d1d5db;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   outline: none;
   background-color: white;
@@ -354,6 +356,8 @@
   height: 18px;
   border-radius: 4px;
   border: 1.5px solid #cbd5e1;
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
   outline: none;
   background-color: white;
