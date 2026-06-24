@@ -210,7 +210,7 @@ export default function AlertsPage() {
               <div key={alert.id} className={`${styles.alertCard} ${styles.highPriority}`}>
                 <div className={styles.cardLeft}>
                   <div className={styles.iconWrapper}>
-                    <AlertCircle size={14} className={styles.highIcon} />
+                    <img src="/badge-alert.svg" alt="Alert" style={{ width: '16.36px', height: '16.36px', display: 'block' }} />
                   </div>
                   <div className={styles.cardContent}>
                     <div className={styles.cardTitle}>{alert.title}</div>
@@ -234,7 +234,7 @@ export default function AlertsPage() {
               <div key={alert.id} className={`${styles.alertCard} ${styles.mediumPriority}`}>
                 <div className={styles.cardLeft}>
                   <div className={styles.iconWrapper}>
-                    <TriangleAlert size={14} className={styles.mediumIcon} />
+                    <img src="/alert-02.svg" alt="Warning" style={{ width: '16.36px', height: '16.36px', display: 'block' }} />
                   </div>
                   <div className={styles.cardContent}>
                     <div className={styles.cardTitle}>{alert.title}</div>
@@ -258,7 +258,7 @@ export default function AlertsPage() {
               <div key={alert.id} className={`${styles.alertCard} ${styles.lowPriority}`}>
                 <div className={styles.cardLeft}>
                   <div className={styles.iconWrapper}>
-                    <TriangleAlert size={14} className={styles.lowIcon} />
+                    <img src="/alert-blue.svg" alt="Info" style={{ width: '16.36px', height: '16.36px', display: 'block' }} />
                   </div>
                   <div className={styles.cardContent}>
                     <div className={styles.cardTitle}>{alert.title}</div>

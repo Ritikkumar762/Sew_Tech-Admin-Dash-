@@ -104,21 +104,20 @@
 
 .cardLeft {
   display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 8.18px;
   flex: 1;
 }
 
 .iconWrapper {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  border-radius: 57.27px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  margin-top: 0.15rem;
-  background: white;
+  background: #ffffff;
 }
 
 .cardContent {
