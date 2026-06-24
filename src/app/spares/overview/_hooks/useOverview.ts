@@ -173,8 +173,8 @@ const MOCK_CANCELLATION_REASONS: ReasonChip[] = [
 ];
 
 const MOCK_INVENTORY_DONUT: DonutData[] = [
+  { name: 'Slow-Moving', value: 40, color: '#8EB7F9' },
   { name: 'Fast-Moving', value: 60, color: '#3b82f6' },
-  { name: 'Slow-Moving', value: 40, color: '#93c5fd' },
 ];
 
 const MOCK_STOCK_CATEGORY: BarChartData[] = [
