@@ -145,6 +145,8 @@ type Props = {
 };
 
 export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancelReasons }: Props) {
+  const [selectedFunnel, setSelectedFunnel] = useState<'all' | 'return' | 'replacement' | 'cancellation'>('all');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [visibleSeries, setVisibleSeries] = useState<Record<string, boolean>>({
     'Total Orders': true,
     'Return': true,
@@ -158,6 +160,40 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
       [name]: !prev[name]
     }));
   };
+
+  const funnelDatasets: Record<string, FunnelStage[]> = {
+    all: funnel.length ? funnel : [
+      { name: 'Order Confirmed', value: 1000, subtitle: '▲ 5% (L7D)', color: '#8CBAF0' },
+      { name: 'Packed', value: 200, subtitle: 'On-Schedule: 80%', color: '#0460CA', badge: '#10b981' },
+      { name: 'Shipped', value: 150, subtitle: 'On-Schedule: 80%', color: '#034B9E', badge: '#10b981' },
+      { name: 'Out for Delivery', value: 50, subtitle: 'On-Schedule: 70%', color: '#023A7A', badge: '#f59e0b' },
+      { name: 'Delivered', value: 25, subtitle: 'On-Schedule: 10%', color: '#001B3B', badge: '#ef4444' },
+    ],
+    return: [
+      { name: 'Return Requested', value: 1000, subtitle: '▲ 5% (L7D)', color: '#8CBAF0' },
+      { name: 'Action Taken', value: 200, subtitle: 'On-Schedule: 80%', color: '#0460CA' },
+      { name: 'Pickup Scheduled', value: 150, subtitle: 'On-Schedule: 80%', color: '#034B9E' },
+      { name: 'Item Received', value: 50, subtitle: 'On-Schedule: 70%', color: '#023A7A' },
+      { name: 'Refund Initiated', value: 25, subtitle: 'On-Schedule: 10%', color: '#001B3B' },
+    ],
+    replacement: [
+      { name: 'Replacement Requested', value: 1000, subtitle: '▲ 5% (L7D)', color: '#8CBAF0' },
+      { name: 'Action Taken', value: 200, subtitle: 'On-Schedule: 80%', color: '#0460CA' },
+      { name: 'Pickup Scheduled', value: 150, subtitle: 'On-Schedule: 80%', color: '#034B9E' },
+      { name: 'Replacement Shipped', value: 50, subtitle: 'On-Schedule: 70%', color: '#023A7A' },
+      { name: 'Delivered', value: 25, subtitle: 'On-Schedule: 10%', color: '#001B3B' },
+    ],
+    cancellation: [
+      { name: 'Cancellation Requested', value: 1000, subtitle: '▲ 5% (L7D)', color: '#8CBAF0' },
+      { name: 'Action Taken', value: 200, subtitle: 'On-Schedule: 80%', color: '#0460CA' },
+      { name: 'Pickup Scheduled', value: 150, subtitle: 'On-Schedule: 80%', color: '#034B9E' },
+      { name: 'Refund Initiated', value: 50, subtitle: 'On-Schedule: 70%', color: '#023A7A' },
+      { name: 'Refund Completed', value: 25, subtitle: 'On-Schedule: 10%', color: '#001B3B' },
+    ]
+  };
+
+  const activeFunnel = funnelDatasets[selectedFunnel];
+  const numStages = activeFunnel.length;
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -166,12 +202,127 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
       <div className={styles.card}>
         <div className={styles.cardHeaderRow}>
           <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Order Funnel</h2>
-          <select className={styles.select}><option>Funnel View</option></select>
+          
+          <div style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className={styles.select}
+              style={{
+                backgroundColor: '#ffffff',
+                border: '1px solid #e5e7eb',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#1f2937',
+                outline: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                minWidth: '160px',
+                justifyContent: 'space-between',
+                userSelect: 'none'
+              }}
+            >
+              <span>
+                {selectedFunnel === 'all' && 'Funnel View'}
+                {selectedFunnel === 'return' && 'Return Funnel'}
+                {selectedFunnel === 'replacement' && 'Replacement Funnel'}
+                {selectedFunnel === 'cancellation' && 'Cancellation Funnel'}
+              </span>
+              <svg 
+                width="10" 
+                height="6" 
+                viewBox="0 0 10 6" 
+                fill="none" 
+                xmlns="http://www.w3.org/2000/svg"
+                style={{ 
+                  transform: isDropdownOpen ? 'rotate(180deg)' : 'none', 
+                  transition: 'transform 0.2s ease',
+                  flexShrink: 0
+                }}
+              >
+                <path d="M1 1L5 5L9 1" stroke="#4B5563" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            
+            {isDropdownOpen && (
+              <>
+                <div 
+                  onClick={() => setIsDropdownOpen(false)}
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    zIndex: 49
+                  }}
+                />
+                
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '4px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                  zIndex: 50,
+                  minWidth: '180px',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
+                  {[
+                    { value: 'all', label: 'All Orders Funnel' },
+                    { value: 'return', label: 'Return Funnel' },
+                    { value: 'replacement', label: 'Replacement Funnel' },
+                    { value: 'cancellation', label: 'Cancellation Funnel' }
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => {
+                        setSelectedFunnel(option.value as any);
+                        setIsDropdownOpen(false);
+                      }}
+                      style={{
+                        padding: '10px 16px',
+                        fontSize: '12px',
+                        fontWeight: 500,
+                        color: selectedFunnel === option.value ? '#3b82f6' : '#374151',
+                        backgroundColor: selectedFunnel === option.value ? '#f0f6ff' : 'transparent',
+                        border: 'none',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        width: '100%',
+                        transition: 'background-color 0.15s ease'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (selectedFunnel !== option.value) {
+                          e.currentTarget.style.backgroundColor = '#f3f4f6';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (selectedFunnel !== option.value) {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                        }
+                      }}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
         
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: 'repeat(5, 1fr)', 
+          gridTemplateColumns: `repeat(${numStages}, 1fr)`, 
           border: '1px solid #e5e7eb',
           borderRadius: '12px',
           overflow: 'hidden',
@@ -181,12 +332,12 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
           position: 'relative'
         }}>
           {/* Vertical dividers & text */}
-          {funnel.map((stage, idx) => (
+          {activeFunnel.map((stage, idx) => (
             <div 
-              key={stage.name} 
+              key={`${selectedFunnel}-${idx}`} 
               style={{ 
                 padding: '24px 20px', 
-                borderRight: idx < 4 ? '1px solid #e5e7eb' : 'none',
+                borderRight: idx < numStages - 1 ? '1px solid rgba(211, 208, 255, 0.4)' : 'none',
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: '8px',
@@ -194,21 +345,22 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
                 position: 'relative'
               }}
             >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', width: '100%' }}>
-                <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>{stage.name}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px', width: '100%' }}>
+                <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500, lineHeight: 1.2 }}>{stage.name}</span>
                 {idx === 0 ? (
-                  <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '2px' }}>
+                  <span style={{ fontSize: '0.7rem', color: '#10b981', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '2px', marginTop: '2px' }}>
                     ▲ 5% <span style={{ color: '#6b7280', fontWeight: 500 }}>(L7D)</span>
                   </span>
                 ) : (
                   <span style={{ 
                     fontSize: '0.6rem', 
                     fontWeight: 700, 
-                    padding: '2px 4px', 
+                    padding: '2px 6px', 
                     borderRadius: '4px', 
                     background: idx === 1 || idx === 2 ? '#d1fae5' : idx === 3 ? '#fef3c7' : '#fee2e2',
                     color: idx === 1 || idx === 2 ? '#065f46' : idx === 3 ? '#92400e' : '#991b1b',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
+                    marginTop: '2px'
                   }}>
                     {stage.subtitle}
                   </span>
@@ -254,7 +406,7 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
                     <stop offset="100%" stopColor="#001B3B" />
                   </linearGradient>
                 </defs>
-                <Area type="monotone" dataKey="val" stroke="none" fill="url(#colorFunnel)" />
+                <Area type="monotone" dataKey="val" stroke="none" fill="url(#colorFunnel)" fillOpacity={1} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
