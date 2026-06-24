@@ -541,20 +541,19 @@ export default function RequestsPage() {
                     </td>
                     <td style={{ padding: '1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        {/* Circular Avatar */}
                         <div style={{ 
                           width: '36px', 
                           height: '36px', 
                           borderRadius: '50%', 
-                          backgroundColor: '#fcd34d', 
+                          backgroundColor: '#FFE7D9', 
                           display: 'flex', 
                           alignItems: 'center', 
                           justifyContent: 'center',
-                          fontWeight: 600,
-                          color: '#78350f',
-                          fontSize: '0.875rem',
-                          textTransform: 'uppercase'
+                          flexShrink: 0,
+                          overflow: 'hidden'
                         }}>
-                          {order.avatarLetter}
+                          <img src="/rotary-hook.png" alt="Logo" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
                         </div>
                         <div>
                           <div style={{ fontWeight: 600, color: '#111827' }}>{order.customerName}</div>
@@ -627,13 +626,12 @@ export default function RequestsPage() {
                       </span>
                     </td>
                     <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
-                      <button 
+                      <img 
+                        src="/View_button.svg" 
+                        alt="View" 
+                        style={{ width: '66px', height: '26px', cursor: 'pointer', display: 'block', margin: '0 auto' }} 
                         onClick={() => router.push(`/spares/requests/${order.id}`)}
-                        className="action-btn"
-                      >
-                        View
-                        <ExternalLink size={12} />
-                      </button>
+                      />
                     </td>
                   </tr>
                 ))
