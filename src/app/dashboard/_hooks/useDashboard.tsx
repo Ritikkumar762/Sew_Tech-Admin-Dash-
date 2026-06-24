@@ -280,10 +280,10 @@ function parseSmartViewPayload(payload: unknown) {
 
   const sparesKpis: KpiMetric[] = sparesData
     ? [
-        { label: 'Total Orders (Today)', value: formatMetricValue(getValue(sparesData, ['total_orders_today', 'totalOrdersToday'])), icon: PackageIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
-        { label: 'Revenue (Today)', value: formatCurrencyValue(getValue(sparesData, ['revenue_today', 'revenueToday'])), icon: MoneyBagIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
-        { label: 'Refund Rate %', value: formatMetricValue(getValue(sparesData, ['refund_rate', 'refundRate'])), icon: WarningTriangleIcon, iconColor: '#f59e0b', iconBg: '#fffbeb', link: true },
-        { label: 'Open Issues', value: formatMetricValue(getValue(sparesData, ['open_issues', 'openIssues'])), icon: LaptopIcon, iconColor: '#ef4444', iconBg: '#fef2f2', link: true },
+        { label: 'Total Orders (Today)', value: formatMetricValue(getValue(sparesData, ['total_orders_today', 'totalOrdersToday'])), icon: <img src="/total order.svg" alt="Total Orders" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
+        { label: 'Revenue (Today)', value: formatCurrencyValue(getValue(sparesData, ['revenue_today', 'revenueToday'])), icon: <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+        { label: 'Refund Rate %', value: formatMetricValue(getValue(sparesData, ['refund_rate', 'refundRate'])), icon: <img src="/alert-02.svg" alt="Refund Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#f59e0b', iconBg: '#fffbeb', link: true },
+        { label: 'Open Issues', value: formatMetricValue(getValue(sparesData, ['open_issues', 'openIssues'])), icon: <img src="/laptop-issue.svg" alt="Open Issues" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#ef4444', iconBg: '#fef2f2', link: true },
       ]
     : [];
 
@@ -523,10 +523,10 @@ const MOCK_PERFORMANCE_TOP_METRICS: TopMetric[] = [
 ];
 
 const MOCK_SPARES_KPIS: KpiMetric[] = [
-  { label: 'Total Orders (Today)', value: '12', icon: PackageIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
-  { label: 'Revenue (Today)', value: '₹15,000', icon: MoneyBagIcon, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
-  { label: 'Refund Rate %', value: '15', icon: WarningTriangleIcon, iconColor: '#f59e0b', iconBg: '#fffbeb', link: true },
-  { label: 'Open Issues', value: '10', icon: LaptopIcon, iconColor: '#ef4444', iconBg: '#fef2f2', link: true },
+  { label: 'Total Orders (Today)', value: '12', icon: <img src="/total order.svg" alt="Total Orders" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: true },
+  { label: 'Revenue (Today)', value: '₹15,000', icon: <img src="/money-bag-02.svg" alt="Revenue" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#3b82f6', iconBg: '#eff6ff', link: false },
+  { label: 'Refund Rate %', value: '15', icon: <img src="/alert-02.svg" alt="Refund Rate" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#f59e0b', iconBg: '#fffbeb', link: true },
+  { label: 'Open Issues', value: '10', icon: <img src="/laptop-issue.svg" alt="Open Issues" style={{ width: 20, height: 20, objectFit: 'contain' }} />, iconColor: '#ef4444', iconBg: '#fef2f2', link: true },
 ];
 
 const MOCK_MECHANIC_KPIS: KpiMetric[] = [

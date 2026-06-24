@@ -76,7 +76,16 @@ export default function Sidebar() {
   const sidebarContent = (
     <aside className={styles.sidebar}>
       <div className={styles.logoArea}>
-        <img src="/image 22.svg" alt="Sewtech Mart" style={{ height: '56px', width: 'auto', objectFit: 'contain' }} />
+        <img 
+          src="/image 22.svg" 
+          alt="Sewtech Mart" 
+          style={{ 
+            height: '56px', 
+            width: 'auto', 
+            objectFit: 'contain',
+            filter: 'invert(27%) sepia(93%) saturate(2839%) hue-rotate(213deg) brightness(96%) contrast(107%)'
+          }} 
+        />
         {/* Close button visible on mobile */}
         <button className={styles.closeBtn} onClick={() => setIsMobileOpen(false)}>✕</button>
       </div>
@@ -108,7 +117,12 @@ export default function Sidebar() {
                   <div className={styles.navLinkContent}>
                     <span className={`${styles.navIcon} ${(route.icon?.includes('.png') || route.icon?.includes('.svg')) ? styles.navIconImage : ''}`}>
                       {(route.icon?.includes('.png') || route.icon?.includes('.svg')) ? (
-                        <img src={route.icon} alt={route.name} style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} />
+                        <img 
+                          src={route.icon} 
+                          alt={route.name} 
+                          className={isLinkActive ? styles.activeImg : ''}
+                          style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} 
+                        />
                       ) : route.icon && iconMap[route.icon] ? (
                         iconMap[route.icon]
                       ) : (
@@ -129,7 +143,12 @@ export default function Sidebar() {
                   <div className={styles.navLinkContent}>
                     <span className={`${styles.navIcon} ${(route.icon?.includes('.png') || route.icon?.includes('.svg')) ? styles.navIconImage : ''}`}>
                       {(route.icon?.includes('.png') || route.icon?.includes('.svg')) ? (
-                        <img src={route.icon} alt={route.name} style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} />
+                        <img 
+                          src={route.icon} 
+                          alt={route.name} 
+                          className={isLinkActive ? styles.activeImg : ''}
+                          style={{ width: '24px', height: '24px', objectFit: 'contain', display: 'block' }} 
+                        />
                       ) : route.icon && iconMap[route.icon] ? (
                         iconMap[route.icon]
                       ) : (

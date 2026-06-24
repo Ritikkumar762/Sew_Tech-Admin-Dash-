@@ -1,11 +1,11 @@
-import { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { apiClient, ENDPOINTS } from '@/lib';
 
 // --- Interfaces ---
 export interface KpiMetric {
   label: string;
   value: string | number;
-  icon?: string;
+  icon?: any;
   iconBg?: string;
   iconColor?: string;
 }
@@ -87,7 +87,20 @@ function toKpiMetric(value: unknown): KpiMetric | null {
   if (!item) return null;
   const label = String(item.label ?? item.name ?? item.title ?? 'Metric');
   const rawValue = item.value ?? item.amount ?? item.total ?? item.count ?? item.metric;
-  const icon = String(item.icon ?? '📊');
+  
+  let icon: any = '📊';
+  if (label.includes('Total Orders')) {
+    icon = React.createElement('img', { src: '/total order.svg', alt: 'Total Orders', style: { width: 20, height: 20, objectFit: 'contain' } });
+  } else if (label.includes('Revenue')) {
+    icon = React.createElement('img', { src: '/money-bag-02.svg', alt: 'Revenue', style: { width: 20, height: 20, objectFit: 'contain' } });
+  } else if (label.includes('Refund')) {
+    icon = React.createElement('img', { src: '/alert-02.svg', alt: 'Refund Rate', style: { width: 20, height: 20, objectFit: 'contain' } });
+  } else if (label.includes('Open Issues')) {
+    icon = React.createElement('img', { src: '/laptop-issue.svg', alt: 'Open Issues', style: { width: 20, height: 20, objectFit: 'contain' } });
+  } else if (item.icon) {
+    icon = String(item.icon);
+  }
+  
   const iconColor = String(item.iconColor ?? item.color ?? '#3b82f6');
   return { label, value: rawValue == null ? '—' : String(rawValue), icon, iconColor };
 }
@@ -118,10 +131,10 @@ function parseSmartViewPayload(payload: unknown) {
 // --- Mock Data ---
 
 const MOCK_GLOBAL_KPIS: KpiMetric[] = [
-  { label: 'Total Orders (Today)', value: '12', icon: '🛍️', iconColor: '#3b82f6' },
-  { label: 'Revenue (Today)', value: '₹15,000', icon: '💰', iconColor: '#3b82f6' },
-  { label: 'Refund Rate %', value: '15', icon: '⚠️', iconColor: '#f59e0b' },
-  { label: 'Open Issues', value: '10', icon: '🚨', iconColor: '#ef4444' },
+  { label: 'Total Orders (Today)', value: '12', icon: React.createElement('img', { src: '/total order.svg', alt: 'Total Orders', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#3b82f6' },
+  { label: 'Revenue (Today)', value: '₹15,000', icon: React.createElement('img', { src: '/money-bag-02.svg', alt: 'Revenue', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#3b82f6' },
+  { label: 'Refund Rate %', value: '15', icon: React.createElement('img', { src: '/alert-02.svg', alt: 'Refund Rate', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#f59e0b' },
+  { label: 'Open Issues', value: '10', icon: React.createElement('img', { src: '/laptop-issue.svg', alt: 'Open Issues', style: { width: 20, height: 20, objectFit: 'contain' } }), iconColor: '#ef4444' },
 ];
 
 const MOCK_FUNNEL: FunnelStage[] = [
