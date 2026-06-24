@@ -11,119 +11,80 @@ import {
   Copy, 
   Check,
   X,
-  Plus,
-  RefreshCw
+  Play,
+  Pause,
+  MoreVertical
 } from 'lucide-react';
 import FiltersDrawer from '@/components/orders/FiltersDrawer';
 
-// Mock Data specifically for Return/Replacement requests
-const REQUESTS_ORDERS = [
-  { id: 'sth-rh-2051', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", orderValue: 1850, reason: 'Items not arriving on time', status: 'Requested', avatarLetter: 'b' },
-  { id: 'sth-rh-2052', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", orderValue: 1850, reason: 'Need to change address', status: 'Pickup Scheduled', avatarLetter: 'b' },
-  { id: 'sth-rh-2053', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", orderValue: 1850, reason: 'Ordered by mistake', status: 'Pickup Failed', avatarLetter: 'b' },
+// Mock Data for Order Requests
+const AUDIO_REQUESTS_MOCK = [
+  { id: 'sth-rh-2051', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", audioLength: '01:20', viewedStatus: 'Now' },
+  { id: 'sth-rh-2052', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", audioLength: '01:20', viewedStatus: 'Payment Pending' },
+  { id: 'sth-rh-2053', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", audioLength: '01:20', viewedStatus: 'Order Placed' },
+  { id: 'sth-rh-2054', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", audioLength: '01:20', viewedStatus: 'Cancelled' },
+  { id: 'sth-rh-2055', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", audioLength: '01:20', viewedStatus: 'Irrelevant' },
+  { id: 'sth-rh-2056', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", audioLength: '01:20', viewedStatus: 'Irrelevant' },
 ];
 
-export default function RequestsPage() {
+const HANDWRITTEN_REQUESTS_MOCK = [
+  { id: 'sth-rh-2061', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", docCount: 2, status: 'New' },
+  { id: 'sth-rh-2062', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", docCount: 1, status: 'Payment Pending' },
+  { id: 'sth-rh-2063', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", docCount: 3, status: 'Payment Pending' },
+  { id: 'sth-rh-2064', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", docCount: 1, status: 'Order Placed' },
+  { id: 'sth-rh-2065', customerName: 'Aditya Bhargav', phone: '+919876543210', date: "10:30 PM, 21 Jan' 26", docCount: 3, status: 'Cancelled' },
+];
+
+export default function SparesOrderRequestsPage() {
   const router = useRouter();
-  
-  // State variables - Defaulting to "Replacement" tab as shown in the mockup
-  const [activeTab, setActiveTab] = useState<'All' | 'Ordered' | 'Return' | 'Replacement' | 'Cancelled'>('Replacement');
+  const [activeTab, setActiveTab] = useState<'Audio Notes' | 'Handwritten Notes'>('Audio Notes');
   const [searchQuery, setSearchQuery] = useState('');
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
-  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
   
-  // Refresh stats
-  const [refreshingCard, setRefreshingCard] = useState<number | null>(null);
-  const [stats, setStats] = useState({
-    totalOrders: 12,
-    cancelled: 10,
-    returned: 10,
-    replacement: 10
+  // Track playing audio row ID
+  const [playingAudioId, setPlayingAudioId] = useState<string | null>(null);
+  
+  // Hover/row options menu
+  const [activeMenuRowId, setActiveMenuRowId] = useState<string | null>(null);
+
+  // Statistics
+  const [stats] = useState({
+    handwrittenCount: 140,
+    audioCount: 140,
+    contactsCount: 140,
+    convertsCount: 10
   });
 
-  // Dynamic secondary pills configuration
-  const [activePills, setActivePills] = useState<Record<string, string[]>>({
-    All: ['Delayed'],
-    Ordered: ['Shipped'],
-    Return: ['Pickup Scheduled'],
-    Replacement: ['Pickup Scheduled'],
-    Cancelled: ['Cancelled'],
-  });
-
-  const ALL_PILLS: Record<string, { label: string; count?: number; hasPlus?: boolean }[]> = {
-    All: [
-      { label: 'Flagged', count: 767 },
-      { label: 'Delayed' },
-      { label: 'Support Required', count: 34, hasPlus: true }
-    ],
-    Ordered: [
-      { label: 'Payment Failed', count: 767, hasPlus: true },
-      { label: 'Shipped' },
-      { label: 'Out for Delivery', count: 34, hasPlus: true },
-      { label: 'Delivery Failed', count: 12, hasPlus: true },
-      { label: 'Completed', hasPlus: true }
-    ],
-    Return: [
-      { label: 'Return Requested', hasPlus: true },
-      { label: 'Pickup Scheduled' },
-      { label: 'Pickup Completed', hasPlus: true },
-      { label: 'Refund Initiated', hasPlus: true },
-      { label: 'Refund Completed', hasPlus: true }
-    ],
-    Replacement: [
-      { label: 'Return Requested', hasPlus: true },
-      { label: 'Pickup Scheduled' },
-      { label: 'Pickup Completed', hasPlus: true },
-      { label: 'Refund Initiated', hasPlus: true },
-      { label: 'Refund Completed', hasPlus: true }
-    ],
-    Cancelled: [
-      { label: 'Cancelled' },
-      { label: 'Cancelled by User', count: 374, hasPlus: true }
-    ]
-  };
-
-  const togglePill = (tab: string, label: string) => {
-    setActivePills(prev => {
-      const current = prev[tab] || [];
-      if (current.includes(label)) {
-        return { ...prev, [tab]: current.filter(l => l !== label) };
-      } else {
-        return { ...prev, [tab]: [...current, label] };
-      }
-    });
-  };
-
-  const handleRefreshCard = (index: number) => {
-    setRefreshingCard(index);
-    setTimeout(() => {
-      setRefreshingCard(null);
-      if (index === 0) setStats(prev => ({ ...prev, totalOrders: Math.floor(Math.random() * 5) + 10 }));
-      if (index === 1) setStats(prev => ({ ...prev, cancelled: Math.floor(Math.random() * 3) + 9 }));
-      if (index === 2) setStats(prev => ({ ...prev, returned: Math.floor(Math.random() * 3) + 9 }));
-      if (index === 3) setStats(prev => ({ ...prev, replacement: Math.floor(Math.random() * 3) + 9 }));
-    }, 600);
-  };
-
-  const handleCopyId = (e: React.MouseEvent, id: string) => {
+  const handleCopy = (e: React.MouseEvent, text: string, id: string) => {
     e.stopPropagation();
-    navigator.clipboard.writeText(id.toUpperCase());
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 1500);
+    navigator.clipboard.writeText(text);
+    setCopiedText(id);
+    setTimeout(() => setCopiedText(null), 1500);
   };
 
-  // Filter orders based on active pills and search query
-  const filteredOrders = REQUESTS_ORDERS.filter(order => {
-    const matchesSearch = order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          order.reason.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // Switch tabs logic
-    if (activeTab === 'Replacement' || activeTab === 'Return') {
-      return matchesSearch; // Show mock returns
+  const toggleAudioPlayback = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    if (playingAudioId === id) {
+      setPlayingAudioId(null);
+    } else {
+      setPlayingAudioId(id);
     }
-    return false; // Other tabs can be empty or show subset
-  });
+  };
+
+  const handleRowClick = (id: string) => {
+    // Map list IDs to dynamic detail routing
+    if (activeTab === 'Audio Notes') {
+      router.push(`/spares/requests/sth-rh-2051`); // Renders Audio Layout
+    } else {
+      router.push(`/spares/requests/sth-rh-2052`); // Renders Handwritten Layout
+    }
+  };
+
+  const handleActionMenuClick = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setActiveMenuRowId(activeMenuRowId === id ? null : id);
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.4s ease-out' }}>
@@ -165,35 +126,10 @@ export default function RequestsPage() {
             background-color: #fef2f2;
             color: #dc2626;
           }
-          .refresh-btn {
-            position: absolute;
-            right: 1.25rem;
-            bottom: 1.25rem;
-            background: none;
-            border: none;
-            color: #3b82f6;
-            cursor: pointer;
-            padding: 0.25rem;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: background-color 0.2s, transform 0.2s;
-          }
-          .refresh-btn:hover {
-            background-color: #eff6ff;
-          }
-          .refreshing {
-            animation: spin 0.6s linear;
-          }
-          @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-          }
           .tab-button {
             border: none;
             background: none;
-            padding: 0.75rem 1rem;
+            padding: 0.75rem 1.25rem;
             font-size: 0.875rem;
             font-weight: 500;
             color: #6b7280;
@@ -207,57 +143,84 @@ export default function RequestsPage() {
             font-weight: 600;
             border-bottom-color: #111827;
           }
-          .status-badge {
+          .order-row {
+            border-bottom: 1px solid #f3f4f6;
+            transition: background-color 0.15s;
+            position: relative;
+          }
+          .order-row:hover {
+            background-color: #f8fafc;
+          }
+          .action-badge {
             display: inline-flex;
             align-items: center;
             padding: 0.375rem 0.875rem;
             border-radius: 2rem;
             font-size: 0.75rem;
-            font-weight: 500;
+            font-weight: 600;
+            white-space: nowrap;
           }
-          .badge-orange {
+          .badge-now {
+            background-color: #f3e8ff;
+            color: #9333ea;
+            border: 1px solid #e9d5ff;
+          }
+          .badge-pending {
             background-color: #fffbeb;
             color: #d97706;
             border: 1px solid #fef3c7;
           }
-          .badge-red {
-            background-color: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
+          .badge-placed {
+            background-color: #ecfdf5;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
           }
-          .order-row {
-            border-bottom: 1px solid #f3f4f6;
-            transition: background-color 0.15s;
-          }
-          .order-row:hover {
-            background-color: #f8fafc;
-          }
-          .action-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            padding: 0.5rem 0.875rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            background-color: white;
-            color: #1f2937;
-            font-size: 0.75rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-          }
-          .action-btn:hover {
-            background-color: #f9fafb;
-            border-color: #9ca3af;
-          }
-          .reason-tag {
+          .badge-cancelled {
             background-color: #f3f4f6;
             color: #4b5563;
-            padding: 0.375rem 0.875rem;
+            border: 1px solid #e5e7eb;
+          }
+          .badge-irrelevant {
+            background-color: #f9fafb;
+            color: #9ca3af;
+            border: 1px solid #f3f4f6;
+          }
+          .waveform-bar {
+            width: 2px;
+            background-color: #94a3b8;
+            border-radius: 1px;
+            transition: height 0.15s ease, background-color 0.2s;
+          }
+          .waveform-playing .waveform-bar {
+            background-color: #3b82f6;
+            animation: bounce 1.2s infinite ease-in-out alternate;
+          }
+          @keyframes bounce {
+            0% { transform: scaleY(0.3); }
+            100% { transform: scaleY(1.0); }
+          }
+          .context-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #e5e7eb;
             border-radius: 0.5rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            display: inline-block;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            width: 160px;
+            z-index: 100;
+            left: 50px;
+            margin-top: 5px;
+          }
+          .menu-item {
+            padding: 0.625rem 0.875rem;
+            font-size: 0.8125rem;
+            color: #374151;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.15s;
+          }
+          .menu-item:hover {
+            background-color: #f3f4f6;
+            color: #111827;
           }
         `}
       </style>
@@ -265,9 +228,9 @@ export default function RequestsPage() {
       {/* Breadcrumbs & Page Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0, marginBottom: '0.25rem' }}>Order Management</h1>
+          <h1 style={{ fontSize: '1.625rem', fontWeight: 700, color: '#111827', margin: 0, marginBottom: '0.25rem' }}>Order Requests</h1>
           <div style={{ color: '#6b7280', fontSize: '0.875rem', fontWeight: 500 }}>
-            Sewtech Spare <span style={{ margin: '0 0.5rem', color: '#d1d5db' }}>•</span> Order Management
+            Sewtech Spare <span style={{ margin: '0 0.5rem', color: '#d1d5db' }}>•</span> Order Requests
           </div>
         </div>
         <div>
@@ -298,57 +261,66 @@ export default function RequestsPage() {
 
       {/* KPI Cards Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
+        {/* Handwritten Requests Card */}
         <div className="kpi-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Total Orders</span>
-            <span className="trend-pill trend-down">▼ 5% (L7D)</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <img src="/handwritten.svg" alt="Handwritten" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+            </div>
+            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Handwritten Requests</span>
           </div>
-          <span style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>{stats.totalOrders}</span>
-          <button className="refresh-btn" onClick={() => handleRefreshCard(0)}>
-            <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} className={refreshingCard === 0 ? 'refreshing' : ''} />
-          </button>
+          <span style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>{stats.handwrittenCount}</span>
+          <span style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem', fontWeight: 500 }}>
+            <strong style={{ color: '#111827' }}>20 New</strong> · 110 Relevant
+          </span>
         </div>
 
+        {/* Audio Requests Card */}
         <div className="kpi-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Cancelled</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <img src="/audio request.svg" alt="Audio" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+            </div>
+            <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Audio Requests</span>
+          </div>
+          <span style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>{stats.audioCount}</span>
+          <span style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem', fontWeight: 500 }}>
+            <strong style={{ color: '#111827' }}>20 New</strong> · 110 Relevant
+          </span>
+        </div>
+
+        {/* Contacts Card */}
+        <div className="kpi-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <img src="/contacts.svg" alt="Contacts" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+              </div>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Contacts</span>
+            </div>
+            <span className="trend-pill trend-down">▼ 5% (L7D)</span>
+          </div>
+          <span style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>{stats.contactsCount}</span>
+          <span style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '0.25rem', fontWeight: 500 }}>
+            <strong style={{ color: '#111827' }}>20 Notes</strong> · 110 Audio
+          </span>
+        </div>
+
+        {/* Converts Card */}
+        <div className="kpi-card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ width: '28px', height: '28px', borderRadius: '6px', backgroundColor: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <img src="/converts.svg" alt="Converts" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />
+              </div>
+              <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563' }}>Converts</span>
+            </div>
             <span className="trend-pill trend-up">▲ 5% (L7D)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-            <span style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>{stats.cancelled}</span>
-            <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>({stats.cancelled * 10}%)</span>
+            <span style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>{stats.convertsCount}</span>
+            <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>({stats.convertsCount}%)</span>
           </div>
-          <button className="refresh-btn" onClick={() => handleRefreshCard(1)}>
-            <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} className={refreshingCard === 1 ? 'refreshing' : ''} />
-          </button>
-        </div>
-
-        <div className="kpi-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Returned</span>
-            <span className="trend-pill trend-down">▼ 5% (L7D)</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-            <span style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>{stats.returned}</span>
-            <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>({stats.returned * 10}%)</span>
-          </div>
-          <button className="refresh-btn" onClick={() => handleRefreshCard(2)}>
-            <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} className={refreshingCard === 2 ? 'refreshing' : ''} />
-          </button>
-        </div>
-
-        <div className="kpi-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563' }}>Replacement</span>
-            <span className="trend-pill trend-down">▼ 5% (L7D)</span>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.25rem' }}>
-            <span style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827' }}>{stats.replacement}</span>
-            <span style={{ fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>({stats.replacement * 10}%)</span>
-          </div>
-          <button className="refresh-btn" onClick={() => handleRefreshCard(3)}>
-            <img src="/refresh_logo.svg" alt="Refresh" style={{ width: '14px', height: '14px', display: 'block' }} className={refreshingCard === 3 ? 'refreshing' : ''} />
-          </button>
         </div>
       </div>
 
@@ -435,113 +407,65 @@ export default function RequestsPage() {
         </div>
 
         {/* Primary Tabs */}
-        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e5e7eb', overflowX: 'auto', marginBottom: '1rem' }}>
-          {[
-            { id: 'All', count: 2345 },
-            { id: 'Ordered', count: 1085 },
-            { id: 'Return', count: 1983 },
-            { id: 'Replacement', count: 1534 },
-            { id: 'Cancelled', count: 374 },
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`tab-button ${activeTab === tab.id ? 'tab-button-active' : ''}`}
-            >
-              {tab.id}({tab.count})
-            </button>
-          ))}
+        <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e5e7eb', overflowX: 'auto', marginBottom: '1.25rem' }}>
+          <button
+            onClick={() => setActiveTab('Audio Notes')}
+            className={`tab-button ${activeTab === 'Audio Notes' ? 'tab-button-active' : ''}`}
+          >
+            Audio Notes
+          </button>
+          <button
+            onClick={() => setActiveTab('Handwritten Notes')}
+            className={`tab-button ${activeTab === 'Handwritten Notes' ? 'tab-button-active' : ''}`}
+          >
+            Handwritten Notes
+          </button>
         </div>
 
-        {/* Secondary Filter Pills row */}
-        <div style={{ display: 'flex', gap: '0.75rem', paddingBottom: '1rem', flexWrap: 'wrap' }}>
-          {(ALL_PILLS[activeTab] || []).map((pill) => {
-            const isActive = (activePills[activeTab] || []).includes(pill.label);
-            return (
-              <div 
-                key={pill.label}
-                onClick={() => !isActive && togglePill(activeTab, pill.label)}
-                style={{ 
-                  display: 'inline-flex', 
-                  alignItems: 'center', 
-                  gap: '0.375rem', 
-                  padding: '0.375rem 0.875rem', 
-                  borderRadius: '2rem', 
-                  backgroundColor: isActive ? '#1f2937' : '#f3f4f6', 
-                  color: isActive ? 'white' : '#4b5563', 
-                  fontSize: '0.75rem', 
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  userSelect: 'none'
-                }}
-              >
-                {pill.label}
-                {pill.count !== undefined && ` (${pill.count})`}
-                {isActive ? (
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); togglePill(activeTab, pill.label); }}
-                    style={{ border: 'none', background: 'none', color: 'white', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', marginLeft: '0.125rem' }}
-                  >
-                    <X size={12} />
-                  </button>
-                ) : (
-                  <span style={{ 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    width: '12px', 
-                    height: '12px', 
-                    borderRadius: '50%', 
-                    border: '1px solid #9ca3af',
-                    fontSize: '9px',
-                    fontWeight: 700,
-                    lineHeight: 1,
-                    marginLeft: '0.125rem'
-                  }}>+</span>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Orders Table Container */}
-        <div style={{ overflowX: 'auto', margin: '0 -1.5rem -1.5rem -1.5rem' }}>
+        {/* Table Container */}
+        <div style={{ overflowX: 'auto', margin: '0 -1.5rem -1.5rem -1.5rem', position: 'relative' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
             <thead>
               <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', color: '#374151' }}>
-                <th style={{ padding: '1rem 1.5rem', width: '40px' }}>
+                <th style={{ padding: '1rem 1.5rem', width: '60px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '16px', height: '16px', borderRadius: '0.25rem', backgroundColor: '#3b82f6', color: 'white', cursor: 'pointer' }}>
                     <span style={{ fontSize: '10px', fontWeight: 800 }}>-</span>
                   </div>
                 </th>
                 <th style={{ padding: '1rem', fontWeight: 600 }}>Order ↑↓</th>
-                <th style={{ padding: '1rem', fontWeight: 600 }}>Date ↑↓</th>
-                {(activeTab === 'Return' || activeTab === 'Replacement') ? (
-                  <>
-                    <th style={{ padding: '1rem', fontWeight: 600 }}>Order Value ↑↓</th>
-                    <th style={{ padding: '1rem', fontWeight: 600 }}>Reason ↑↓</th>
-                  </>
-                ) : (
-                  <>
-                    <th style={{ padding: '1rem', fontWeight: 600 }}>Items Count ↑↓</th>
-                    <th style={{ padding: '1rem', fontWeight: 600 }}>Order Value ↑↓</th>
-                  </>
-                )}
-                <th style={{ padding: '1rem', fontWeight: 600 }}>Status ↑↓</th>
+                <th style={{ padding: '1rem', fontWeight: 600 }}>Phone Number ↑↓</th>
+                <th style={{ padding: '1rem', fontWeight: 600 }}>Order Placed ↑↓</th>
+                <th style={{ padding: '1rem', fontWeight: 600 }}>Audio Uploaded ↑↓</th>
+                <th style={{ padding: '1rem', fontWeight: 600 }}>{activeTab === 'Audio Notes' ? 'Viewed' : 'Status'} ↑↓</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600, textAlign: 'center' }}>Action</th>
               </tr>
             </thead>
             <tbody>
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order, idx) => (
-                  <tr key={order.id} className="order-row" style={{ cursor: 'pointer' }} onClick={() => router.push(`/spares/requests/${order.id}`)}>
-                    <td style={{ padding: '1.25rem 1.5rem' }} onClick={(e) => e.stopPropagation()}>
-                      <input type="checkbox" style={{ accentColor: '#111827', width: '16px', height: '16px', cursor: 'pointer' }} />
+              {activeTab === 'Audio Notes' ? (
+                AUDIO_REQUESTS_MOCK.map((row) => (
+                  <tr key={row.id} className="order-row" onClick={() => handleRowClick(row.id)}>
+                    <td style={{ padding: '1.25rem 1.5rem', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input type="checkbox" style={{ accentColor: '#111827', width: '16px', height: '16px', cursor: 'pointer' }} />
+                        <button 
+                          onClick={(e) => handleActionMenuClick(e, row.id)}
+                          style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px' }}
+                        >
+                          <MoreVertical size={14} />
+                        </button>
+                      </div>
+
+                      {activeMenuRowId === row.id && (
+                        <div className="context-menu" onClick={(e) => e.stopPropagation()}>
+                          <div className="menu-item" onClick={() => { alert('Exporting row...'); setActiveMenuRowId(null); }}>Export</div>
+                          <div className="menu-item" onClick={() => { alert('Marked as Irrelevant'); setActiveMenuRowId(null); }}>Irrelevant</div>
+                          <div className="menu-item" onClick={() => { alert('Marked as Completed'); setActiveMenuRowId(null); }}>Mark as completed</div>
+                          <div className="menu-item" onClick={() => { alert('Marked as Unread'); setActiveMenuRowId(null); }}>Mark as Unread</div>
+                        </div>
+                      )}
                     </td>
                     <td style={{ padding: '1rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        {/* Circular Avatar */}
                         <div style={{ 
                           width: '36px', 
                           height: '36px', 
@@ -550,97 +474,238 @@ export default function RequestsPage() {
                           display: 'flex', 
                           alignItems: 'center', 
                           justifyContent: 'center',
-                          flexShrink: 0,
-                          overflow: 'hidden'
+                          flexShrink: 0
                         }}>
                           <img src="/rotary-hook.png" alt="Logo" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
                         </div>
                         <div>
-                          <div style={{ fontWeight: 600, color: '#111827' }}>{order.customerName}</div>
-                          <div 
-                            onClick={(e) => handleCopyId(e, order.id)}
-                            style={{ 
-                              fontSize: '0.75rem', 
-                              color: '#2563eb', 
-                              border: '1px dashed #bfdbfe', 
-                              borderRadius: '0.375rem', 
-                              padding: '0.125rem 0.5rem', 
-                              display: 'inline-flex', 
-                              alignItems: 'center',
-                              gap: '0.25rem',
-                              marginTop: '0.25rem', 
-                              cursor: 'pointer',
-                              backgroundColor: '#eff6ff',
-                              fontWeight: 500,
-                              position: 'relative'
-                            }}
-                          >
-                            {order.id.toUpperCase()}
-                            {copiedId === order.id ? <Check size={10} style={{ color: '#16a34a' }} /> : <Copy size={10} />}
-                            
-                            {copiedId === order.id && (
-                              <span style={{
-                                position: 'absolute',
-                                bottom: '100%',
-                                left: '50%',
-                                transform: 'translateX(-50%) translateY(-4px)',
-                                backgroundColor: '#1f2937',
-                                color: 'white',
-                                fontSize: '10px',
-                                padding: '2px 6px',
-                                borderRadius: '4px',
-                                whiteSpace: 'nowrap',
-                                zIndex: 10
-                              }}>
-                                Copied!
-                              </span>
-                            )}
+                          <div style={{ fontWeight: 600, color: '#111827' }}>{row.customerName}</div>
+                          <div style={{ 
+                            fontSize: '0.75rem', 
+                            color: '#2563eb', 
+                            border: '1px dashed #bfdbfe', 
+                            borderRadius: '0.375rem', 
+                            padding: '0.125rem 0.5rem', 
+                            display: 'inline-flex', 
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            marginTop: '0.25rem', 
+                            backgroundColor: '#eff6ff',
+                            fontWeight: 600
+                          }}>
+                            REQUEST ID
                           </div>
                         </div>
                       </div>
                     </td>
-                    <td style={{ padding: '1rem', fontWeight: 500, color: '#374151' }}>{order.date}</td>
+                    <td style={{ padding: '1rem' }}>
+                      <div 
+                        onClick={(e) => handleCopy(e, row.phone, row.id)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          border: '1px dashed #bfdbfe',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '0.375rem',
+                          color: '#2563eb',
+                          fontSize: '0.8125rem',
+                          fontWeight: 500,
+                          backgroundColor: '#eff6ff',
+                          cursor: 'pointer',
+                          position: 'relative'
+                        }}
+                      >
+                        {row.phone}
+                        {copiedText === row.id ? <Check size={12} style={{ color: '#16a34a' }} /> : <Copy size={12} />}
+                      </div>
+                    </td>
+                    <td style={{ padding: '1rem', color: '#4b5563', fontWeight: 500 }}>{row.date}</td>
                     
-                    {(activeTab === 'Return' || activeTab === 'Replacement') ? (
-                      <>
-                        <td style={{ padding: '1rem', fontWeight: 600, color: '#111827' }}>₹{order.orderValue.toLocaleString('en-IN')}</td>
-                        <td style={{ padding: '1rem' }}>
-                          <span className="reason-tag">
-                            {order.reason}
-                          </span>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        <td style={{ padding: '1rem', fontWeight: 500, color: '#374151', paddingLeft: '2.5rem' }}>2</td>
-                        <td style={{ padding: '1rem', fontWeight: 600, color: '#111827' }}>₹{order.orderValue.toLocaleString('en-IN')}</td>
-                      </>
-                    )}
+                    {/* Audio visualizer block */}
+                    <td style={{ padding: '1rem' }} onClick={(e) => e.stopPropagation()}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '220px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '0.5rem 0.75rem' }}>
+                        <button 
+                          onClick={(e) => toggleAudioPlayback(e, row.id)}
+                          style={{
+                            width: '28px',
+                            height: '28px',
+                            borderRadius: '50%',
+                            backgroundColor: '#3b82f6',
+                            border: 'none',
+                            color: 'white',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.2s'
+                          }}
+                        >
+                          {playingAudioId === row.id ? <Pause size={12} fill="white" /> : <Play size={12} fill="white" style={{ marginLeft: '1px' }} />}
+                        </button>
+                        
+                        {/* Audio Waveform Bars */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px', flex: 1, height: '20px' }} className={playingAudioId === row.id ? 'waveform-playing' : ''}>
+                          {[6, 12, 18, 14, 8, 16, 20, 10, 14, 18, 12, 8, 14, 10, 16, 20, 12, 6, 10, 18].map((h, i) => (
+                            <div 
+                              key={i} 
+                              className="waveform-bar" 
+                              style={{ 
+                                height: `${playingAudioId === row.id ? '100%' : h + 'px'}`,
+                                animationDelay: `${i * 0.05}s`
+                              }} 
+                            />
+                          ))}
+                        </div>
+
+                        <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>{row.audioLength}</span>
+                      </div>
+                    </td>
 
                     <td style={{ padding: '1rem' }}>
-                      <span className={`status-badge ${
-                        order.status === 'Pickup Failed' ? 'badge-red' : 
-                        (order.status === 'Requested' || order.status === 'Pickup Scheduled') ? 'badge-orange' : ''
+                      <span className={`action-badge ${
+                        row.viewedStatus === 'Now' ? 'badge-now' : 
+                        row.viewedStatus === 'Payment Pending' ? 'badge-pending' : 
+                        row.viewedStatus === 'Order Placed' ? 'badge-placed' :
+                        row.viewedStatus === 'Cancelled' ? 'badge-cancelled' : 'badge-irrelevant'
                       }`}>
-                        {order.status}
+                        {row.viewedStatus}
                       </span>
                     </td>
+
                     <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                       <img 
                         src="/View_button.svg" 
                         alt="View" 
                         style={{ width: '66px', height: '26px', cursor: 'pointer', display: 'block', margin: '0 auto' }} 
-                        onClick={() => router.push(`/spares/requests/${order.id}`)}
+                        onClick={() => handleRowClick(row.id)}
                       />
                     </td>
                   </tr>
                 ))
               ) : (
-                <tr>
-                  <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#6b7280', fontWeight: 500 }}>
-                    No return requests found matching the criteria.
-                  </td>
-                </tr>
+                HANDWRITTEN_REQUESTS_MOCK.map((row) => (
+                  <tr key={row.id} className="order-row" onClick={() => handleRowClick(row.id)}>
+                    <td style={{ padding: '1.25rem 1.5rem', position: 'relative' }} onClick={(e) => e.stopPropagation()}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <input type="checkbox" style={{ accentColor: '#111827', width: '16px', height: '16px', cursor: 'pointer' }} />
+                        <button 
+                          onClick={(e) => handleActionMenuClick(e, row.id)}
+                          style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '2px' }}
+                        >
+                          <MoreVertical size={14} />
+                        </button>
+                      </div>
+
+                      {activeMenuRowId === row.id && (
+                        <div className="context-menu" onClick={(e) => e.stopPropagation()}>
+                          <div className="menu-item" onClick={() => { alert('Exporting row...'); setActiveMenuRowId(null); }}>Export</div>
+                          <div className="menu-item" onClick={() => { alert('Marked as Irrelevant'); setActiveMenuRowId(null); }}>Irrelevant</div>
+                          <div className="menu-item" onClick={() => { alert('Marked as Completed'); setActiveMenuRowId(null); }}>Mark as completed</div>
+                          <div className="menu-item" onClick={() => { alert('Marked as Unread'); setActiveMenuRowId(null); }}>Mark as Unread</div>
+                        </div>
+                      )}
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ 
+                          width: '36px', 
+                          height: '36px', 
+                          borderRadius: '50%', 
+                          backgroundColor: '#FFE7D9', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <img src="/rotary-hook.png" alt="Logo" style={{ width: '22px', height: '22px', objectFit: 'contain' }} />
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#111827' }}>{row.customerName}</div>
+                          <div style={{ 
+                            fontSize: '0.75rem', 
+                            color: '#2563eb', 
+                            border: '1px dashed #bfdbfe', 
+                            borderRadius: '0.375rem', 
+                            padding: '0.125rem 0.5rem', 
+                            display: 'inline-flex', 
+                            alignItems: 'center',
+                            gap: '0.25rem',
+                            marginTop: '0.25rem', 
+                            backgroundColor: '#eff6ff',
+                            fontWeight: 600
+                          }}>
+                            REQUEST ID
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      <div 
+                        onClick={(e) => handleCopy(e, row.phone, row.id)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                          border: '1px dashed #bfdbfe',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '0.375rem',
+                          color: '#2563eb',
+                          fontSize: '0.8125rem',
+                          fontWeight: 500,
+                          backgroundColor: '#eff6ff',
+                          cursor: 'pointer',
+                          position: 'relative'
+                        }}
+                      >
+                        {row.phone}
+                        {copiedText === row.id ? <Check size={12} style={{ color: '#16a34a' }} /> : <Copy size={12} />}
+                      </div>
+                    </td>
+                    <td style={{ padding: '1rem', color: '#4b5563', fontWeight: 500 }}>{row.date}</td>
+                    
+                    {/* Documents pill column */}
+                    <td style={{ padding: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', paddingLeft: '1.5rem' }}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: '28px',
+                          height: '28px',
+                          borderRadius: '50%',
+                          backgroundColor: '#eff6ff',
+                          border: '1px solid #bfdbfe',
+                          color: '#2563eb',
+                          fontWeight: 700,
+                          fontSize: '0.875rem'
+                        }}>
+                          {row.docCount}
+                        </div>
+                      </div>
+                    </td>
+
+                    <td style={{ padding: '1rem' }}>
+                      <span className={`action-badge ${
+                        row.status === 'New' ? 'badge-now' : 
+                        row.status === 'Payment Pending' ? 'badge-pending' : 
+                        row.status === 'Order Placed' ? 'badge-placed' :
+                        row.status === 'Cancelled' ? 'badge-cancelled' : 'badge-irrelevant'
+                      }`}>
+                        {row.status}
+                      </span>
+                    </td>
+
+                    <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                      <img 
+                        src="/View_button.svg" 
+                        alt="View" 
+                        style={{ width: '66px', height: '26px', cursor: 'pointer', display: 'block', margin: '0 auto' }} 
+                        onClick={() => handleRowClick(row.id)}
+                      />
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
