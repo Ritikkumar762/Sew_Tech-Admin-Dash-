@@ -60,12 +60,12 @@ export function AddSpareModal({ isOpen, onClose, onBulkUpload, onEnterManually }
             >
               <div className={styles.optionIcon}>
                 <img 
-                  src="/add spare _2.png" 
+                  src="/add spare-2.svg" 
                   alt="Bulk Upload" 
                   style={{ 
                     width: '32px', 
                     height: '32px', 
-                    filter: selectedOption === 'bulk' ? 'none' : 'brightness(0) opacity(0.6)' 
+                    filter: selectedOption === 'bulk' ? 'brightness(0) invert(1)' : 'none' 
                   }} 
                 />
               </div>
@@ -79,12 +79,12 @@ export function AddSpareModal({ isOpen, onClose, onBulkUpload, onEnterManually }
             >
               <div className={styles.optionIcon}>
                 <img 
-                  src="/add spare _1.png" 
+                  src="/add spare-1.svg" 
                   alt="Enter Manually" 
                   style={{ 
                     width: '32px', 
                     height: '32px', 
-                    filter: selectedOption === 'manual' ? 'brightness(0) invert(1)' : 'brightness(0) opacity(0.6)' 
+                    filter: selectedOption === 'manual' ? 'brightness(0) invert(1)' : 'none' 
                   }} 
                 />
               </div>
