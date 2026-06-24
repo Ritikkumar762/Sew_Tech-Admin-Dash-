@@ -19,7 +19,7 @@ const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({
   cx, cy, midAngle, innerRadius, outerRadius, percent
 }: any) => {
-  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const radius = outerRadius + 8;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
@@ -138,16 +138,16 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
           >
             <h3 className={styles.cardTitle}>{donut.label}</h3>
             <div className={styles.donutContainerBox} style={{ width: '100%', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-              <div className={styles.donutWrapper} style={{ width: 120, height: 120 }}>
+              <div className={styles.donutWrapper} style={{ width: 140, height: 140 }}>
                 <div className={styles.donutCenter}>
                   <div className={styles.donutTotal} style={{ fontSize: '0.9rem', fontWeight: 800 }}>{donut.centerValue}</div>
                   <div className={styles.donutSub} style={{ fontSize: '0.6rem' }}>{donut.centerLabel}</div>
                 </div>
-                <PieChart width={120} height={120}>
+                <PieChart width={140} height={140}>
                   <Pie 
                     data={donut.data} 
-                    cx={60} 
-                    cy={60} 
+                    cx={70} 
+                    cy={70} 
                     innerRadius={30} 
                     outerRadius={48} 
                     dataKey="value" 

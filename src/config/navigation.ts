@@ -9,7 +9,7 @@ export type Route = {
 };
 
 export const NAVIGATION_ROUTES: Route[] = [
-  { name: 'Dashboard', path: '/dashboard', icon: '/home-03.png' },
+  { name: 'Dashboard', path: '/dashboard', icon: 'Home' },
   { name: 'Alerts', path: '/alerts', icon: '/alert-02.svg' },
   { 
     name: 'Sewtech Spares', 

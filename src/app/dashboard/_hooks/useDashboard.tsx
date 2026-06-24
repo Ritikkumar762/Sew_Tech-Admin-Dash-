@@ -615,9 +615,9 @@ const MOCK_USER_DONUTS: DonutMetric[] = [
   {
     label: 'Mechanic Experience Level', centerValue: '400', centerLabel: 'Reports',
     data: [
-      { name: 'Junior (0-2 yr exp.)', value: 40, color: '#3b82f6' },
-      { name: 'Expert (5-10 yr exp.)', value: 60, color: '#10b981' },
-      { name: 'Master (>10 yr exp.)', value: 0, color: '#8b5cf6' }
+      { name: 'Junior (0-2 yr exp.)', value: 30, color: '#3b82f6' },
+      { name: 'Expert (5-10 yr exp.)', value: 50, color: '#10b981' },
+      { name: 'Master (>10 yr exp.)', value: 20, color: '#8b5cf6' }
     ]
   },
   {
