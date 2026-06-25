@@ -70,16 +70,13 @@ export default function CancelRequestModal({ orderId = 'STS0193', onClose, onCon
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
 
-              {/* Warning Icon */}
+              {/* Confirmation Illustration */}
               <div style={{ display:'flex', justifyContent:'center', marginBottom:'1.25rem' }}>
-                <div style={{ width:'60px', height:'60px', borderRadius:'50%', background:'#fff7ed', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" fill="#f97316" opacity=".15"/>
-                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" stroke="#f97316" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <line x1="12" y1="9" x2="12" y2="13" stroke="#f97316" strokeWidth="2" strokeLinecap="round"/>
-                    <line x1="12" y1="17" x2="12.01" y2="17" stroke="#f97316" strokeWidth="2.5" strokeLinecap="round"/>
-                  </svg>
-                </div>
+                <img
+                  src="/alert-02.svg"
+                  alt="Confirmation"
+                  style={{ width:'48px', height:'48px', objectFit:'contain' }}
+                />
               </div>
 
               {/* Title */}
@@ -116,7 +113,9 @@ export default function CancelRequestModal({ orderId = 'STS0193', onClose, onCon
           {step === 2 && (
             <div style={{ padding:'1.75rem 1.75rem 1.5rem' }}>
 
-              {/* Title — same left-aligned inside same padding box */}
+
+
+              {/* Title */}
               <h2 style={{ margin:'0 0 1rem', fontSize:'1.0625rem', fontWeight:700, color:'#111827' }}>Select Reason</h2>
 
               {/* Reasons list */}
