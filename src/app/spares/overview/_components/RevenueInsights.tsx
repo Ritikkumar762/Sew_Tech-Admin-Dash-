@@ -238,6 +238,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
                     endAngle={-270}
                     label={renderCustomizedLabel}
                     labelLine={false}
+                    stroke="none"
                   >
                     {revenueRisk.map((entry, i) => (
                       <Cell key={i} fill={getRevenueRiskColor(entry.name)} />
@@ -380,6 +381,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
                     endAngle={-270}
                     label={renderCustomizedLabel}
                     labelLine={false}
+                    stroke="none"
                   >
                     {transactions.map((entry, i) => (
                       <Cell key={i} fill={getTransactionColor(entry.name)} />

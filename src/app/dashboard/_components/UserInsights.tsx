@@ -101,19 +101,20 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
             
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1 }}>
               <div className={styles.userDonutContainerBox}>
-                <div className={styles.userDonutWrapper} style={{ width: 180, height: 180 }}>
-                  <PieChart width={180} height={180}>
+                <div className={styles.userDonutWrapper} style={{ width: 151, height: 151 }}>
+                  <PieChart width={151} height={151}>
                     <Pie 
                       data={donut.data} 
-                      cx={90} 
-                      cy={90} 
-                      innerRadius={45} 
-                      outerRadius={65} 
+                      cx={75.5} 
+                      cy={75.5} 
+                      innerRadius={36} 
+                      outerRadius={56} 
                       dataKey="value" 
                       startAngle={90} 
                       endAngle={-270}
                       label={renderCustomizedLabel}
                       labelLine={false}
+                      stroke="none"
                     >
                       {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                     </Pie>

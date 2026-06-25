@@ -67,13 +67,15 @@
   position: relative;
   background-color: rgba(242, 243, 247, 0.8);
   border-radius: 12px;
-  width: 226px;
+  width: 100%;
+  max-width: 226px;
   height: 211.01px;
   padding: 30px 20px;
   display: flex;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
+  align-self: center;
 }
 
 .donutWrapper {

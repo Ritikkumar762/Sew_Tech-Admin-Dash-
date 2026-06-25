@@ -151,6 +151,7 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
                     endAngle={-270}
                     label={renderCustomizedLabel}
                     labelLine={false}
+                    stroke="none"
                   >
                     {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>

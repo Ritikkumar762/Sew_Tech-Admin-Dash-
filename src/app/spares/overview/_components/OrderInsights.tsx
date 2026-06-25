@@ -435,6 +435,7 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
                   dataKey="value"
                   label={renderCustomLabel}
                   labelLine={false}
+                  stroke="none"
                 >
                   {orderOutcome.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>

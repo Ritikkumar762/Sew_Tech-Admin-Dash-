@@ -124,6 +124,7 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
                     endAngle={-270}
                     label={renderCustomizedLabel}
                     labelLine={false}
+                    stroke="none"
                   >
                     {invDonut.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                   </Pie>

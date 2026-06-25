@@ -272,6 +272,7 @@ export default function FinanceOverviewPage() {
                       outerRadius={80}
                       paddingAngle={3}
                       dataKey="value"
+                      stroke="none"
                     >
                       {PROFIT_BREAKUP_DATA.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={PROFIT_COLORS[index % PROFIT_COLORS.length]} />
@@ -356,6 +357,7 @@ export default function FinanceOverviewPage() {
                       outerRadius={80}
                       paddingAngle={3}
                       dataKey="value"
+                      stroke="none"
                     >
                       {TRANSACTION_INSIGHTS_DATA.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={INSIGHTS_COLORS[index % INSIGHTS_COLORS.length]} />
