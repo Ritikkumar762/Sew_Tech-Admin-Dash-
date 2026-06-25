@@ -10,12 +10,20 @@ import OrderDetailCancelled from './OrderDetailCancelled';
 
 // Rich Mock Data for Detail Retrieval (to fetch corresponding order detail)
 const MOCK_ORDER_DETAILS: Record<string, any> = {
-  'sth-rh-2045': { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Order Received', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0001' },
-  'sth-rh-2046': { id: 'sth-rh-2046', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Processing', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0002' },
-  'sth-rh-2047': { id: 'sth-rh-2047', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Shipped', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0003' },
-  'sth-rh-2048': { id: 'sth-rh-2048', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Out for Delivery', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0004' },
-  'sth-rh-2049': { id: 'sth-rh-2049', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Delivered', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0005' },
-  'sth-rh-2050': { id: 'sth-rh-2050', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Return Requested', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0006' },
+  'sth-rh-2045': { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Requested', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0001', type: 'replacement' },
+  'sth-rh-2046': { id: 'sth-rh-2046', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Scheduled', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0002', type: 'replacement' },
+  'sth-rh-2047': { id: 'sth-rh-2047', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Failed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0003', type: 'replacement' },
+  'sth-rh-2048': { id: 'sth-rh-2048', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Return Requested', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0004', type: 'return' },
+  'sth-rh-2049': { id: 'sth-rh-2049', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Replacement in Process', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0005', type: 'replacement' },
+  'sth-rh-2050': { id: 'sth-rh-2050', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Refund Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0006', type: 'return' },
+  'sth-rh-2051': { id: 'sth-rh-2051', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0007', type: 'replacement' },
+  'sth-rh-2052': { id: 'sth-rh-2052', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Replacement Shipped', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0008', type: 'replacement' },
+  'sth-rh-2053': { id: 'sth-rh-2053', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Delivery Failed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0009', type: 'replacement' },
+  'sth-rh-2054': { id: 'sth-rh-2054', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0010', type: 'replacement' },
+  'sth-rh-2055': { id: 'sth-rh-2055', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Refund Initiated', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0011', type: 'return' },
+  'sth-rh-2056': { id: 'sth-rh-2056', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Scheduled', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0012', type: 'return' },
+  'sth-rh-2057': { id: 'sth-rh-2057', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0013', type: 'return' },
+  'sth-rh-2058': { id: 'sth-rh-2058', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Failed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0014', type: 'return' },
 };
 
 interface OrderDetail {
@@ -27,6 +35,7 @@ interface OrderDetail {
   status: string;
   paymentMethod: string;
   txnId: string;
+  type?: string;
 }
 
 export default function OrderDetailPage() {
@@ -38,6 +47,8 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<OrderDetail>(initialOrder);
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedReturnReasons, setSelectedReturnReasons] = useState<string[]>([]);
+  const [isOtherReturnSelected, setIsOtherReturnSelected] = useState(true);
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -54,7 +65,7 @@ export default function OrderDetailPage() {
     setShowCancelModal(false);
   };
 
-  // Determine which layout component to render based on status
+  // Determine which layout component to render based on status/type
   const renderDetailContent = () => {
     const status = order.status;
 
@@ -72,7 +83,7 @@ export default function OrderDetailPage() {
       );
     }
 
-    if (status.includes('Return') || status.includes('Refund') || status === 'Requested' || status.includes('Pickup')) {
+    if (order.type === 'return') {
       return (
         <OrderDetailReturn
           order={order}
@@ -86,7 +97,41 @@ export default function OrderDetailPage() {
       );
     }
 
-    if (status.includes('Replacement')) {
+    if (order.type === 'replacement') {
+      return (
+        <OrderDetailReplacement
+          order={order}
+          onUpdateStatus={handleUpdateStatus}
+          onCancelOrder={handleCancelOrder}
+          showCancelModal={showCancelModal}
+          setShowCancelModal={setShowCancelModal}
+          copiedText={copiedText}
+          handleCopy={handleCopy}
+        />
+      );
+    }
+
+    if (status === 'Return Requested' || status.includes('Refund')) {
+      return (
+        <OrderDetailReturn
+          order={order}
+          onUpdateStatus={handleUpdateStatus}
+          onCancelOrder={handleCancelOrder}
+          showCancelModal={showCancelModal}
+          setShowCancelModal={setShowCancelModal}
+          copiedText={copiedText}
+          handleCopy={handleCopy}
+        />
+      );
+    }
+
+    if (
+      status === 'Requested' || 
+      status.includes('Pickup') || 
+      status.includes('Replacement') || 
+      status.includes('Delivery') || 
+      status === 'Completed'
+    ) {
       return (
         <OrderDetailReplacement
           order={order}
@@ -279,15 +324,40 @@ export default function OrderDetailPage() {
                 'Original tags / packaging missing',
                 'Invoice / order details mismatch',
                 'Incorrect return reason selected'
-              ].map((reason) => (
-                <label key={reason} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.875rem', color: '#4b5563' }}>
-                  <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: '#111827', cursor: 'pointer' }} />
+              ].map((reason, index) => (
+                <label 
+                  key={reason} 
+                  htmlFor={`return-reason-${index}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.875rem', color: '#4b5563' }}
+                >
+                  <input 
+                    id={`return-reason-${index}`}
+                    type="checkbox" 
+                    checked={selectedReturnReasons.includes(reason)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedReturnReasons([...selectedReturnReasons, reason]);
+                      } else {
+                        setSelectedReturnReasons(selectedReturnReasons.filter(r => r !== reason));
+                      }
+                    }}
+                    style={{ width: '16px', height: '16px', accentColor: '#111827', cursor: 'pointer' }} 
+                  />
                   {reason}
                 </label>
               ))}
               
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.875rem', color: '#111827', fontWeight: 500 }}>
-                <input type="checkbox" defaultChecked style={{ width: '16px', height: '16px', accentColor: '#111827', cursor: 'pointer' }} />
+              <label 
+                htmlFor="return-reason-other"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.875rem', color: '#111827', fontWeight: 500 }}
+              >
+                <input 
+                  id="return-reason-other"
+                  type="checkbox" 
+                  checked={isOtherReturnSelected} 
+                  onChange={(e) => setIsOtherReturnSelected(e.target.checked)}
+                  style={{ width: '16px', height: '16px', accentColor: '#111827', cursor: 'pointer' }} 
+                />
                 Other
               </label>
 

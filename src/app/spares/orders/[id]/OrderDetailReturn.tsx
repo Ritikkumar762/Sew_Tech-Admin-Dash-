@@ -32,33 +32,26 @@ interface OrderDetailProps {
 }
 
 const getTimelineState = (nodeTitle: string, currentStatus: string) => {
-  const statusHierarchy: Record<string, number> = {
-    'Order Received': 1,
-    'Processing': 2,
-    'Shipped': 3,
-    'Out for Delivery': 4,
-    'Delivered': 5,
-    'Completed': 6,
-  };
-
-  const currentLevel = statusHierarchy[currentStatus] || 1;
-
+  // Pre-delivery nodes are always completed since we are in the return flow
   switch (nodeTitle) {
     case 'Order Received':
     case 'Payment Completed':
-      return { completed: true, error: false };
     case 'Order Shipped':
-      return { completed: true, error: false };
     case 'Out for Delivery':
-      return { completed: true, error: false };
     case 'Delivered':
       return { completed: true, error: false };
     case 'Return Requested':
-      return { completed: true, error: true };
+      return { completed: true, error: false };
     case 'Picked':
-      return { completed: currentStatus.includes('Refund') || currentStatus.includes('Completed'), error: false };
+      return { 
+        completed: currentStatus === 'Pickup Completed' || currentStatus === 'Refund Initiated' || currentStatus === 'Refund Completed' || currentStatus === 'Completed', 
+        error: currentStatus === 'Pickup Failed' 
+      };
     case 'Completed':
-      return { completed: currentStatus.includes('Completed'), error: false };
+      return { 
+        completed: currentStatus === 'Refund Completed' || currentStatus === 'Completed', 
+        error: false 
+      };
     default:
       return { completed: false, error: false };
   }
@@ -94,6 +87,383 @@ export default function OrderDetailReturn({
     { name: 'High-Speed Rotary Hook Assembly', code: 'HC3000', price: 1850, quantity: 2, tax: 1850, amount: 1850 },
     { name: 'High-Speed Rotary Hook Assembly', code: 'HC3000', price: 1850, quantity: 2, tax: 1850, amount: 1850 }
   ];
+
+  const handleInvoiceClick = () => {
+    const numericId = order.id.endsWith('6') ? '6' : '5';
+    window.open(`https://project-sewtech-mart.onrender.com/api/v1/mart/orders/${numericId}/invoice`, '_blank');
+  };
+
+  const renderActionButtons = () => {
+    const status = order.status;
+
+    if (status === 'Return Requested' || status === 'Requested') {
+      return (
+        <>
+          <button 
+            onClick={handleInvoiceClick} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.5rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Invoice
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Pickup Scheduled')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#111827',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+          >
+            Initiate Return Pickup
+          </button>
+          <button 
+            onClick={() => setShowCancelModal(true)} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Cancel Request
+          </button>
+        </>
+      );
+    }
+
+    if (status === 'Pickup Scheduled') {
+      return (
+        <>
+          <button 
+            onClick={handleInvoiceClick} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.5rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Invoice
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Pickup Completed')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#111827',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+          >
+            Mark Pickup Completed
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Pickup Failed')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #ef4444',
+              backgroundColor: 'white',
+              color: '#ef4444',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Mark Pickup Failed
+          </button>
+          <button 
+            onClick={() => setShowCancelModal(true)} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Cancel Request
+          </button>
+        </>
+      );
+    }
+
+    if (status === 'Pickup Completed') {
+      return (
+        <>
+          <button 
+            onClick={handleInvoiceClick} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.5rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Invoice
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Refund Initiated')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#111827',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+          >
+            Initiate Refund
+          </button>
+          <button 
+            onClick={() => setShowCancelModal(true)} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Cancel Request
+          </button>
+        </>
+      );
+    }
+
+    if (status === 'Pickup Failed') {
+      return (
+        <>
+          <button 
+            onClick={handleInvoiceClick} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.5rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Invoice
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Pickup Scheduled')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#111827',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+          >
+            Retry Pickup
+          </button>
+          <button 
+            onClick={() => setShowCancelModal(true)} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Cancel Request
+          </button>
+        </>
+      );
+    }
+
+    if (status === 'Refund Initiated') {
+      return (
+        <>
+          <button 
+            onClick={handleInvoiceClick} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.5rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Invoice
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Refund Completed')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#111827',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+          >
+            Complete Refund
+          </button>
+          <button 
+            onClick={() => setShowCancelModal(true)} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Cancel Request
+          </button>
+        </>
+      );
+    }
+
+    return (
+      <button 
+        onClick={handleInvoiceClick} 
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.375rem',
+          padding: '0.5rem 1rem',
+          border: '1px solid #d1d5db',
+          borderRadius: '0.5rem',
+          backgroundColor: 'white',
+          color: '#374151',
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          cursor: 'pointer',
+          transition: 'background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+      >
+        Invoice
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      </button>
+    );
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -147,73 +517,7 @@ export default function OrderDetailReturn({
 
           {/* Return Flow Action buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', position: 'relative' }}>
-            <button 
-              onClick={() => {
-                const numericId = order.id.endsWith('6') ? '6' : '5';
-                window.open(`https://project-sewtech-mart.onrender.com/api/v1/mart/orders/${numericId}/invoice`, '_blank');
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.375rem',
-                padding: '0.5rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.5rem',
-                backgroundColor: 'white',
-                color: '#374151',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-            >
-              Invoice
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            </button>
-
-            <button 
-              onClick={() => {
-                if (order.status === 'Return Requested' || order.status === 'Requested') onUpdateStatus('Pickup Scheduled');
-                else if (order.status === 'Pickup Scheduled') onUpdateStatus('Refund Initiated');
-                else if (order.status === 'Refund Initiated') onUpdateStatus('Refund Completed');
-              }}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                backgroundColor: '#111827',
-                color: 'white',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
-            >
-              {order.status === 'Return Requested' || order.status === 'Requested' ? 'Initiate Return' : order.status === 'Pickup Scheduled' ? 'Initiate Pickup' : order.status === 'Refund Initiated' ? 'Initiate Refund' : 'Initiate Return'}
-            </button>
-
-            <button 
-              onClick={() => setShowCancelModal(true)}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                backgroundColor: '#ef4444',
-                color: 'white',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
-            >
-              Cancel Request
-            </button>
+            {renderActionButtons()}
           </div>
         </div>
 

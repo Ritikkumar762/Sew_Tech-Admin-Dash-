@@ -8,7 +8,6 @@ import {
   Check, 
   ChevronDown, 
   ChevronUp, 
-  CreditCard,
   X
 } from 'lucide-react';
 
@@ -34,34 +33,30 @@ interface OrderDetailProps {
 const getTimelineState = (nodeTitle: string, currentStatus: string) => {
   const statusHierarchy: Record<string, number> = {
     'Order Received': 1,
-    'Processing': 2,
-    'Shipped': 3,
+    'Payment Completed': 2,
+    'Order Shipped': 3,
     'Out for Delivery': 4,
     'Delivered': 5,
-    'Completed': 6,
+    'Replacement Requested': 6,
+    'Requested': 6,
+    'Pickup Scheduled': 7,
+    'Pickup Completed': 7,
+    'Pickup Failed': 7,
+    'Replacement Shipped': 7,
+    'Delivery Failed': 7,
+    'Replacement in Process': 7,
+    'Completed': 8,
   };
 
   const currentLevel = statusHierarchy[currentStatus] || 1;
+  const nodeLevel = statusHierarchy[nodeTitle] || 1;
 
-  switch (nodeTitle) {
-    case 'Order Received':
-    case 'Payment Completed':
-      return { completed: true, error: false };
-    case 'Order Shipped':
-      return { completed: true, error: false };
-    case 'Out for Delivery':
-      return { completed: true, error: false };
-    case 'Delivered':
-      return { completed: true, error: false };
-    case 'Replacement Requested':
-      return { completed: true, error: true };
-    case 'Replacement In Process':
-      return { completed: currentStatus.includes('Completed') || currentStatus.includes('Completed'), error: false };
-    case 'Completed':
-      return { completed: currentStatus.includes('Completed'), error: false };
-    default:
-      return { completed: false, error: false };
-  }
+  const completed = currentLevel >= nodeLevel;
+  const error = (nodeTitle === 'Replacement Requested' && currentStatus === 'Pickup Failed') || 
+                (nodeTitle === 'Replacement In Process' && currentStatus === 'Delivery Failed') || 
+                (nodeTitle === 'Replacement Requested' && currentStatus === 'Delivery Failed');
+
+  return { completed, error };
 };
 
 export default function OrderDetailReplacement({
@@ -77,6 +72,10 @@ export default function OrderDetailReplacement({
   const [activeTab, setActiveTab] = useState<'replacement' | 'summary' | 'tracking'>('replacement');
   const [isPaymentExpanded, setIsPaymentExpanded] = useState(true);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(true);
+  const [isUpdateDropdownOpen, setIsUpdateDropdownOpen] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedReplacementReasons, setSelectedReplacementReasons] = useState<string[]>([]);
+  const [isOtherReplacementSelected, setIsOtherReplacementSelected] = useState(true);
   const timelineScrollRef = React.useRef<HTMLDivElement>(null);
 
   const scrollTimeline = (direction: 'left' | 'right') => {
@@ -94,6 +93,470 @@ export default function OrderDetailReplacement({
     { name: 'High-Speed Rotary Hook Assembly', code: 'HC3000', price: 1850, quantity: 2, tax: 1850, amount: 1850 },
     { name: 'High-Speed Rotary Hook Assembly', code: 'HC3000', price: 1850, quantity: 2, tax: 1850, amount: 1850 }
   ];
+
+  const handleInvoiceClick = () => {
+    const numericId = order.id.endsWith('6') ? '6' : '5';
+    window.open(`https://project-sewtech-mart.onrender.com/api/v1/mart/orders/${numericId}/invoice`, '_blank');
+  };
+
+  const renderActionButtons = () => {
+    const status = order.status;
+
+    if (status === 'Requested') {
+      return (
+        <>
+          <button 
+            onClick={handleInvoiceClick} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.5rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Invoice
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Pickup Scheduled')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#111827',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+          >
+            Initiate Replacement
+          </button>
+          <button 
+            onClick={() => setShowRejectModal(true)} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Cancel Request
+          </button>
+        </>
+      );
+    }
+
+    if (status === 'Pickup Scheduled') {
+      return (
+        <>
+          <button 
+            onClick={handleInvoiceClick} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.5rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Invoice
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Pickup Completed')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#111827',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+          >
+            Mark Pickup Completed
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Pickup Failed')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #ef4444',
+              backgroundColor: 'white',
+              color: '#ef4444',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Mark Pickup Failed
+          </button>
+          <button 
+            onClick={() => setShowRejectModal(true)} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Cancel Request
+          </button>
+        </>
+      );
+    }
+
+    if (status === 'Pickup Completed') {
+      return (
+        <>
+          <button 
+            onClick={handleInvoiceClick} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.5rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Invoice
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Replacement Shipped')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#111827',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+          >
+            Initiate Replacement Delivery
+          </button>
+          <button 
+            onClick={() => setShowRejectModal(true)} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Cancel Request
+          </button>
+        </>
+      );
+    }
+
+    if (status === 'Pickup Failed') {
+      return (
+        <>
+          <button 
+            onClick={handleInvoiceClick} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.5rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Invoice
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button 
+            onClick={() => onUpdateStatus('Pickup Scheduled')} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#111827',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+          >
+            Retry Pickup
+          </button>
+          <button 
+            onClick={() => setShowRejectModal(true)} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: 'none',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Cancel Request
+          </button>
+        </>
+      );
+    }
+
+    if (status === 'Replacement Shipped' || status === 'Delivery Failed') {
+      return (
+        <>
+          <button 
+            onClick={handleInvoiceClick} 
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              padding: '0.5rem 1rem',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.5rem',
+              backgroundColor: 'white',
+              color: '#374151',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Invoice
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          </button>
+          <button 
+            onClick={() => setShowRejectModal(true)} 
+            style={{
+              padding: '0.5rem 1rem',
+              borderRadius: '0.5rem',
+              border: '1px solid #ef4444',
+              backgroundColor: 'white',
+              color: '#ef4444',
+              fontSize: '0.875rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+          >
+            Cancel Order
+          </button>
+          <div style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setIsUpdateDropdownOpen(!isUpdateDropdownOpen)}
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                backgroundColor: '#111827',
+                color: 'white',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.375rem',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+            >
+              Update Status
+              <ChevronDown size={14} />
+            </button>
+            {isUpdateDropdownOpen && (
+              <>
+                <div onClick={() => setIsUpdateDropdownOpen(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }} />
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  right: 0,
+                  marginTop: '4px',
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+                  zIndex: 100,
+                  minWidth: '160px',
+                  overflow: 'hidden'
+                }}>
+                  {status === 'Replacement Shipped' ? (
+                    <>
+                      <button 
+                        onClick={() => { onUpdateStatus('Completed'); setIsUpdateDropdownOpen(false); }} 
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          padding: '0.625rem 1rem',
+                          fontSize: '0.875rem',
+                          color: '#374151',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.15s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        Delivery Completed
+                      </button>
+                      <button 
+                        onClick={() => { onUpdateStatus('Delivery Failed'); setIsUpdateDropdownOpen(false); }} 
+                        style={{
+                          display: 'block',
+                          width: '100%',
+                          padding: '0.625rem 1rem',
+                          fontSize: '0.875rem',
+                          color: '#374151',
+                          border: 'none',
+                          backgroundColor: 'transparent',
+                          textAlign: 'left',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.15s'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        Delivery Failed
+                      </button>
+                    </>
+                  ) : (
+                    <button 
+                      onClick={() => { onUpdateStatus('Replacement Shipped'); setIsUpdateDropdownOpen(false); }} 
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        padding: '0.625rem 1rem',
+                        fontSize: '0.875rem',
+                        color: '#374151',
+                        border: 'none',
+                        backgroundColor: 'transparent',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.15s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      Retry Delivery
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+        </>
+      );
+    }
+
+    return (
+      <button 
+        onClick={handleInvoiceClick} 
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '0.375rem',
+          padding: '0.5rem 1rem',
+          border: '1px solid #d1d5db',
+          borderRadius: '0.5rem',
+          backgroundColor: 'white',
+          color: '#374151',
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          cursor: 'pointer',
+          transition: 'background-color 0.2s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+      >
+        Invoice
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      </button>
+    );
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -143,76 +606,26 @@ export default function OrderDetailReplacement({
               {order.id.toUpperCase()}
               {copiedText === 'orderId' ? <Check size={10} style={{ color: '#16a34a' }} /> : <Copy size={10} />}
             </div>
+
+            <span style={{
+              fontSize: '0.75rem',
+              color: '#ef4444',
+              backgroundColor: '#fee2e2',
+              border: '1px solid #fecaca',
+              borderRadius: '0.375rem',
+              padding: '0.125rem 0.5rem',
+              fontWeight: 600,
+              display: 'inline-flex',
+              alignItems: 'center',
+              marginLeft: '0.5rem'
+            }}>
+              Replacement in Process
+            </span>
           </div>
 
           {/* Replacement Flow Action buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', position: 'relative' }}>
-            <button 
-              onClick={() => {
-                const numericId = order.id.endsWith('6') ? '6' : '5';
-                window.open(`https://project-sewtech-mart.onrender.com/api/v1/mart/orders/${numericId}/invoice`, '_blank');
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.375rem',
-                padding: '0.5rem 1rem',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.5rem',
-                backgroundColor: 'white',
-                color: '#374151',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-            >
-              Invoice
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            </button>
-
-            <button 
-              onClick={() => {
-                if (order.status === 'Replacement Requested' || order.status === 'Requested') onUpdateStatus('Replacement in Process');
-                else if (order.status === 'Replacement in Process') onUpdateStatus('Completed');
-              }}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                backgroundColor: '#111827',
-                color: 'white',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
-            >
-              {order.status === 'Replacement Requested' || order.status === 'Requested' ? 'Initiate Replacement' : 'Complete Replacement'}
-            </button>
-
-            <button 
-              onClick={() => setShowCancelModal(true)}
-              style={{
-                padding: '0.5rem 1rem',
-                borderRadius: '0.5rem',
-                border: 'none',
-                backgroundColor: '#ef4444',
-                color: 'white',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
-            >
-              Cancel Request
-            </button>
+            {renderActionButtons()}
           </div>
         </div>
 
@@ -245,7 +658,13 @@ export default function OrderDetailReplacement({
 
           <div>
             <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500, marginBottom: '0.25rem' }}>Status:</div>
-            <span className={`badge badge-warning`}>
+            <span className={`badge ${
+              order.status === 'Requested' || order.status === 'Replacement Requested' ? 'badge-warning' :
+              order.status === 'Pickup Scheduled' || order.status === 'Replacement Shipped' ? 'badge-warning' :
+              order.status === 'Pickup Completed' || order.status === 'Completed' ? 'badge-completed' :
+              order.status === 'Pickup Failed' || order.status === 'Delivery Failed' ? 'badge-danger' :
+              'badge-info'
+            }`}>
               {order.status}
             </span>
           </div>
@@ -548,6 +967,118 @@ export default function OrderDetailReplacement({
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Reject Request Modal */}
+      {showRejectModal && (
+        <div className="modal-overlay">
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.75rem',
+            padding: '1.5rem',
+            width: '500px',
+            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            animation: 'fadeIn 0.2s ease-out',
+            position: 'relative'
+          }}>
+            <button 
+              onClick={() => setShowRejectModal(false)}
+              style={{ 
+                position: 'absolute', 
+                top: '-12px', 
+                right: '-12px', 
+                background: '#1f2937', 
+                color: 'white', 
+                border: 'none', 
+                borderRadius: '50%', 
+                width: '28px', 
+                height: '28px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                cursor: 'pointer', 
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)' 
+              }}
+            >
+              <X size={14} />
+            </button>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', margin: 0, marginBottom: '0.5rem' }}>Select Reason</h3>
+            
+            <div style={{ backgroundColor: '#f8fafc', borderRadius: '0.5rem', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {[
+                'Product is not eligible for replacement',
+                'Item shows signs of use or damage after delivery',
+                'Issue reported does not match the returned item',
+                'Original tags / packaging missing',
+                'Invoice / order details mismatch',
+                'Incorrect replacement reason selected'
+              ].map((reason, index) => (
+                <label 
+                  key={reason} 
+                  htmlFor={`replace-reason-${index}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.875rem', color: '#4b5563' }}
+                >
+                  <input 
+                    id={`replace-reason-${index}`}
+                    type="checkbox" 
+                    checked={selectedReplacementReasons.includes(reason)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedReplacementReasons([...selectedReplacementReasons, reason]);
+                      } else {
+                        setSelectedReplacementReasons(selectedReplacementReasons.filter(r => r !== reason));
+                      }
+                    }}
+                    style={{ width: '16px', height: '16px', accentColor: '#111827', cursor: 'pointer' }} 
+                  />
+                  {reason}
+                </label>
+              ))}
+              
+              <label 
+                htmlFor="replace-reason-other"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.875rem', color: '#111827', fontWeight: 500 }}
+              >
+                <input 
+                  id="replace-reason-other"
+                  type="checkbox" 
+                  checked={isOtherReplacementSelected} 
+                  onChange={(e) => setIsOtherReplacementSelected(e.target.checked)}
+                  style={{ width: '16px', height: '16px', accentColor: '#111827', cursor: 'pointer' }} 
+                />
+                Other
+              </label>
+
+              <div style={{ marginTop: '0.5rem' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#111827', marginBottom: '0.5rem' }}>Add Note</div>
+                <input type="text" placeholder="Add Note" style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #e5e7eb', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem' }} />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+              <button 
+                onClick={() => setShowRejectModal(false)}
+                style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #111827', backgroundColor: 'white', color: '#111827', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Back
+              </button>
+              
+              <button 
+                onClick={() => {
+                  onCancelOrder();
+                  setShowRejectModal(false);
+                }}
+                style={{ flex: 1, padding: '0.75rem', borderRadius: '0.5rem', border: 'none', backgroundColor: '#ff4444', color: 'white', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Reject Request
+              </button>
+            </div>
           </div>
         </div>
       )}

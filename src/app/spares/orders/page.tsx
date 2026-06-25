@@ -17,12 +17,20 @@ import {
 import FiltersDrawer from '@/components/orders/FiltersDrawer';
 
 const INITIAL_ORDERS = [
-  { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Items not arriving on time', orderValue: 1850, status: 'Requested', avatarLetter: 'b', paymentMethod: 'UPI' },
-  { id: 'sth-rh-2046', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Need to change address', orderValue: 1850, status: 'Pickup Scheduled', avatarLetter: 'b', paymentMethod: 'UPI' },
-  { id: 'sth-rh-2047', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Ordered by mistake', orderValue: 1850, status: 'Pickup Failed', avatarLetter: 'b', paymentMethod: 'UPI' },
-  { id: 'sth-rh-2048', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 1850, status: 'Return Requested', avatarLetter: 'b', paymentMethod: 'UPI' },
-  { id: 'sth-rh-2049', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Changed mind', orderValue: 1850, status: 'Replacement in Process', avatarLetter: 'b', paymentMethod: 'UPI' },
-  { id: 'sth-rh-2050', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Wrong item sent', orderValue: 1850, status: 'Refund Completed', avatarLetter: 'b', paymentMethod: 'UPI' },
+  { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Items not arriving on time', orderValue: 5550, status: 'Requested', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2046', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Need to change address', orderValue: 5550, status: 'Pickup Scheduled', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2047', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Ordered by mistake', orderValue: 5550, status: 'Pickup Failed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2048', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Return Requested', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2049', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Changed mind', orderValue: 5550, status: 'Replacement in Process', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2050', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Wrong item sent', orderValue: 5550, status: 'Refund Completed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2051', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Pickup Completed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2052', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Replacement Shipped', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2053', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Delivery Failed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2054', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Completed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2055', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Wrong item sent', orderValue: 5550, status: 'Refund Initiated', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2056', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Pickup Scheduled', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2057', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Pickup Completed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2058', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Pickup Failed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
 ];
 
 export default function SparesOrdersPage() {
@@ -138,9 +146,26 @@ export default function SparesOrdersPage() {
     
     // Tab filter
     if (activeTab === 'All') return matchesSearch;
-    if (activeTab === 'Ordered') return matchesSearch && (order.status === 'Order Received' || order.status === 'Processing');
-    if (activeTab === 'Return') return matchesSearch && (order.status === 'Return Requested');
-    if (activeTab === 'Replacement') return matchesSearch && (order.status === 'Shipped' || order.status === 'Out for Delivery');
+    if (activeTab === 'Ordered') return matchesSearch && (
+      order.status === 'Order Received' || 
+      order.status === 'Processing' || 
+      order.status === 'Shipped' || 
+      order.status === 'Out for Delivery' || 
+      order.status === 'Delivered'
+    );
+    if (activeTab === 'Return') return matchesSearch && (
+      order.type === 'return' ||
+      order.status === 'Return Requested' || 
+      order.status.includes('Refund')
+    );
+    if (activeTab === 'Replacement') return matchesSearch && (
+      order.type === 'replacement' ||
+      order.status === 'Requested' || 
+      order.status.includes('Pickup') || 
+      order.status.includes('Replacement') || 
+      order.status.includes('Delivery') || 
+      order.status === 'Completed'
+    );
     if (activeTab === 'Cancelled') return matchesSearch && (order.status === 'Cancelled');
     
     return matchesSearch;
