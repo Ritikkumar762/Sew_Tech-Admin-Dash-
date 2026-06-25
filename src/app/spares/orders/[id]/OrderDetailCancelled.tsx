@@ -148,40 +148,43 @@ export default function OrderDetailCancelled({
               </button>
 
               {isStatusMenuOpen && (
-                <div style={{
-                  position: 'absolute',
-                  right: 0,
-                  top: '100%',
-                  marginTop: '0.5rem',
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '0.5rem',
-                  boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)',
-                  width: '160px',
-                  zIndex: 50,
-                  padding: '0.25rem 0'
-                }}>
-                  {[
-                    'Order Received',
-                    'Processing',
-                    'Shipped',
-                    'Out for Delivery',
-                    'Delivered',
-                    'Completed',
-                    'Cancelled'
-                  ].map((status) => (
-                    <button
-                      key={status}
-                      onClick={() => {
-                        onUpdateStatus(status);
-                        setIsStatusMenuOpen(false);
-                      }}
-                      className="status-item"
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
+                <>
+                  <div onClick={() => setIsStatusMenuOpen(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }} />
+                  <div style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: '100%',
+                    marginTop: '0.5rem',
+                    backgroundColor: 'white',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '0.5rem',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    width: '160px',
+                    zIndex: 100,
+                    padding: '0.25rem 0'
+                  }}>
+                    {[
+                      'Order Received',
+                      'Processing',
+                      'Shipped',
+                      'Out for Delivery',
+                      'Delivered',
+                      'Completed',
+                      'Cancelled'
+                    ].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          onUpdateStatus(status);
+                          setIsStatusMenuOpen(false);
+                        }}
+                        className="status-item"
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </div>

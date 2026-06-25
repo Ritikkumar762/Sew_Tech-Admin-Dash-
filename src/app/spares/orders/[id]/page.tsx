@@ -10,20 +10,31 @@ import OrderDetailCancelled from './OrderDetailCancelled';
 
 // Rich Mock Data for Detail Retrieval (to fetch corresponding order detail)
 const MOCK_ORDER_DETAILS: Record<string, any> = {
-  'sth-rh-2045': { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Requested', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0001', type: 'replacement' },
-  'sth-rh-2046': { id: 'sth-rh-2046', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Scheduled', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0002', type: 'replacement' },
-  'sth-rh-2047': { id: 'sth-rh-2047', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Failed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0003', type: 'replacement' },
-  'sth-rh-2048': { id: 'sth-rh-2048', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Return Requested', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0004', type: 'return' },
-  'sth-rh-2049': { id: 'sth-rh-2049', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Replacement in Process', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0005', type: 'replacement' },
-  'sth-rh-2050': { id: 'sth-rh-2050', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Refund Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0006', type: 'return' },
-  'sth-rh-2051': { id: 'sth-rh-2051', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0007', type: 'replacement' },
-  'sth-rh-2052': { id: 'sth-rh-2052', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Replacement Shipped', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0008', type: 'replacement' },
-  'sth-rh-2053': { id: 'sth-rh-2053', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Delivery Failed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0009', type: 'replacement' },
-  'sth-rh-2054': { id: 'sth-rh-2054', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0010', type: 'replacement' },
-  'sth-rh-2055': { id: 'sth-rh-2055', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Refund Initiated', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0011', type: 'return' },
-  'sth-rh-2056': { id: 'sth-rh-2056', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Scheduled', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0012', type: 'return' },
-  'sth-rh-2057': { id: 'sth-rh-2057', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0013', type: 'return' },
-  'sth-rh-2058': { id: 'sth-rh-2058', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Pickup Failed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0014', type: 'return' },
+  'sth-rh-2045': { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Requested', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0001', type: 'replacement' },
+  'sth-rh-2046': { id: 'sth-rh-2046', customerName: 'Rohan Sharma', email: 'rohan.sharma@gmail.com', phone: '+919988776655', orderValue: 4320, status: 'Pickup Scheduled', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0002', type: 'replacement' },
+  'sth-rh-2047': { id: 'sth-rh-2047', customerName: 'Sneha Patil', email: 'sneha.patil@gmail.com', phone: '+919123456789', orderValue: 2150, status: 'Pickup Failed', paymentMethod: 'Card', txnId: 'TXN-DEL-20260203-0003', type: 'replacement' },
+  'sth-rh-2048': { id: 'sth-rh-2048', customerName: 'Rahul Verma', email: 'rahul.verma@gmail.com', phone: '+919876543211', orderValue: 3500, status: 'Return Requested', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0004', type: 'return' },
+  'sth-rh-2049': { id: 'sth-rh-2049', customerName: 'Priya Nair', email: 'priya.nair@gmail.com', phone: '+918877665544', orderValue: 1200, status: 'Replacement in Process', paymentMethod: 'COD', txnId: 'TXN-DEL-20260203-0005', type: 'replacement' },
+  'sth-rh-2050': { id: 'sth-rh-2050', customerName: 'Amit Gupta', email: 'amit.gupta@gmail.com', phone: '+917766554433', orderValue: 6700, status: 'Refund Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0006', type: 'return' },
+  'sth-rh-2051': { id: 'sth-rh-2051', customerName: 'Karan Malhotra', email: 'karan.m@gmail.com', phone: '+916655443322', orderValue: 5550, status: 'Pickup Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0007', type: 'replacement' },
+  'sth-rh-2052': { id: 'sth-rh-2052', customerName: 'Devendra Joshi', email: 'devendra.j@gmail.com', phone: '+915544332211', orderValue: 8900, status: 'Replacement Shipped', paymentMethod: 'Netbanking', txnId: 'TXN-DEL-20260203-0008', type: 'replacement' },
+  'sth-rh-2053': { id: 'sth-rh-2053', customerName: 'Ananya Sen', email: 'ananya.s@gmail.com', phone: '+914433221100', orderValue: 4500, status: 'Delivery Failed', paymentMethod: 'Card', txnId: 'TXN-DEL-20260203-0009', type: 'replacement' },
+  'sth-rh-2054': { id: 'sth-rh-2054', customerName: 'Rajesh Kumar', email: 'rajesh.k@gmail.com', phone: '+913322110099', orderValue: 3100, status: 'Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0010', type: 'replacement' },
+  'sth-rh-2055': { id: 'sth-rh-2055', customerName: 'Meera Nair', email: 'meera.n@gmail.com', phone: '+912211009988', orderValue: 2400, status: 'Refund Initiated', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0011', type: 'return' },
+  'sth-rh-2056': { id: 'sth-rh-2056', customerName: 'Vikram Singh', email: 'vikram.singh@gmail.com', phone: '+911100998877', orderValue: 5300, status: 'Pickup Scheduled', paymentMethod: 'Netbanking', txnId: 'TXN-DEL-20260203-0012', type: 'return' },
+  'sth-rh-2057': { id: 'sth-rh-2057', customerName: 'Neha Sharma', email: 'neha.s@gmail.com', phone: '+919900112233', orderValue: 6200, status: 'Pickup Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0013', type: 'return' },
+  'sth-rh-2058': { id: 'sth-rh-2058', customerName: 'Arjun Kapoor', email: 'arjun.k@gmail.com', phone: '+919911223344', orderValue: 7500, status: 'Pickup Failed', paymentMethod: 'Card', txnId: 'TXN-DEL-20260203-0014', type: 'return' },
+  
+  // Ordered Tab matches (status is: 'Order Received', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered')
+  'sth-rh-2059': { id: 'sth-rh-2059', customerName: 'Gaurav Mehta', email: 'gaurav.mehta@gmail.com', phone: '+919922334455', orderValue: 6700, status: 'Shipped', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0015', type: 'order' },
+  'sth-rh-2060': { id: 'sth-rh-2060', customerName: 'Siddharth Rao', email: 'sid.rao@gmail.com', phone: '+919933445566', orderValue: 3450, status: 'Processing', paymentMethod: 'Card', txnId: 'TXN-DEL-20260203-0016', type: 'order' },
+  'sth-rh-2061': { id: 'sth-rh-2061', customerName: 'Ishaan Verma', email: 'ishaan.v@gmail.com', phone: '+919944556677', orderValue: 8900, status: 'Order Received', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0017', type: 'order' },
+  'sth-rh-2062': { id: 'sth-rh-2062', customerName: 'Rohan Deshmukh', email: 'rohan.d@gmail.com', phone: '+919955667788', orderValue: 4500, status: 'Out for Delivery', paymentMethod: 'COD', txnId: 'TXN-DEL-20260203-0018', type: 'order' },
+  'sth-rh-2063': { id: 'sth-rh-2063', customerName: 'Deepa Krishnan', email: 'deepa.k@gmail.com', phone: '+919966778899', orderValue: 5800, status: 'Delivered', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0019', type: 'order' },
+
+  // Cancelled Tab matches (status is: 'Cancelled')
+  'sth-rh-2064': { id: 'sth-rh-2064', customerName: 'Ishita Sen', email: 'ishita.s@gmail.com', phone: '+919977889900', orderValue: 3100, status: 'Cancelled', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0020', type: 'order' },
+  'sth-rh-2065': { id: 'sth-rh-2065', customerName: 'Kabir Bakshi', email: 'kabir.b@gmail.com', phone: '+919988990011', orderValue: 2400, status: 'Cancelled', paymentMethod: 'Card', txnId: 'TXN-DEL-20260203-0021', type: 'order' }
 };
 
 interface OrderDetail {

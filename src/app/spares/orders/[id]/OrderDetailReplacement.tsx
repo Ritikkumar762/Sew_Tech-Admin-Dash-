@@ -112,9 +112,10 @@ export default function OrderDetailReplacement({
 
   const renderActionButtons = () => {
     const status = order.status;
+    let mainButtons: React.ReactNode = null;
 
     if (status === 'Requested') {
-      return (
+      mainButtons = (
         <>
           <button 
             onClick={handleInvoiceClick} 
@@ -176,10 +177,8 @@ export default function OrderDetailReplacement({
           </button>
         </>
       );
-    }
-
-    if (status === 'Pickup Scheduled') {
-      return (
+    } else if (status === 'Pickup Scheduled') {
+      mainButtons = (
         <>
           <button 
             onClick={handleInvoiceClick} 
@@ -259,10 +258,8 @@ export default function OrderDetailReplacement({
           </button>
         </>
       );
-    }
-
-    if (status === 'Pickup Completed') {
-      return (
+    } else if (status === 'Pickup Completed') {
+      mainButtons = (
         <>
           <button 
             onClick={handleInvoiceClick} 
@@ -324,10 +321,8 @@ export default function OrderDetailReplacement({
           </button>
         </>
       );
-    }
-
-    if (status === 'Pickup Failed') {
-      return (
+    } else if (status === 'Pickup Failed') {
+      mainButtons = (
         <>
           <button 
             onClick={handleInvoiceClick} 
@@ -389,10 +384,8 @@ export default function OrderDetailReplacement({
           </button>
         </>
       );
-    }
-
-    if (status === 'Replacement Shipped' || status === 'Delivery Failed') {
-      return (
+    } else {
+      mainButtons = (
         <>
           <button 
             onClick={handleInvoiceClick} 
@@ -416,24 +409,34 @@ export default function OrderDetailReplacement({
             Invoice
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           </button>
-          <button 
-            onClick={() => setShowRejectModal(true)} 
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: '0.5rem',
-              border: '1px solid #ef4444',
-              backgroundColor: 'white',
-              color: '#ef4444',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-          >
-            Cancel Order
-          </button>
+          {status !== 'Completed' && status !== 'Cancelled' && (
+            <button 
+              onClick={() => setShowRejectModal(true)} 
+              style={{
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: '1px solid #ef4444',
+                backgroundColor: 'white',
+                color: '#ef4444',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+            >
+              Cancel Order
+            </button>
+          )}
+        </>
+      );
+    }
+
+    return (
+      <>
+        {mainButtons}
+        {status !== 'Completed' && status !== 'Cancelled' && (
           <div style={{ position: 'relative' }}>
             <button 
               onClick={() => setIsUpdateDropdownOpen(!isUpdateDropdownOpen)}
@@ -468,104 +471,36 @@ export default function OrderDetailReplacement({
                   backgroundColor: 'white',
                   border: '1px solid #e5e7eb',
                   borderRadius: '0.5rem',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                   zIndex: 100,
-                  minWidth: '160px',
-                  overflow: 'hidden'
+                  minWidth: '185px',
+                  padding: '0.25rem 0'
                 }}>
-                  {status === 'Replacement Shipped' ? (
-                    <>
-                      <button 
-                        onClick={() => { onUpdateStatus('Completed'); setIsUpdateDropdownOpen(false); }} 
-                        style={{
-                          display: 'block',
-                          width: '100%',
-                          padding: '0.625rem 1rem',
-                          fontSize: '0.875rem',
-                          color: '#374151',
-                          border: 'none',
-                          backgroundColor: 'transparent',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.15s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        Delivery Completed
-                      </button>
-                      <button 
-                        onClick={() => { onUpdateStatus('Delivery Failed'); setIsUpdateDropdownOpen(false); }} 
-                        style={{
-                          display: 'block',
-                          width: '100%',
-                          padding: '0.625rem 1rem',
-                          fontSize: '0.875rem',
-                          color: '#374151',
-                          border: 'none',
-                          backgroundColor: 'transparent',
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          transition: 'background-color 0.15s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                      >
-                        Delivery Failed
-                      </button>
-                    </>
-                  ) : (
+                  {[
+                    'Requested',
+                    'Pickup Scheduled',
+                    'Pickup Completed',
+                    'Pickup Failed',
+                    'Replacement in Process',
+                    'Replacement Shipped',
+                    'Delivery Failed',
+                    'Completed',
+                    'Cancelled'
+                  ].map((statusVal) => (
                     <button 
-                      onClick={() => { onUpdateStatus('Replacement Shipped'); setIsUpdateDropdownOpen(false); }} 
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        padding: '0.625rem 1rem',
-                        fontSize: '0.875rem',
-                        color: '#374151',
-                        border: 'none',
-                        backgroundColor: 'transparent',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        transition: 'background-color 0.15s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      key={statusVal}
+                      onClick={() => { onUpdateStatus(statusVal); setIsUpdateDropdownOpen(false); }} 
+                      className="status-item"
                     >
-                      Retry Delivery
+                      {statusVal}
                     </button>
-                  )}
+                  ))}
                 </div>
               </>
             )}
           </div>
-        </>
-      );
-    }
-
-    return (
-      <button 
-        onClick={handleInvoiceClick} 
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.375rem',
-          padding: '0.5rem 1rem',
-          border: '1px solid #d1d5db',
-          borderRadius: '0.5rem',
-          backgroundColor: 'white',
-          color: '#374151',
-          fontSize: '0.875rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          transition: 'background-color 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-      >
-        Invoice
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-      </button>
+        )}
+      </>
     );
   };
 

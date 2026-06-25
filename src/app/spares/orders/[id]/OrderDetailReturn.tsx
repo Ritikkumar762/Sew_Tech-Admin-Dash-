@@ -81,6 +81,7 @@ export default function OrderDetailReturn({
   const [activeTab, setActiveTab] = useState<'return' | 'summary' | 'tracking'>('return');
   const [isPaymentExpanded, setIsPaymentExpanded] = useState(true);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(true);
+  const [isStatusMenuOpen, setIsStatusMenuOpen] = useState(false);
   const timelineScrollRef = React.useRef<HTMLDivElement>(null);
 
   const scrollTimeline = (direction: 'left' | 'right') => {
@@ -106,9 +107,10 @@ export default function OrderDetailReturn({
 
   const renderActionButtons = () => {
     const status = order.status;
+    let mainButtons: React.ReactNode = null;
 
     if (status === 'Return Requested' || status === 'Requested') {
-      return (
+      mainButtons = (
         <>
           <button 
             onClick={handleInvoiceClick} 
@@ -170,10 +172,8 @@ export default function OrderDetailReturn({
           </button>
         </>
       );
-    }
-
-    if (status === 'Pickup Scheduled') {
-      return (
+    } else if (status === 'Pickup Scheduled') {
+      mainButtons = (
         <>
           <button 
             onClick={handleInvoiceClick} 
@@ -253,10 +253,8 @@ export default function OrderDetailReturn({
           </button>
         </>
       );
-    }
-
-    if (status === 'Pickup Completed') {
-      return (
+    } else if (status === 'Pickup Completed') {
+      mainButtons = (
         <>
           <button 
             onClick={handleInvoiceClick} 
@@ -318,10 +316,8 @@ export default function OrderDetailReturn({
           </button>
         </>
       );
-    }
-
-    if (status === 'Pickup Failed') {
-      return (
+    } else if (status === 'Pickup Failed') {
+      mainButtons = (
         <>
           <button 
             onClick={handleInvoiceClick} 
@@ -383,10 +379,8 @@ export default function OrderDetailReturn({
           </button>
         </>
       );
-    }
-
-    if (status === 'Refund Initiated') {
-      return (
+    } else if (status === 'Refund Initiated') {
+      mainButtons = (
         <>
           <button 
             onClick={handleInvoiceClick} 
@@ -448,31 +442,103 @@ export default function OrderDetailReturn({
           </button>
         </>
       );
+    } else {
+      mainButtons = (
+        <button 
+          onClick={handleInvoiceClick} 
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.375rem',
+            padding: '0.5rem 1rem',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.5rem',
+            backgroundColor: 'white',
+            color: '#374151',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'background-color 0.2s'
+          }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+        >
+          Invoice
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        </button>
+      );
     }
 
     return (
-      <button 
-        onClick={handleInvoiceClick} 
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '0.375rem',
-          padding: '0.5rem 1rem',
-          border: '1px solid #d1d5db',
-          borderRadius: '0.5rem',
-          backgroundColor: 'white',
-          color: '#374151',
-          fontSize: '0.875rem',
-          fontWeight: 600,
-          cursor: 'pointer',
-          transition: 'background-color 0.2s'
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-      >
-        Invoice
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-      </button>
+      <>
+        {mainButtons}
+        {status !== 'Refund Completed' && status !== 'Cancelled' && (
+          <div style={{ position: 'relative' }}>
+            <button 
+              onClick={() => setIsStatusMenuOpen(!isStatusMenuOpen)}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                borderRadius: '0.5rem',
+                border: 'none',
+                backgroundColor: '#111827',
+                color: 'white',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1f2937'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
+            >
+              Update Status
+              <ChevronDown size={14} />
+            </button>
+            
+            {isStatusMenuOpen && (
+              <>
+                <div onClick={() => setIsStatusMenuOpen(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 90 }} />
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: '100%',
+                  marginTop: '0.5rem',
+                  backgroundColor: 'white',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '0.5rem',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                  width: '180px',
+                  zIndex: 100,
+                  padding: '0.25rem 0'
+                }}>
+                  {[
+                    'Return Requested',
+                    'Pickup Scheduled',
+                    'Pickup Completed',
+                    'Pickup Failed',
+                    'Refund Initiated',
+                    'Refund Completed',
+                    'Cancelled'
+                  ].map((statusVal) => (
+                    <button
+                      key={statusVal}
+                      onClick={() => {
+                        onUpdateStatus(statusVal);
+                        setIsStatusMenuOpen(false);
+                      }}
+                      className="status-item"
+                    >
+                      {statusVal}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </>
     );
   };
 
