@@ -520,32 +520,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                     )}
                   </div>
 
-                  {/* Add-on Spares Row (Ongoing Service) */}
-                  {!isDiagnosisFlow && ['Ongoing', 'Completed'].includes(orderStatus) && (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '10px', marginTop: '12px', background: '#fff', overflowX: 'auto' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 'max-content' }}>
-                        <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }} />
-                        <div style={{ width: '40px', height: '40px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <img src="/rotary_hook.png" alt="Rotary Hook" style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} />
-                        </div>
-                        <div style={{ marginRight: '1rem' }}>
-                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1e293b' }}>High-Speed Rotary Hook Assembly</div>
-                          <div style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '2px' }}>Rotary Hook</div>
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.75rem', fontWeight: 600, color: '#475569', minWidth: 'max-content' }}>
-                        <span style={{ background: '#eff6ff', color: '#2563eb', padding: '3px 10px', borderRadius: '6px' }}>3</span>
-                        <span>2</span>
-                        <span style={{ color: '#1e293b' }}>₹1,850 - ₹2,400</span>
-                        <span style={{ color: '#3b82f6' }}>45</span>
-                        <span style={{ background: '#dcfce7', color: '#16a34a', padding: '3px 10px', borderRadius: '6px' }}>Live</span>
-                        <button className="od-hov" style={{ background: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          View
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                        </button>
-                      </div>
-                    </div>
-                  )}
+
 
                   {/* Extended Service Details (Diagnosis Available State) */}
                   {isDiagnosisFlow && ['DiagnosisAvailable', 'Completed', 'PickUp'].includes(orderStatus) && (
