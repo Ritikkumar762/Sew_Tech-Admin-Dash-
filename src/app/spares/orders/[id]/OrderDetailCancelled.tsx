@@ -115,6 +115,10 @@ export default function OrderDetailCancelled({
               {order.id.toUpperCase()}
               {copiedText === 'orderId' ? <Check size={10} style={{ color: '#16a34a' }} /> : <Copy size={10} />}
             </div>
+
+            <span className="badge badge-danger" style={{ marginLeft: '0.5rem' }}>
+              Cancelled
+            </span>
           </div>
 
           {/* Cancelled Flow Action buttons */}

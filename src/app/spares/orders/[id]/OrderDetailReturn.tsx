@@ -57,6 +57,17 @@ const getTimelineState = (nodeTitle: string, currentStatus: string) => {
   }
 };
 
+const getStatusBadgeClass = (status: string) => {
+  const s = status.toLowerCase();
+  if (s.includes('completed') || s.includes('received') || s.includes('delivered')) {
+    return 'badge-completed';
+  }
+  if (s.includes('failed') || s.includes('cancelled')) {
+    return 'badge-danger';
+  }
+  return 'badge-warning';
+};
+
 export default function OrderDetailReturn({
   order,
   onUpdateStatus,
@@ -513,6 +524,10 @@ export default function OrderDetailReturn({
               {order.id.toUpperCase()}
               {copiedText === 'orderId' ? <Check size={10} style={{ color: '#16a34a' }} /> : <Copy size={10} />}
             </div>
+
+            <span className={`badge ${getStatusBadgeClass(order.status)}`} style={{ marginLeft: '0.5rem' }}>
+              {order.status}
+            </span>
           </div>
 
           {/* Return Flow Action buttons */}
@@ -550,7 +565,7 @@ export default function OrderDetailReturn({
 
           <div>
             <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500, marginBottom: '0.25rem' }}>Status:</div>
-            <span className={`badge badge-info`}>
+            <span className={`badge ${getStatusBadgeClass(order.status)}`}>
               {order.status}
             </span>
           </div>

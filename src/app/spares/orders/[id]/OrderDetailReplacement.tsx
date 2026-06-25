@@ -59,6 +59,17 @@ const getTimelineState = (nodeTitle: string, currentStatus: string) => {
   return { completed, error };
 };
 
+const getStatusBadgeClass = (status: string) => {
+  const s = status.toLowerCase();
+  if (s === 'pickup completed' || s === 'completed') {
+    return 'badge-completed';
+  }
+  if (s === 'pickup failed' || s === 'delivery failed') {
+    return 'badge-danger';
+  }
+  return 'badge-warning';
+};
+
 export default function OrderDetailReplacement({
   order,
   onUpdateStatus,
@@ -607,19 +618,8 @@ export default function OrderDetailReplacement({
               {copiedText === 'orderId' ? <Check size={10} style={{ color: '#16a34a' }} /> : <Copy size={10} />}
             </div>
 
-            <span style={{
-              fontSize: '0.75rem',
-              color: '#ef4444',
-              backgroundColor: '#fee2e2',
-              border: '1px solid #fecaca',
-              borderRadius: '0.375rem',
-              padding: '0.125rem 0.5rem',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              marginLeft: '0.5rem'
-            }}>
-              Replacement in Process
+            <span className={`badge ${getStatusBadgeClass(order.status)}`} style={{ marginLeft: '0.5rem' }}>
+              {order.status}
             </span>
           </div>
 
@@ -658,13 +658,7 @@ export default function OrderDetailReplacement({
 
           <div>
             <div style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500, marginBottom: '0.25rem' }}>Status:</div>
-            <span className={`badge ${
-              order.status === 'Requested' || order.status === 'Replacement Requested' ? 'badge-warning' :
-              order.status === 'Pickup Scheduled' || order.status === 'Replacement Shipped' ? 'badge-warning' :
-              order.status === 'Pickup Completed' || order.status === 'Completed' ? 'badge-completed' :
-              order.status === 'Pickup Failed' || order.status === 'Delivery Failed' ? 'badge-danger' :
-              'badge-info'
-            }`}>
+            <span className={`badge ${getStatusBadgeClass(order.status)}`}>
               {order.status}
             </span>
           </div>

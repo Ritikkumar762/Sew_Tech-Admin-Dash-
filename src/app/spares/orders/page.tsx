@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Search, 
@@ -16,21 +16,33 @@ import {
 } from 'lucide-react';
 import FiltersDrawer from '@/components/orders/FiltersDrawer';
 
+// Comprehensive mock data covering all order statuses and tabs
 const INITIAL_ORDERS = [
-  { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Items not arriving on time', orderValue: 5550, status: 'Requested', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2046', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Need to change address', orderValue: 5550, status: 'Pickup Scheduled', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2047', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Ordered by mistake', orderValue: 5550, status: 'Pickup Failed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2048', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Return Requested', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
-  { id: 'sth-rh-2049', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Changed mind', orderValue: 5550, status: 'Replacement in Process', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2050', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Wrong item sent', orderValue: 5550, status: 'Refund Completed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
-  { id: 'sth-rh-2051', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Pickup Completed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2052', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Replacement Shipped', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2053', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Delivery Failed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2054', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Completed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2055', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Wrong item sent', orderValue: 5550, status: 'Refund Initiated', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
-  { id: 'sth-rh-2056', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Pickup Scheduled', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
-  { id: 'sth-rh-2057', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Pickup Completed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
-  { id: 'sth-rh-2058', customerName: 'Aditya Bhargav', email: 'demoemail@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Pickup Failed', avatarLetter: 'b', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Items not arriving on time', orderValue: 5550, status: 'Requested', avatarLetter: 'a', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2046', customerName: 'Rohan Sharma', email: 'rohan.sharma@gmail.com', phone: '+919988776655', date: "21 Jan' 26", reason: 'Need to change address', orderValue: 4320, status: 'Pickup Scheduled', avatarLetter: 'r', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2047', customerName: 'Sneha Patil', email: 'sneha.patil@gmail.com', phone: '+919123456789', date: "21 Jan' 26", reason: 'Ordered by mistake', orderValue: 2150, status: 'Pickup Failed', avatarLetter: 's', paymentMethod: 'Card', type: 'replacement' },
+  { id: 'sth-rh-2048', customerName: 'Rahul Verma', email: 'rahul.verma@gmail.com', phone: '+919876543211', date: "21 Jan' 26", reason: 'Defective product', orderValue: 3500, status: 'Return Requested', avatarLetter: 'r', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2049', customerName: 'Priya Nair', email: 'priya.nair@gmail.com', phone: '+918877665544', date: "21 Jan' 26", reason: 'Changed mind', orderValue: 1200, status: 'Replacement in Process', avatarLetter: 'p', paymentMethod: 'COD', type: 'replacement' },
+  { id: 'sth-rh-2050', customerName: 'Amit Gupta', email: 'amit.gupta@gmail.com', phone: '+917766554433', date: "21 Jan' 26", reason: 'Wrong item sent', orderValue: 6700, status: 'Refund Completed', avatarLetter: 'a', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2051', customerName: 'Karan Malhotra', email: 'karan.m@gmail.com', phone: '+916655443322', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Pickup Completed', avatarLetter: 'k', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2052', customerName: 'Devendra Joshi', email: 'devendra.j@gmail.com', phone: '+915544332211', date: "21 Jan' 26", reason: 'Defective product', orderValue: 8900, status: 'Replacement Shipped', avatarLetter: 'd', paymentMethod: 'Netbanking', type: 'replacement' },
+  { id: 'sth-rh-2053', customerName: 'Ananya Sen', email: 'ananya.s@gmail.com', phone: '+914433221100', date: "21 Jan' 26", reason: 'Defective product', orderValue: 4500, status: 'Delivery Failed', avatarLetter: 'a', paymentMethod: 'Card', type: 'replacement' },
+  { id: 'sth-rh-2054', customerName: 'Rajesh Kumar', email: 'rajesh.k@gmail.com', phone: '+913322110099', date: "21 Jan' 26", reason: 'Defective product', orderValue: 3100, status: 'Completed', avatarLetter: 'r', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2055', customerName: 'Meera Nair', email: 'meera.n@gmail.com', phone: '+912211009988', date: "21 Jan' 26", reason: 'Wrong item sent', orderValue: 2400, status: 'Refund Initiated', avatarLetter: 'm', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2056', customerName: 'Vikram Singh', email: 'vikram.singh@gmail.com', phone: '+911100998877', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5300, status: 'Pickup Scheduled', avatarLetter: 'v', paymentMethod: 'Netbanking', type: 'return' },
+  { id: 'sth-rh-2057', customerName: 'Neha Sharma', email: 'neha.s@gmail.com', phone: '+919900112233', date: "21 Jan' 26", reason: 'Defective product', orderValue: 6200, status: 'Pickup Completed', avatarLetter: 'n', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2058', customerName: 'Arjun Kapoor', email: 'arjun.k@gmail.com', phone: '+919911223344', date: "21 Jan' 26", reason: 'Defective product', orderValue: 7500, status: 'Pickup Failed', avatarLetter: 'a', paymentMethod: 'Card', type: 'return' },
+  
+  // Ordered Tab matches (status is: 'Order Received', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered')
+  { id: 'sth-rh-2059', customerName: 'Gaurav Mehta', email: 'gaurav.mehta@gmail.com', phone: '+919922334455', date: "22 Jan' 26", reason: 'None', orderValue: 6700, status: 'Shipped', avatarLetter: 'g', paymentMethod: 'UPI', type: 'order' },
+  { id: 'sth-rh-2060', customerName: 'Siddharth Rao', email: 'sid.rao@gmail.com', phone: '+919933445566', date: "22 Jan' 26", reason: 'None', orderValue: 3450, status: 'Processing', avatarLetter: 's', paymentMethod: 'Card', type: 'order' },
+  { id: 'sth-rh-2061', customerName: 'Ishaan Verma', email: 'ishaan.v@gmail.com', phone: '+919944556677', date: "23 Jan' 26", reason: 'None', orderValue: 8900, status: 'Order Received', avatarLetter: 'i', paymentMethod: 'UPI', type: 'order' },
+  { id: 'sth-rh-2062', customerName: 'Rohan Deshmukh', email: 'rohan.d@gmail.com', phone: '+919955667788', date: "24 Jan' 26", reason: 'None', orderValue: 4500, status: 'Out for Delivery', avatarLetter: 'r', paymentMethod: 'COD', type: 'order' },
+  { id: 'sth-rh-2063', customerName: 'Deepa Krishnan', email: 'deepa.k@gmail.com', phone: '+919966778899', date: "24 Jan' 26", reason: 'None', orderValue: 5800, status: 'Delivered', avatarLetter: 'd', paymentMethod: 'UPI', type: 'order' },
+
+  // Cancelled Tab matches (status is: 'Cancelled')
+  { id: 'sth-rh-2064', customerName: 'Ishita Sen', email: 'ishita.s@gmail.com', phone: '+919977889900', date: "23 Jan' 26", reason: 'Ordered by mistake', orderValue: 3100, status: 'Cancelled', avatarLetter: 'i', paymentMethod: 'UPI', type: 'order' },
+  { id: 'sth-rh-2065', customerName: 'Kabir Bakshi', email: 'kabir.b@gmail.com', phone: '+919988990011', date: "22 Jan' 26", reason: 'Need to change address', orderValue: 2400, status: 'Cancelled', avatarLetter: 'k', paymentMethod: 'Card', type: 'order' }
 ];
 
 export default function SparesOrdersPage() {
@@ -38,6 +50,30 @@ export default function SparesOrdersPage() {
   
   // State variables
   const [orders, setOrders] = useState(INITIAL_ORDERS);
+
+  /* 
+  // ==========================================
+  // EASY API INTEGRATION BLUEPRINT:
+  // To connect with your backend API:
+  // 1. Uncomment the useEffect hook below.
+  // 2. Set the appropriate endpoint URL.
+  // ==========================================
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        const response = await fetch('/api/spares/orders');
+        if (response.ok) {
+          const data = await response.json();
+          setOrders(data);
+        }
+      } catch (error) {
+        console.error('Error fetching spares orders:', error);
+      }
+    }
+    // fetchOrders(); // <-- uncomment this call to activate api fetching
+  }, []);
+  */
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'All' | 'Ordered' | 'Return' | 'Replacement' | 'Cancelled'>('All');
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
