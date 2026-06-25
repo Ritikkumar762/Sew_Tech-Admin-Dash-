@@ -6,9 +6,10 @@ type TabType = 'All' | 'Instant Smart Booking' | 'Invite Quote' | 'Video Call As
 
 interface OrdersTableProps {
   activeTab: TabType;
+  activeFilter: string;
 }
 
-export default function OrdersTable({ activeTab }: OrdersTableProps) {
+export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProps) {
   const router = useRouter();
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
 
@@ -18,19 +19,53 @@ export default function OrdersTable({ activeTab }: OrdersTableProps) {
 
   // Mock data tailored for the different tabs
   const getMockData = () => {
-    return Array(6).fill(null).map((_, i) => ({
-      id: `REQ-${i}`,
-      orderId: 'Aditya Bhargav',
-      reqIdText: 'Request ID',
-      serviceType: activeTab === 'All' ? ['Instant Smart Booking', 'Video Call Assistance', 'Assisted Booking', 'Invite Quotes'][i % 4] : activeTab,
-      location: i % 2 === 0 ? 'Delhi' : 'Bangalore',
-      createdOn: "10:30 PM, 21 Jan' 26",
-      mechanic: i % 3 === 0 ? '-' : 'Abhishek Pal',
-      status: getStatusForTab(activeTab, i),
-      bidEnds: i % 2 === 0 ? '⏳ 24:15:10' : '⏳ 02:05:10',
-      bidEndsDanger: i % 2 !== 0,
-      quoteSelected: 'Abhishek Pal'
-    }));
+    const allRows = Array(16).fill(null).map((_, i) => {
+      const status = getStatusForTab(activeTab, i);
+      const isNoMechanic = ['Cancelled', 'Requested', 'Booked', 'Bid Live', 'Bid Ended'].includes(status);
+      return {
+        id: `REQ-${i}`,
+        orderId: 'Aditya Bhargav',
+        reqIdText: 'Request ID',
+        serviceType: activeTab === 'All' ? ['Instant Smart Booking', 'Video Call Assistance', 'Assisted Booking', 'Invite Quote'][i % 4] : activeTab,
+        location: i % 2 === 0 ? 'Delhi' : 'Bangalore',
+        createdOn: "10:30 PM, 21 Jan' 26",
+        mechanic: isNoMechanic ? '-' : 'Abhishek Pal',
+        status: status,
+        bidEnds: i % 2 === 0 ? '⏳ 24:15:10' : '⏳ 02:05:10',
+        bidEndsDanger: i % 2 !== 0,
+        quoteSelected: 'Abhishek Pal'
+      };
+    });
+
+    if (!activeFilter || activeFilter === 'All') {
+      return allRows;
+    }
+
+    return allRows.filter(row => {
+      const status = row.status.toLowerCase();
+      const filter = activeFilter.toLowerCase();
+      
+      if (filter === 'mechanic allotted') {
+        return ['mechanic allotted', 'mechanic assigned', 'mechanic selected'].includes(status);
+      }
+      if (filter === 'flagged') {
+        return row.id.endsWith('1') || row.id.endsWith('3') || row.id.endsWith('5') || row.id.endsWith('7');
+      }
+      if (filter === 'delayed') {
+        return row.id.endsWith('0') || row.id.endsWith('2') || row.id.endsWith('4') || row.id.endsWith('6');
+      }
+      if (filter === 'support required') {
+        return row.id.endsWith('2') || row.id.endsWith('5') || row.id.endsWith('8');
+      }
+      if (filter === 'call requested') {
+        return row.id.endsWith('1') || row.id.endsWith('4') || row.id.endsWith('9');
+      }
+      if (filter === 'payment pending') {
+        return row.id.endsWith('0') || row.id.endsWith('3') || row.id.endsWith('7');
+      }
+      
+      return status === filter;
+    });
   };
 
   const getStatusForTab = (tab: TabType, idx: number) => {

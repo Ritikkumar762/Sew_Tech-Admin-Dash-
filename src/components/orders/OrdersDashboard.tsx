@@ -166,7 +166,7 @@ export default function OrdersDashboard() {
 
         {/* Table Container */}
         <div style={{ marginTop: '0', margin: '0 -1.5rem -1.5rem -1.5rem' }}>
-          <OrdersTable activeTab={activeTab} />
+          <OrdersTable activeTab={activeTab} activeFilter={activeFilter} />
         </div>
 
       </div>

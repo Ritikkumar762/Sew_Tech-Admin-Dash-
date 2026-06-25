@@ -16,9 +16,12 @@ export interface Mechanic {
   rating?: number;
   flags?: number | null;
   avatarColor?: string;
+  avatarUrl?: string | null;
   phone?: string;
   location?: string;
   status?: string;
+  otp?: string;
+  level?: string;
 }
 
 interface ApiResponse {

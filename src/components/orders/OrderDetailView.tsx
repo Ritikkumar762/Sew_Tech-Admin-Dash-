@@ -35,13 +35,125 @@ const SewingMachineIcon = () => (
   </svg>
 );
 
+export type OrderStatus = 
+  | 'Booked' 
+  | 'Requested' 
+  | 'MechanicAlloted' 
+  | 'MechanicAssigned' 
+  | 'MechanicSelected' 
+  | 'BidLive' 
+  | 'BidEnded' 
+  | 'Ongoing' 
+  | 'DiagnosisAvailable' 
+  | 'Completed' 
+  | 'Cancelled' 
+  | 'PickUp';
+
 export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const router = useRouter();
+
+  // Helper to get initial status based on orderId
+  const getInitialStatusAndFlow = (id: string): { status: OrderStatus; isDiag: boolean } => {
+    if (!id || !id.startsWith('REQ-')) {
+      return { status: 'Booked', isDiag: false };
+    }
+    const idx = parseInt(id.replace('REQ-', ''), 10);
+    if (isNaN(idx)) {
+      return { status: 'Booked', isDiag: false };
+    }
+    
+    // Cycle matching all table statuses:
+    const statusCycle = [
+      'MechanicAssigned',
+      'Requested',
+      'Cancelled',
+      'Completed',
+      'Booked',
+      'MechanicAlloted',
+      'Ongoing',
+      'DiagnosisAvailable'
+    ];
+    const statusStr = statusCycle[idx % statusCycle.length];
+    
+    const isDiag = (statusStr === 'DiagnosisAvailable' || idx === 11);
+    
+    let status: OrderStatus = 'Booked';
+    if (statusStr === 'MechanicAssigned') status = 'MechanicAssigned';
+    else if (statusStr === 'Requested') status = 'Requested';
+    else if (statusStr === 'Cancelled') status = 'Cancelled';
+    else if (statusStr === 'Completed') status = 'Completed';
+    else if (statusStr === 'Booked') status = 'Booked';
+    else if (statusStr === 'MechanicAlloted') status = 'MechanicAlloted';
+    else if (statusStr === 'Ongoing') status = 'Ongoing';
+    else if (statusStr === 'DiagnosisAvailable') status = 'DiagnosisAvailable';
+    
+    const finalStatus = idx === 11 ? 'Completed' : status;
+    return { status: finalStatus, isDiag };
+  };
+
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>(() => getInitialStatusAndFlow(orderId).status);
+  const [isDiagnosisFlow, setIsDiagnosisFlow] = useState<boolean>(() => getInitialStatusAndFlow(orderId).isDiag);
+  const [showStatusMenu, setShowStatusMenu] = useState(false);
+
+  const getStatusLabel = (status: OrderStatus): string => {
+    switch (status) {
+      case 'MechanicAlloted': return 'Mechanic Allotted';
+      case 'MechanicAssigned': return 'Mechanic Assigned';
+      case 'MechanicSelected': return 'Mechanic Selected';
+      case 'BidLive': return 'Bid Live';
+      case 'BidEnded': return 'Bid Ended';
+      case 'DiagnosisAvailable': return 'Diagnosis Available';
+      case 'PickUp': return 'Pick Up';
+      default: return status;
+    }
+  };
+
+  const getStatusStyles = (status: OrderStatus) => {
+    switch(status) {
+      case 'MechanicAssigned':
+      case 'MechanicAlloted':
+      case 'MechanicSelected':
+        return { bg: '#eff6ff', color: '#3b82f6', border: '#bfdbfe' };
+      case 'Requested':
+      case 'BidLive':
+        return { bg: '#fef9c3', color: '#eab308', border: '#fef08a' };
+      case 'Cancelled':
+        return { bg: '#fee2e2', color: '#ef4444', border: '#fca5a5' };
+      case 'Completed':
+      case 'PickUp':
+        return { bg: '#dcfce7', color: '#16a34a', border: '#bbf7d0' };
+      case 'Booked':
+        return { bg: '#fef3c7', color: '#d97706', border: '#fde68a' };
+      case 'Ongoing':
+        return { bg: '#cffafe', color: '#0891b2', border: '#a5f3fc' };
+      case 'DiagnosisAvailable':
+        return { bg: '#f3e8ff', color: '#a855f7', border: '#e9d5ff' };
+      case 'BidEnded':
+        return { bg: '#ffe4e6', color: '#e11d48', border: '#fecdd3' };
+      default:
+        return { bg: '#f3f4f6', color: '#4b5563', border: '#e5e7eb' };
+    }
+  };
+
   const [activeTab, setActiveTab] = useState<'summary' | 'tracking'>('summary');
   const [isPlaying, setIsPlaying]   = useState(false);
   const [tlOffset, setTlOffset]     = useState(0);
   const [showAssign, setShowAssign] = useState(false);
+  
+  // Backend Integration Note: Initialize mechanic data if already assigned based on status
   const [assignedMechanic, setAssignedMechanic] = useState<Mechanic | null>(null);
+
+  React.useEffect(() => {
+    const mechanicStatuses = ['MechanicAlloted', 'MechanicAssigned', 'MechanicSelected', 'Ongoing', 'DiagnosisAvailable', 'Completed', 'PickUp'];
+    if (mechanicStatuses.includes(orderStatus) && !assignedMechanic) {
+      setAssignedMechanic({ name: 'Sameer Pant', id: 'm1', avatarColor: '#3b82f6', location: 'East Kailash', jobsCompleted: 300, totalJobs: 300 });
+    } else if (!mechanicStatuses.includes(orderStatus) && assignedMechanic) {
+      setAssignedMechanic(null);
+    }
+    
+    // Sync cancellation state
+    setIsCancelled(orderStatus === 'Cancelled');
+  }, [orderStatus]);
   const [showCancel, setShowCancel] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(true);
@@ -131,10 +243,57 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
             >
               {isCancelled ? '✕ Cancelled' : 'Cancel Request'}
             </button>
-            <button className="od-hov" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
-              Update Status
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button 
+                className="od-hov" 
+                onClick={() => setShowStatusMenu(!showStatusMenu)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Update Status
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+
+              {showStatusMenu && (
+                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 50, minWidth: '240px', padding: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                  {[
+                    { label: 'Booked', value: 'Booked' as OrderStatus, isDiag: false },
+                    { label: 'Requested', value: 'Requested' as OrderStatus, isDiag: false },
+                    { label: 'Mechanic Assigned', value: 'MechanicAssigned' as OrderStatus, isDiag: false },
+                    { label: 'Mechanic Allotted', value: 'MechanicAlloted' as OrderStatus, isDiag: false },
+                    { label: 'Mechanic Selected', value: 'MechanicSelected' as OrderStatus, isDiag: false },
+                    { label: 'Bid Live', value: 'BidLive' as OrderStatus, isDiag: false },
+                    { label: 'Bid Ended', value: 'BidEnded' as OrderStatus, isDiag: false },
+                    { label: 'Ongoing Service', value: 'Ongoing' as OrderStatus, isDiag: false },
+                    { label: 'Completed (Normal Flow)', value: 'Completed' as OrderStatus, isDiag: false },
+                    { label: 'Diagnosis Available', value: 'DiagnosisAvailable' as OrderStatus, isDiag: true },
+                    { label: 'Completed (After Diagnosis)', value: 'Completed' as OrderStatus, isDiag: true },
+                    { label: 'Pick Up (Normal Flow)', value: 'PickUp' as OrderStatus, isDiag: false },
+                    { label: 'Pick Up (After Diagnosis)', value: 'PickUp' as OrderStatus, isDiag: true },
+                    { label: 'Cancelled', value: 'Cancelled' as OrderStatus, isDiag: false },
+                  ].map(opt => (
+                    <div 
+                      key={opt.label} 
+                      onClick={() => { 
+                        setOrderStatus(opt.value); 
+                        setIsDiagnosisFlow(opt.isDiag);
+                        setShowStatusMenu(false); 
+                      }}
+                      style={{ 
+                        padding: '8px 12px', 
+                        fontSize: '0.8rem', 
+                        fontWeight: 500, 
+                        cursor: 'pointer', 
+                        borderRadius: '6px', 
+                        background: (orderStatus === opt.value && isDiagnosisFlow === opt.isDiag) ? '#f3f4f6' : 'transparent', 
+                        color: (orderStatus === opt.value && isDiagnosisFlow === opt.isDiag) ? '#111827' : '#4b5563' 
+                      }}
+                    >
+                      {opt.label}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -148,12 +307,18 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
             { label: 'Phone Number:',    value: '+91 9876543210',        type: 'phone' },
             { label: 'Payment Method:',  value: 'UPI',                   type: 'text'  },
             { label: 'Order Value:',     value: '₹1,600',               type: 'text'  },
-            { label: 'Status:',          value: 'Booked',               type: 'badge' },
+            { label: 'Status:',          value: getStatusLabel(orderStatus), type: 'badge' },
           ].map((col, i) => (
             <div key={i} style={{ paddingRight: i < 4 ? '1.5rem' : 0, borderRight: i < 4 ? '1px solid #f0f0f0' : 'none', paddingLeft: i > 0 ? '1.5rem' : 0 }}>
               <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginBottom: '5px', fontWeight: 400 }}>{col.label}</div>
               {col.type === 'badge' ? (
-                <span style={{ display: 'inline-block', background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a', borderRadius: '20px', padding: '2px 10px', fontSize: '0.78rem', fontWeight: 600 }}>
+                <span style={{ 
+                  display: 'inline-block', 
+                  background: getStatusStyles(orderStatus).bg, 
+                  color: getStatusStyles(orderStatus).color, 
+                  border: `1px solid ${getStatusStyles(orderStatus).border}`, 
+                  borderRadius: '20px', padding: '2px 10px', fontSize: '0.78rem', fontWeight: 600 
+                }}>
                   {col.value}
                 </span>
               ) : col.type === 'phone' ? (
@@ -275,29 +440,34 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               const jobs = assignedMechanic.jobsCompleted || assignedMechanic.totalJobs || 0;
               const avatarBg = assignedMechanic.avatarColor ?? getAvatarColor(safeName);
               const location = assignedMechanic.location || 'East Kailash';
+              const mechanicAvatarUrl = assignedMechanic.avatarUrl || null;
+              const mechanicOtp = assignedMechanic.otp || '987654';
+              const mechanicLevel = assignedMechanic.level || 'Master Mechanic';
 
               return (
                 <div style={{ marginBottom: '2rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                     <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827' }}>Mechanic details</span>
-                    <button
-                      className="od-hov"
-                      onClick={() => setShowAssign(true)}
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: 'none', borderRadius: '6px', background: '#0f172a', color: '#fff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      Reassign Mechanic
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.87L21 8"/></svg>
-                    </button>
+                    {!['Completed', 'PickUp'].includes(orderStatus) && (
+                      <button
+                        className="od-hov"
+                        onClick={() => setShowAssign(true)}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: 'none', borderRadius: '6px', background: '#0f172a', color: '#fff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Reassign Mechanic
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 1 0 2.13-5.87L21 8"/></svg>
+                      </button>
+                    )}
                   </div>
                   
                   <div style={{ borderTop: '1px dashed #e2e8f0', marginBottom: '16px' }} />
 
-                  <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', width: 'fit-content', minWidth: '340px' }}>
+                  <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', width: 'fit-content', minWidth: '340px', maxWidth: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                       <div style={{ display: 'flex', gap: '12px' }}>
                         <div style={{ position: 'relative', width: '42px', height: '42px', flexShrink: 0 }}>
-                          {safeName === 'Sameer Pant' ? (
-                            <img src="/machanic.png" alt="Profile" style={{ width: '42px', height: '42px', borderRadius: '8px', objectFit: 'cover' }} />
+                          {mechanicAvatarUrl ? (
+                            <img src={mechanicAvatarUrl} alt="Profile" style={{ width: '42px', height: '42px', borderRadius: '8px', objectFit: 'cover' }} />
                           ) : (
                             <>
                               <img src="/avatar-clean.svg" alt="Profile" style={{ width: '42px', height: '42px', borderRadius: '8px', objectFit: 'cover' }} />
@@ -309,30 +479,105 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                         </div>
                         <div>
                           <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b', marginBottom: '2px' }}>{safeName || '–'}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                            Service Start OTP- <span style={{ color: '#3b82f6', fontWeight: 600 }}>987654</span>
-                            <svg style={{ marginLeft: '4px', cursor: 'pointer', verticalAlign: 'text-bottom' }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                          </div>
+                          
+                          {['Completed', 'PickUp'].includes(orderStatus) ? (
+                            <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              Service Rating |
+                              <div style={{ display: 'flex', gap: '2px', color: '#f59e0b', fontSize: '0.9rem' }}>
+                                <span>★</span><span>★</span><span>★</span><span>★</span><span style={{ color: '#cbd5e1' }}>★</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                              Service Start OTP- <span style={{ color: '#3b82f6', fontWeight: 600 }}>{mechanicOtp}</span>
+                              <svg style={{ marginLeft: '4px', cursor: 'pointer', verticalAlign: 'text-bottom' }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <svg style={{ cursor: 'pointer', color: '#3b82f6' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                      <div style={{ background: '#fff', borderRadius: '20px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', color: '#64748b', fontWeight: 500, border: '1px solid #e2e8f0' }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10"/><path d="M17 4v8a5 5 0 0 1-10 0V4"/><path d="M4 4h3v3a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h3"/></svg>
-                        Master Mechanic
+                    {['Completed', 'PickUp'].includes(orderStatus) ? (
+                      <div style={{ fontSize: '0.8125rem', color: '#64748b', lineHeight: 1.6, marginTop: '4px' }}>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam in hendrerit urna. Pellentesque sit amet sapien fringilla, mattis ligula consectetur, ultrices mauris. Maecenas vitae mattis tellus. Nullam quis imperdiet augue. Vestibulum auctor ornare leo, non suscipit magna interdum eu.
                       </div>
-                      <div style={{ background: '#fff', borderRadius: '20px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', color: '#64748b', fontWeight: 500, border: '1px solid #e2e8f0' }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                        {location}
+                    ) : (
+                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
+                        <div style={{ background: '#fff', borderRadius: '20px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', color: '#64748b', fontWeight: 500, border: '1px solid #e2e8f0' }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M7 4h10"/><path d="M17 4v8a5 5 0 0 1-10 0V4"/><path d="M4 4h3v3a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h3"/></svg>
+                          Master Mechanic
+                        </div>
+                        <div style={{ background: '#fff', borderRadius: '20px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', color: '#64748b', fontWeight: 500, border: '1px solid #e2e8f0' }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                          {location}
+                        </div>
+                        <div style={{ background: '#fff', borderRadius: '20px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', color: '#64748b', fontWeight: 500, border: '1px solid #e2e8f0' }}>
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                          {jobs > 0 ? `${jobs}+ Bookings` : 'New Mechanic'}
+                        </div>
                       </div>
-                      <div style={{ background: '#fff', borderRadius: '20px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.65rem', color: '#64748b', fontWeight: 500, border: '1px solid #e2e8f0' }}>
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                        {jobs > 0 ? `${jobs}+ Bookings` : 'New Mechanic'}
+                    )}
+                  </div>
+
+                  {/* Add-on Spares Row (Ongoing Service) */}
+                  {!isDiagnosisFlow && ['Ongoing', 'Completed'].includes(orderStatus) && (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '10px', marginTop: '12px', background: '#fff', overflowX: 'auto' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', minWidth: 'max-content' }}>
+                        <input type="checkbox" style={{ width: '16px', height: '16px', accentColor: '#2563eb', cursor: 'pointer' }} />
+                        <div style={{ width: '40px', height: '40px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <img src="/rotary_hook.png" alt="Rotary Hook" style={{ maxWidth: '80%', maxHeight: '80%', objectFit: 'contain' }} />
+                        </div>
+                        <div style={{ marginRight: '1rem' }}>
+                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1e293b' }}>High-Speed Rotary Hook Assembly</div>
+                          <div style={{ fontSize: '0.65rem', color: '#64748b', marginTop: '2px' }}>Rotary Hook</div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', fontSize: '0.75rem', fontWeight: 600, color: '#475569', minWidth: 'max-content' }}>
+                        <span style={{ background: '#eff6ff', color: '#2563eb', padding: '3px 10px', borderRadius: '6px' }}>3</span>
+                        <span>2</span>
+                        <span style={{ color: '#1e293b' }}>₹1,850 - ₹2,400</span>
+                        <span style={{ color: '#3b82f6' }}>45</span>
+                        <span style={{ background: '#dcfce7', color: '#16a34a', padding: '3px 10px', borderRadius: '6px' }}>Live</span>
+                        <button className="od-hov" style={{ background: '#0f172a', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 14px', fontSize: '0.7rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          View
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </button>
                       </div>
                     </div>
-                  </div>
+                  )}
+
+                  {/* Extended Service Details (Diagnosis Available State) */}
+                  {isDiagnosisFlow && ['DiagnosisAvailable', 'Completed', 'PickUp'].includes(orderStatus) && (
+                    <div style={{ marginTop: '2.5rem', marginBottom: '1rem' }}>
+                      <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Extended Service Details</div>
+                      <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.25rem' }} />
+                      
+                      <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px', marginBottom: '1.5rem' }}>
+                        <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1d4ed8' }}>Service : Extra Part Required - (Part Name Comes here)</span>
+                      </div>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+                        <div>
+                          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '4px', fontWeight: 500 }}>Selected Date & Time:</div>
+                          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '1.25rem' }}>28.02.2026 | 01:00-02:00 PM</div>
+                          
+                          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '4px', fontWeight: 500 }}>Language Preference:</div>
+                          <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>Hindi</div>
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '0.75rem', color: '#6b7280', marginBottom: '4px', fontWeight: 500 }}>Address</div>
+                          <div style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563', lineHeight: 1.5 }}>
+                            123, MG Road<br />
+                            Connaught Place<br />
+                            New Delhi - 110001<br />
+                            DELHI, INDIA
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                 </div>
               );
             })()}
@@ -412,8 +657,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         {activeTab === 'tracking' && (
           <div style={{ padding: '1.5rem', animation: 'odFade .3s ease', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
-            {/* Shipping Timeline Accordion */}
-            <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden' }}>
+            {/* Service Timeline Accordion */}
+            <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden', marginBottom: '2rem' }}>
               <div
                 onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', cursor: 'pointer', backgroundColor: 'white' }}
@@ -456,7 +701,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                       msOverflowStyle: 'none'
                     } as React.CSSProperties}
                   >
-                    <div style={{ display: 'flex', position: 'relative', alignItems: 'center', minWidth: '700px', padding: '1rem 0' }}>
+                    <div style={{ display: 'flex', position: 'relative', alignItems: 'center', minWidth: isDiagnosisFlow ? '850px' : '700px', padding: '1rem 0' }}>
                       <div style={{
                         position: 'absolute',
                         left: '50px',
@@ -468,15 +713,25 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                         zIndex: 1
                       }} />
 
-                      {[
-                        { title: 'Service Booked',      date: '21st March, 2025 at 11:06 AM', position: 'top',    done: true,  alert: false },
-                        { title: 'Mechanic Alloted',    date: '21st March, 2025 at 11:06 AM', position: 'bottom', done: true,  alert: false },
-                        { title: 'Ongoing Service',     date: '21st March, 2025 at 11:06 AM', position: 'top',    done: true,  alert: false },
-                        { title: 'Diagnosis Available', date: '21st March, 2025 at 11:06 AM', position: 'bottom', done: true,  alert: true  },
-                        { title: 'Completed',           date: '21st March, 2025 at 11:06 AM', position: 'top',    done: false, alert: false },
-                        { title: 'Pick Up',             date: '21st March, 2025',             position: 'bottom', done: false, alert: false },
-                      ].map((node, idx) => (
-                        <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, zIndex: 2, position: 'relative' }}>
+                      {(() => {
+                        const nodes = isDiagnosisFlow ? [
+                          { title: 'Service Booked',      date: '21st March, 2025 at 11:06 AM', position: 'top',    done: true,  active: false },
+                          { title: 'Mechanic Alloted',    date: '21st March, 2025 at 11:06 AM', position: 'bottom', done: true,  active: false },
+                          { title: 'Ongoing Service',     date: '21st March, 2025 at 11:06 AM', position: 'top',    done: true,  active: false },
+                          { title: 'Completed',           date: '21st March, 2025 at 11:06 AM', position: 'bottom', done: true,  active: false },
+                          { title: 'Diagnosis Available', date: '21st March, 2025 at 11:06 AM', position: 'top',    done: true,  active: orderStatus === 'DiagnosisAvailable' },
+                          { title: 'Completed',           date: '21st March, 2025 at 11:06 AM', position: 'bottom', done: ['Completed', 'PickUp'].includes(orderStatus), active: orderStatus === 'Completed' },
+                          { title: 'Pick Up',             date: '21st March, 2025',             position: 'top',    done: orderStatus === 'PickUp', active: orderStatus === 'PickUp' },
+                        ] : [
+                          { title: 'Service Booked',      date: '21st March, 2025 at 11:06 AM', position: 'top',    done: true,  active: ['Booked', 'Requested', 'BidLive'].includes(orderStatus) },
+                          { title: 'Mechanic Alloted',    date: '21st March, 2025 at 11:06 AM', position: 'bottom', done: !['Booked', 'Requested', 'BidLive'].includes(orderStatus),  active: ['MechanicAlloted', 'MechanicAssigned', 'MechanicSelected', 'BidEnded'].includes(orderStatus) },
+                          { title: 'Ongoing Service',     date: '21st March, 2025 at 11:06 AM', position: 'top',    done: ['Ongoing', 'Completed', 'PickUp'].includes(orderStatus),  active: orderStatus === 'Ongoing' },
+                          { title: 'Completed',           date: '21st March, 2025 at 11:06 AM', position: 'bottom', done: ['Completed', 'PickUp'].includes(orderStatus), active: orderStatus === 'Completed' },
+                          { title: 'Pick Up',             date: '21st March, 2025',             position: 'top',    done: orderStatus === 'PickUp', active: orderStatus === 'PickUp' },
+                        ];
+                        
+                        return nodes.map((node, idx) => (
+                          <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1, zIndex: 2, position: 'relative' }}>
                           {node.position === 'top' ? (
                             <div style={{ height: '52px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', marginBottom: '10px', textAlign: 'center' }}>
                               <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#111827', whiteSpace: 'nowrap' }}>{node.title}</span>
@@ -490,16 +745,19 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                             width: '18px',
                             height: '18px',
                             borderRadius: '50%',
-                            backgroundColor: node.done ? (node.alert ? '#dc2626' : '#2563eb') : '#d1d5db',
+                            backgroundColor: node.done ? '#2563eb' : '#d1d5db',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: 'white',
-                            boxShadow: node.done ? `0 0 0 4px ${node.alert ? '#fee2e2' : '#dbeafe'}` : '0 0 0 4px white',
+                            boxShadow: node.active ? '0 0 0 4px #dbeafe' : (node.done ? '0 0 0 4px white' : '0 0 0 4px white'),
                             zIndex: 3
                           }}>
-                            {node.done && (
+                            {(node.done && !node.active) && (
                               <span style={{ fontSize: '8px', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✓</span>
+                            )}
+                            {node.active && (
+                              <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'white' }} />
                             )}
                           </div>
 
@@ -512,7 +770,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                             <div style={{ height: '52px', marginTop: '10px' }} />
                           )}
                         </div>
-                      ))}
+                      ))})()
+                      }
                     </div>
                   </div>
 
@@ -541,54 +800,148 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               )}
             </div>
 
-            {/* Payment Details Accordion */}
-            <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', overflow: 'hidden' }}>
-              <div
-                onClick={() => setIsPaymentExpanded(!isPaymentExpanded)}
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.25rem 1.5rem', cursor: 'pointer', backgroundColor: 'white' }}
+            {/* Service Request Billing Details Header */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <span style={{ fontSize: '1.0625rem', fontWeight: 700, color: '#111827' }}>Service Request Billing Details</span>
+              <button
+                className="od-hov"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: 'none', borderRadius: '6px', background: '#111827', color: '#fff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
               >
-                <span style={{ fontSize: '1.125rem', fontWeight: 700, color: '#111827' }}>Payment Details</span>
-                {isPaymentExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                Invoice
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </button>
+            </div>
+
+            {/* Billing & Payment Cards Row */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+              
+              {/* Left: Billing Summary */}
+              <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '1.5rem' }}>
+                <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '1.5rem' }}>Billing Summary</div>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', fontSize: '0.8125rem', color: '#4b5563', fontWeight: 500 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>Service Base Price :</span>
+                    <span style={{ fontWeight: 600, color: '#111827' }}>₹4,500</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>GST (5%) :</span>
+                    <span style={{ fontWeight: 600, color: '#111827' }}>₹225</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span>GST (5%) :</span>
+                    <span style={{ fontWeight: 600, color: '#111827' }}>₹225</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a' }}>
+                    <span>Coupon Code (SEW50) :</span>
+                    <span style={{ fontWeight: 700 }}>- ₹225</span>
+                  </div>
+                </div>
+
+                <div style={{ height: '1px', background: '#e5e7eb', margin: '1.25rem 0' }} />
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }}>Final Invoice</span>
+                  <span style={{ fontSize: '1.125rem', fontWeight: 800, color: '#111827' }}>₹5,000</span>
+                </div>
               </div>
 
-              {isPaymentExpanded && (
-                <div style={{ padding: '1.5rem', backgroundColor: 'white', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  <div style={{ borderTop: '1.5px dotted #e5e7eb', margin: '0 -1.5rem 0.5rem -1.5rem' }} />
+              {/* Right: Payment Details */}
+              <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '1.5rem' }}>
+                <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '1.5rem' }}>Payment Details</div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <label style={{ fontSize: '0.8125rem', color: '#374151', fontWeight: 600 }}>Payment Method</label>
-                      <div style={{ backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '0.625rem 0.875rem', fontSize: '0.875rem', fontWeight: 600, color: '#1f2937' }}>UPI</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>Payment Method</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>UPI</span>
                     </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <label style={{ fontSize: '0.8125rem', color: '#374151', fontWeight: 600 }}>Transaction ID</label>
-                      <div style={{ backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '0.625rem 0.875rem', fontSize: '0.875rem', fontWeight: 600, color: '#1f2937' }}>TXN-DEL-20260203-0001</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>Transaction ID</span>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>TXN-DEL-20260203-0001</span>
+                    </div>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>Billing Address</span>
+                    <div style={{ fontSize: '0.8125rem', color: '#4b5563', lineHeight: 1.6, fontWeight: 500 }}>
+                      123, MG Road<br />
+                      Connaught Place<br />
+                      New Delhi - 110001<br />
+                      DELHI, INDIA
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            {isDiagnosisFlow && ['DiagnosisAvailable', 'Completed', 'PickUp'].includes(orderStatus) && (
+              <>
+                <div style={{ borderTop: '1px dashed #e5e7eb', margin: '1rem 0 2rem' }} />
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                  <span style={{ fontSize: '1.0625rem', fontWeight: 700, color: '#111827' }}>After Diagnosis Billing Details</span>
+                  <button
+                    className="od-hov"
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: 'none', borderRadius: '6px', background: '#111827', color: '#fff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Invoice
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                  </button>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+                  <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '1.5rem' }}>
+                    <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '1.5rem' }}>Billing Summary</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem', fontSize: '0.8125rem', color: '#4b5563', fontWeight: 500 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Service Base Price :</span>
+                        <span style={{ fontWeight: 600, color: '#111827' }}>₹4,500</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>GST (5%) :</span>
+                        <span style={{ fontWeight: 600, color: '#111827' }}>₹225</span>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a' }}>
+                        <span>Coupon Code (SEW50) :</span>
+                        <span style={{ fontWeight: 700 }}>- ₹225</span>
+                      </div>
+                    </div>
+                    <div style={{ height: '1px', background: '#e5e7eb', margin: '1.25rem 0' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }}>Final Invoice</span>
+                      <span style={{ fontSize: '1.125rem', fontWeight: 800, color: '#111827' }}>₹5,000</span>
                     </div>
                   </div>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <label style={{ fontSize: '0.8125rem', color: '#374151', fontWeight: 600 }}>Billing Address</label>
-                      <div style={{ backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', fontSize: '0.875rem', color: '#1f2937', lineHeight: 1.6, fontWeight: 600 }}>
-                        123, MG Road<br />
-                        Connaught Place<br />
-                        New Delhi - 110001<br />
-                        DELHI, INDIA
+                  <div style={{ background: '#fff', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '1.5rem' }}>
+                    <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '1.5rem' }}>Payment Details</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>Payment Method</span>
+                          <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>UPI</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>Transaction ID</span>
+                          <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>TXN-DEL-20260203-0001</span>
+                        </div>
                       </div>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <label style={{ fontSize: '0.8125rem', color: '#374151', fontWeight: 600 }}>Service Address</label>
-                      <div style={{ backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb', borderRadius: '0.5rem', padding: '1rem', fontSize: '0.875rem', color: '#1f2937', lineHeight: 1.6, fontWeight: 600 }}>
-                        123, MG Road<br />
-                        Connaught Place<br />
-                        New Delhi - 110001<br />
-                        DELHI, INDIA
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                        <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>Billing Address</span>
+                        <div style={{ fontSize: '0.8125rem', color: '#4b5563', lineHeight: 1.6, fontWeight: 500 }}>
+                          123, MG Road<br />
+                          Connaught Place<br />
+                          New Delhi - 110001<br />
+                          DELHI, INDIA
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
+              </>
+            )}
 
           </div>
         )}
