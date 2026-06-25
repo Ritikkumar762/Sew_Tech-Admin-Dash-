@@ -24,11 +24,21 @@ import {
   AlignLeft,
   AlignCenter,
   AlignRight,
-  List
+  List,
+  MoreVertical,
+  ChevronsUpDown,
+  IndianRupee,
+  Briefcase,
+  Clock,
+  Award,
+  Flag,
+  Star
 } from 'lucide-react';
 import { 
   LineChart, 
   Line, 
+  AreaChart,
+  Area,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -166,9 +176,17 @@ export default function MechanicDetailPage() {
   const [activeTab, setActiveTab] = useState<'details' | 'jobs' | 'performance'>('details');
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [openServiceMenu, setOpenServiceMenu] = useState<string | null>(null);
+  const [openJobDropdownId, setOpenJobDropdownId] = useState<string | null>(null);
 
   React.useEffect(() => {
     setIsMounted(true);
+    const handleClickOutside = () => {
+      setOpenServiceMenu(null);
+      setOpenJobDropdownId(null);
+    };
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
   // Form edit temporary states
@@ -408,7 +426,7 @@ export default function MechanicDetailPage() {
                 color: 'white',
                 border: 'none',
                 borderRadius: '0.5rem',
-                fontSize: '0.875rem',
+                fontSize: '0.8125rem',
                 fontWeight: 600,
                 cursor: 'pointer',
                 transition: 'background-color 0.2s'
@@ -417,6 +435,7 @@ export default function MechanicDetailPage() {
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#111827'}
             >
               Edit Mechanic Details
+              <Edit3 size={14} />
             </button>
           </div>
         </div>
@@ -557,10 +576,56 @@ export default function MechanicDetailPage() {
                     }
                     
                     return (
-                      <span key={service} className={`tag-pill ${pillClass}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.875rem', borderRadius: '2rem' }}>
+                      <span key={service} className={`tag-pill ${pillClass}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.375rem 0.625rem 0.375rem 0.875rem', borderRadius: '2rem', fontSize: '0.8125rem', fontWeight: 600, position: 'relative' }}>
                         <img src={svgSrc} alt={service} style={{ width: '18px', height: '18px', objectFit: 'contain' }} />
                         {service}
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: statusDotColor, marginLeft: '0.25rem' }} />
+                        <MoreVertical 
+                          size={14} 
+                          style={{ color: '#9ca3af', marginLeft: '0.25rem', cursor: 'pointer' }} 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenServiceMenu(openServiceMenu === service ? null : service);
+                          }}
+                        />
+                        {openServiceMenu === service && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            marginTop: '0.25rem',
+                            backgroundColor: 'white',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '0.5rem',
+                            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                            zIndex: 100,
+                            minWidth: '220px',
+                            overflow: 'hidden',
+                            textAlign: 'left'
+                          }} onClick={(e) => e.stopPropagation()}>
+                            <div 
+                              style={{ padding: '0.625rem 1.25rem', fontSize: '0.75rem', color: '#374151', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontWeight: 600 }}
+                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                              onClick={() => {
+                                // Mock behavior
+                                setOpenServiceMenu(null);
+                              }}
+                            >
+                              Pause Service
+                            </div>
+                            <div 
+                              style={{ padding: '0.625rem 1.25rem', fontSize: '0.75rem', color: '#ef4444', cursor: 'pointer', fontWeight: 600 }}
+                              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+                              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                              onClick={() => {
+                                // Mock behavior
+                                setOpenServiceMenu(null);
+                              }}
+                            >
+                              Suspend Mechanic from This Service
+                            </div>
+                          </div>
+                        )}
                       </span>
                     );
                   })}
@@ -616,43 +681,44 @@ export default function MechanicDetailPage() {
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0, marginBottom: '1.25rem' }}>Profile Details</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Bio</span>
+                    <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Bio:</span>
                     <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#4b5563', lineHeight: 1.6 }}>{mechanic.bio}</span>
                   </div>
                   
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1.25rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Experience (in years)</span>
+                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Experience (in years):</span>
                       <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>{mechanic.experience}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Availability</span>
+                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Availability:</span>
                       <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>{mechanic.availability}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Location Preference</span>
+                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Location Preference:</span>
                       <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                        <span style={{ fontSize: '0.75rem', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', fontWeight: 600 }}>
+                        <span style={{ fontSize: '0.75rem', backgroundColor: 'transparent', color: '#1f2937', fontWeight: 600 }}>
                           {mechanic.location}
                         </span>
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Skills</span>
-                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Skills:</span>
+                      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
                         {mechanic.skills.map((skill: string) => (
-                          <span key={skill} style={{ fontSize: '0.75rem', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', fontWeight: 600 }}>
+                          <span key={skill} style={{ fontSize: '0.75rem', backgroundColor: 'white', color: '#4b5563', border: '1px solid #e5e7eb', padding: '0.25rem 0.625rem', borderRadius: '0.375rem', fontWeight: 600 }}>
                             {skill}
                           </span>
                         ))}
                       </div>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Machines / Brands familiar with</span>
-                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Machines/Brands familiar with:</span>
+                      <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
                         {mechanic.machinesFamiliar.slice(0, 3).map((mach: string, idx: number) => (
-                          <span key={idx} style={{ fontSize: '0.75rem', backgroundColor: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '0.125rem 0.5rem', borderRadius: '0.25rem', fontWeight: 600 }}>
+                          <span key={idx} style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', backgroundColor: 'white', color: '#4b5563', border: '1px solid #e5e7eb', padding: '0.25rem 0.625rem', borderRadius: '0.375rem', fontWeight: 600 }}>
                             {mach}
+                            <ExternalLink size={10} style={{ color: '#9ca3af' }} />
                           </span>
                         ))}
                       </div>
@@ -660,15 +726,25 @@ export default function MechanicDetailPage() {
                   </div>
 
                   {/* Audio & Video Pitch Players */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginTop: '0.5rem' }}>
-                    {/* Audio Pitch SVG */}
-                    <div style={{ display: 'block', borderRadius: '12px', overflow: 'hidden' }}>
-                      <img src="/recording.svg" alt="Mechanic Audio Pitch" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1rem' }}>
+                    {/* Audio Pitch */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151' }}>
+                        Mechanic Audio Pitch <span style={{ color: '#ef4444' }}>*</span>
+                      </span>
+                      <div style={{ display: 'block', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e5e7eb', backgroundColor: '#f8fafc' }}>
+                        <img src="/recording.svg" alt="Mechanic Audio Pitch" style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }} />
+                      </div>
                     </div>
 
-                    {/* Video Pitch SVG */}
-                    <div style={{ display: 'block', borderRadius: '12px', overflow: 'hidden' }}>
-                      <img src="/mm_video.svg" alt="Mechanic Video Pitch" style={{ width: '100%', height: 'auto', display: 'block' }} />
+                    {/* Video Pitch */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151' }}>
+                        Mechanic Video Pitch <span style={{ color: '#ef4444' }}>*</span>
+                      </span>
+                      <div style={{ display: 'block', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
+                        <img src="/mm_video.svg" alt="Mechanic Video Pitch" style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }} />
+                      </div>
                     </div>
                   </div>
 
@@ -677,37 +753,37 @@ export default function MechanicDetailPage() {
 
               {/* Documents Card (Stretching full-width at the bottom) */}
               <div className="card-premium">
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0, marginBottom: '1.25rem' }}>Documents</h3>
+                <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0, marginBottom: '1rem' }}>Documents</h3>
+                <div style={{ borderBottom: '1px dashed #d1d5db', marginBottom: '1.5rem' }} />
+                
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   
                   {/* Row 1 */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Name as on Aadhar Card</span>
+                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Name as on Aadhar Card:</span>
                       <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>{mechanic.aadharName}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Aadhar Number</span>
+                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Aadhar Number:</span>
                       <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>{mechanic.aadharNumber}</span>
                     </div>
                   </div>
                   
-                  <div style={{ borderTop: '1px dashed #f3f4f6' }} />
-
                   {/* Row 2 */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1.5fr', gap: '1.5rem', alignItems: 'center' }}>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Name as on PAN Card</span>
+                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Name as on PAN Card:</span>
                       <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>{mechanic.panName}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>PAN Number</span>
+                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>PAN Number:</span>
                       <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>{mechanic.panNumber}</span>
                     </div>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>PAN Card Uploaded</span>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '0.5rem', padding: '0.5rem 0.75rem' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>PAN Card Uploaded:</span>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#eff6ff', border: 'none', borderRadius: '0.375rem', padding: '0.375rem 0.625rem', width: 'fit-content' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#3b82f6', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                           {mechanic.panCardFile}
                           <ExternalLink size={12} />
                         </span>
@@ -727,11 +803,11 @@ export default function MechanicDetailPage() {
               {/* Jobs subtabs row */}
               <div style={{ display: 'flex', gap: '0.75rem', borderBottom: '1px solid #e5e7eb', paddingBottom: '0.75rem', marginBottom: '1.25rem', overflowX: 'auto' }}>
                 {[
-                  { id: 'All', label: 'All (1085)' },
-                  { id: 'Instant Smart Booking', label: 'Instant Smart Booking (1085)' },
-                  { id: 'Invite Quote', label: 'Invite Quote (1085)' },
-                  { id: 'Video Call Assistance', label: 'Video Call Assistance (1085)' },
-                  { id: 'Assisted Booking', label: 'Assisted Booking (1085)' }
+                  { id: 'All', label: 'All (1086)' },
+                  { id: 'Instant Smart Booking', label: 'Instant Smart Booking (1086)' },
+                  { id: 'Invite Quote', label: 'Invite Quote (1086)' },
+                  { id: 'Video Call Assistance', label: 'Video Call Assistance (1086)' },
+                  { id: 'Assisted Booking', label: 'Assisted Booking (1086)' }
                 ].map(sub => (
                   <button
                     key={sub.id}
@@ -762,25 +838,38 @@ export default function MechanicDetailPage() {
                   { id: 'Completed', label: 'Completed' },
                   { id: 'Diagnosis Available', label: 'Diagnosis Available' },
                   { id: 'Cancelled', label: 'Cancelled' }
-                ].map(pill => (
-                  <button
-                    key={pill.id}
-                    onClick={() => setJobsFilter(pill.id as any)}
-                    style={{
-                      border: '1px solid #e5e7eb',
-                      background: jobsFilter === pill.id ? '#eff6ff' : 'white',
-                      color: jobsFilter === pill.id ? '#2563eb' : '#4b5563',
-                      padding: '0.25rem 0.75rem',
-                      borderRadius: '2rem',
-                      fontSize: '0.75rem',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s'
-                    }}
-                  >
-                    {pill.label}
-                  </button>
-                ))}
+                ].map(pill => {
+                  const isActive = jobsFilter === pill.id;
+                  const isAll = pill.id === 'All';
+                  
+                  return (
+                    <button
+                      key={pill.id}
+                      onClick={() => setJobsFilter(pill.id as any)}
+                      style={{
+                        border: isActive ? '1px solid #111827' : '1px solid #cbd5e1',
+                        background: isActive ? '#111827' : 'white',
+                        color: isActive ? 'white' : '#4b5563',
+                        padding: '0.375rem 0.875rem',
+                        borderRadius: '2rem',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
+                      }}
+                    >
+                      {isActive ? (
+                        <Check size={12} style={{ color: 'white' }} />
+                      ) : (
+                        !isAll && <span style={{ fontWeight: 600, fontSize: '0.875rem', lineHeight: '10px' }}>+</span>
+                      )}
+                      {pill.label}
+                    </button>
+                  );
+                })}
               </div>
 
               {/* Jobs Table */}
@@ -789,13 +878,38 @@ export default function MechanicDetailPage() {
                   <thead>
                     <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #e5e7eb', color: '#374151' }}>
                       <th style={{ padding: '1rem 1.5rem', width: '40px' }}>
-                        <input type="checkbox" style={{ accentColor: '#111827' }} />
+                        <input type="checkbox" style={{ accentColor: '#111827', cursor: 'pointer' }} />
                       </th>
-                      <th style={{ padding: '1rem', fontWeight: 600 }}>Order</th>
-                      <th style={{ padding: '1rem', fontWeight: 600 }}>Location</th>
-                      <th style={{ padding: '1rem', fontWeight: 600 }}>Created On</th>
-                      <th style={{ padding: '1rem', fontWeight: 600 }}>Status</th>
-                      <th style={{ padding: '1rem', fontWeight: 600 }}>Feedback</th>
+                      <th style={{ padding: '1rem', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          Order
+                          <ChevronsUpDown size={12} style={{ color: '#9ca3af' }} />
+                        </div>
+                      </th>
+                      <th style={{ padding: '1rem', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          Location
+                          <ChevronsUpDown size={12} style={{ color: '#9ca3af' }} />
+                        </div>
+                      </th>
+                      <th style={{ padding: '1rem', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          Created On
+                          <ChevronsUpDown size={12} style={{ color: '#9ca3af' }} />
+                        </div>
+                      </th>
+                      <th style={{ padding: '1rem', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          Status
+                          <ChevronsUpDown size={12} style={{ color: '#9ca3af' }} />
+                        </div>
+                      </th>
+                      <th style={{ padding: '1rem', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          Feedback
+                          <ChevronsUpDown size={12} style={{ color: '#9ca3af' }} />
+                        </div>
+                      </th>
                       <th style={{ padding: '1rem 1.5rem', fontWeight: 600, textAlign: 'center' }}>Action</th>
                     </tr>
                   </thead>
@@ -804,23 +918,37 @@ export default function MechanicDetailPage() {
                       filteredJobs.map((job) => (
                         <tr key={job.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                           <td style={{ padding: '1rem 1.5rem' }}>
-                            <input type="checkbox" style={{ accentColor: '#111827' }} />
+                            <input type="checkbox" style={{ accentColor: '#111827', cursor: 'pointer' }} />
                           </td>
                           <td style={{ padding: '1rem' }}>
-                            <div>
-                              <div style={{ fontWeight: 600, color: '#111827' }}>{job.customerName}</div>
-                              <span style={{ 
-                                fontSize: '10px', 
-                                color: '#6b7280', 
-                                border: '1px solid #d1d5db', 
-                                borderRadius: '0.25rem', 
-                                padding: '0.05rem 0.25rem',
-                                backgroundColor: '#f9fafb',
-                                display: 'inline-block',
-                                marginTop: '0.125rem'
-                              }}>
-                                Request ID
-                              </span>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <img 
+                                src="/avatar-clean.svg" 
+                                alt="avatar" 
+                                style={{ 
+                                  width: '32px', 
+                                  height: '32px', 
+                                  borderRadius: '50%', 
+                                  border: '2px solid #3b82f6',
+                                  objectFit: 'contain'
+                                }} 
+                              />
+                              <div>
+                                <div style={{ fontWeight: 600, color: '#111827' }}>{job.customerName}</div>
+                                <span style={{ 
+                                  fontSize: '10px', 
+                                  color: '#2563eb', 
+                                  border: '1px solid #bfdbfe', 
+                                  borderRadius: '0.25rem', 
+                                  padding: '0.05rem 0.375rem',
+                                  backgroundColor: '#eff6ff',
+                                  display: 'inline-block',
+                                  marginTop: '0.125rem',
+                                  fontWeight: 600
+                                }}>
+                                  Request ID
+                                </span>
+                              </div>
                             </div>
                           </td>
                           <td style={{ padding: '1rem', fontWeight: 500, color: '#4b5563' }}>{job.location}</td>
@@ -839,22 +967,101 @@ export default function MechanicDetailPage() {
                               {job.status}
                             </span>
                           </td>
-                          <td style={{ padding: '1rem', fontWeight: 600, color: '#f59e0b' }}>{job.feedback || '--'}</td>
-                          <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
-                            <button style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.25rem',
-                              padding: '0.25rem 0.5rem',
-                              border: '1px solid #cbd5e1',
-                              borderRadius: '0.375rem',
-                              backgroundColor: 'white',
-                              fontSize: '0.75rem',
-                              fontWeight: 600,
-                              cursor: 'pointer'
-                            }}>
-                              View
-                            </button>
+                          <td style={{ padding: '1rem' }}>
+                            {job.feedback ? (
+                              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.125rem', color: '#f59e0b', fontWeight: 600 }}>
+                                {job.feedback.replace(' ★', '')}
+                                <Star size={12} fill="#f59e0b" stroke="none" />
+                              </span>
+                            ) : (
+                              <span style={{ color: '#9ca3af' }}>--</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '1rem 1.5rem', position: 'relative' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+                              <button style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                padding: '0.375rem 0.75rem',
+                                border: '1px solid #cbd5e1',
+                                borderRadius: '0.375rem',
+                                backgroundColor: 'white',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                cursor: 'pointer',
+                                color: '#374151'
+                              }}>
+                                View
+                                <ExternalLink size={12} />
+                              </button>
+                              
+                              <button 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenJobDropdownId(openJobDropdownId === job.id ? null : job.id);
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  padding: '0.375rem',
+                                  border: '1px solid #cbd5e1',
+                                  borderRadius: '0.375rem',
+                                  backgroundColor: 'white',
+                                  cursor: 'pointer',
+                                  color: '#4b5563'
+                                }}
+                              >
+                                <MoreVertical size={14} />
+                              </button>
+
+                              {/* Dropdown Menu */}
+                              {openJobDropdownId === job.id && (
+                                <div 
+                                  style={{
+                                    position: 'absolute',
+                                    top: '100%',
+                                    right: '1.5rem',
+                                    marginTop: '0.25rem',
+                                    backgroundColor: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '0.5rem',
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                                    zIndex: 50,
+                                    minWidth: '160px',
+                                    overflow: 'hidden',
+                                    textAlign: 'left'
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <div 
+                                    style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#374151', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontWeight: 600 }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                                    onClick={() => setOpenJobDropdownId(null)}
+                                  >
+                                    Mark Under Review
+                                  </div>
+                                  <div 
+                                    style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#374151', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', fontWeight: 600 }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                                    onClick={() => setOpenJobDropdownId(null)}
+                                  >
+                                    Pause Services
+                                  </div>
+                                  <div 
+                                    style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#ef4444', cursor: 'pointer', fontWeight: 600 }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                                    onClick={() => setOpenJobDropdownId(null)}
+                                  >
+                                    Suspend Account
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -875,32 +1082,101 @@ export default function MechanicDetailPage() {
           {activeTab === 'performance' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               
+              {/* Filter Row */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.25rem' }}>
+                <div style={{
+                  padding: '0.375rem 1rem',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '0.5rem',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  cursor: 'pointer'
+                }}>
+                  Last 7 Days
+                  <ChevronDown size={12} style={{ color: '#64748b' }} />
+                </div>
+              </div>
+
               {/* Performance Mini KPIs */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1rem' }}>
-                <div className="kpi-card">
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, marginBottom: '0.5rem' }}>Total Jobs</span>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>12</span>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, marginTop: '0.25rem' }}>Completed &amp; Ongoing</span>
+                {/* Total Jobs */}
+                <div style={{ display: 'flex', flexDirection: 'column', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e5e7eb', backgroundColor: 'white' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', padding: '0.25rem', borderRadius: '0.25rem', backgroundColor: '#eff6ff', color: '#2563eb' }}>
+                      <Briefcase size={12} />
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Total Jobs</span>
+                  </div>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>12</span>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', width: 'fit-content', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', backgroundColor: '#eff6ff', color: '#2563eb', fontSize: '0.6875rem', fontWeight: 600 }}>
+                    <Briefcase size={10} />
+                    12
+                  </div>
                 </div>
-                <div className="kpi-card">
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, marginBottom: '0.5rem' }}>Revenue</span>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>₹15,000</span>
-                  <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600, marginTop: '0.25rem' }}>▲ 5% (L7D)</span>
+
+                {/* Revenue */}
+                <div style={{ display: 'flex', flexDirection: 'column', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e5e7eb', backgroundColor: 'white' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', padding: '0.25rem', borderRadius: '0.25rem', backgroundColor: '#fffbeb', color: '#d97706' }}>
+                      <IndianRupee size={12} />
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Revenue</span>
+                  </div>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>₹ 15,000</span>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', width: 'fit-content', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', backgroundColor: '#fffbeb', color: '#d97706', fontSize: '0.6875rem', fontWeight: 600 }}>
+                    <IndianRupee size={10} />
+                    ₹ 15,000
+                  </div>
                 </div>
-                <div className="kpi-card">
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, marginBottom: '0.5rem' }}>Payout Pending</span>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>₹1,500</span>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, marginTop: '0.25rem' }}>Settle in next cycle</span>
+
+                {/* Payout Pending */}
+                <div style={{ display: 'flex', flexDirection: 'column', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e5e7eb', backgroundColor: 'white' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', padding: '0.25rem', borderRadius: '0.25rem', backgroundColor: '#fffbeb', color: '#d97706' }}>
+                      <Clock size={12} />
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Payout Pending</span>
+                  </div>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>₹ 15.00</span>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', width: 'fit-content', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', backgroundColor: '#fffbeb', color: '#d97706', fontSize: '0.6875rem', fontWeight: 600 }}>
+                    <Clock size={10} />
+                    ₹ 15.00
+                  </div>
                 </div>
-                <div className="kpi-card">
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, marginBottom: '0.5rem' }}>SLA adherence</span>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b' }}>90%</span>
-                  <span style={{ fontSize: '0.75rem', color: '#16a34a', fontWeight: 600, marginTop: '0.25rem' }}>Above target</span>
+
+                {/* SLA Adherence */}
+                <div style={{ display: 'flex', flexDirection: 'column', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e5e7eb', backgroundColor: 'white' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', padding: '0.25rem', borderRadius: '0.25rem', backgroundColor: '#f0fdf4', color: '#16a34a' }}>
+                      <Award size={12} />
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>SLA adherence</span>
+                  </div>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>90%</span>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', width: 'fit-content', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', backgroundColor: '#f0fdf4', color: '#16a34a', fontSize: '0.6875rem', fontWeight: 600 }}>
+                    <Award size={10} />
+                    90%
+                  </div>
                 </div>
-                <div className="kpi-card">
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500, marginBottom: '0.5rem' }}>Flags</span>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#dc2626' }}>10</span>
-                  <span style={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600, marginTop: '0.25rem' }}>▲ 5% (L7D)</span>
+
+                {/* Flags */}
+                <div style={{ display: 'flex', flexDirection: 'column', padding: '1rem', borderRadius: '0.75rem', border: '1px solid #e5e7eb', backgroundColor: 'white' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', padding: '0.25rem', borderRadius: '0.25rem', backgroundColor: '#fef2f2', color: '#dc2626' }}>
+                      <Flag size={12} />
+                    </div>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Flags</span>
+                  </div>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#dc2626', marginBottom: '0.25rem' }}>10</span>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', width: 'fit-content', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', backgroundColor: '#fef2f2', color: '#dc2626', fontSize: '0.6875rem', fontWeight: 600 }}>
+                    <Flag size={10} />
+                    10
+                  </div>
                 </div>
               </div>
 
@@ -941,11 +1217,11 @@ export default function MechanicDetailPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                       <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981' }} />
-                      Completed (80%)
+                      Completed
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                       <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
-                      Cancelled (20%)
+                      Cancelled
                     </div>
                   </div>
                 </div>
@@ -956,13 +1232,19 @@ export default function MechanicDetailPage() {
                   <div style={{ height: '240px' }}>
                     {isMounted ? (
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={revenueTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <AreaChart data={revenueTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.4}/>
+                              <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                           <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
                           <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
                           <Tooltip />
-                          <Line type="monotone" dataKey="Revenue" stroke="#f59e0b" strokeWidth={3} dot={{ fill: '#f59e0b', strokeWidth: 2 }} activeDot={{ r: 6 }} />
-                        </LineChart>
+                          <Area type="monotone" dataKey="Revenue" stroke="#f59e0b" strokeWidth={3} fillOpacity={1} fill="url(#colorRevenue)" dot={{ fill: '#f59e0b', strokeWidth: 2 }} activeDot={{ r: 6 }} />
+                        </AreaChart>
                       </ResponsiveContainer>
                     ) : (
                       <div style={{ width: '100%', height: '100%', backgroundColor: '#f8fafc' }} />
@@ -976,51 +1258,54 @@ export default function MechanicDetailPage() {
                 {/* Doughnut 2: Job Type Breakdown */}
                 <div className="card-premium">
                   <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: '1.25rem' }}>Job Type Breakdown</h3>
-                  <div style={{ height: '220px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {isMounted ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={typeBreakdownData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={3}
-                            dataKey="value"
-                          >
-                            {typeBreakdownData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', backgroundColor: '#f8fafc' }} />
-                    )}
-                    <div style={{ position: 'absolute', textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>400</div>
-                      <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>Total Jobs</div>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', height: '220px' }}>
+                    <div style={{ width: '60%', height: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {isMounted ? (
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={typeBreakdownData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={55}
+                              outerRadius={75}
+                              paddingAngle={3}
+                              dataKey="value"
+                            >
+                              {typeBreakdownData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', backgroundColor: '#f8fafc' }} />
+                      )}
+                      <div style={{ position: 'absolute', textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>400</div>
+                        <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 600 }}>Total Jobs</div>
+                      </div>
                     </div>
-                  </div>
-                  {/* Custom Legend */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '1rem', fontSize: '0.6875rem', fontWeight: 600, color: '#64748b' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
-                      Invite Quote (30%)
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
-                      Smart Booking (20%)
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3b82f6' }} />
-                      Video Call (10%)
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-                      Assisted Booking (40%)
+                    
+                    {/* Custom Legend */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', width: '40%' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                        Invite Quote
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+                        Smart Booking
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3b82f6' }} />
+                        Video Call
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+                        Assisted Booking
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1035,7 +1320,35 @@ export default function MechanicDetailPage() {
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                           <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
                           <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />
-                          <Tooltip />
+                          <Tooltip 
+                            content={({ active, payload, label }) => {
+                              if (active && payload && payload.length) {
+                                return (
+                                  <div style={{
+                                    backgroundColor: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '0.5rem',
+                                    padding: '0.75rem',
+                                    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'
+                                  }}>
+                                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#111827', marginBottom: '0.375rem' }}>{label} Feb 2026</div>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 600 }}>
+                                      {payload.map((p, idx) => (
+                                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem' }}>
+                                          <span style={{ color: p.color }}>{p.name}:</span>
+                                          <span style={{ color: '#111827' }}>{p.value}</span>
+                                        </div>
+                                      ))}
+                                      <div style={{ marginTop: '0.375rem', borderTop: '1px solid #f3f4f6', paddingTop: '0.375rem' }}>
+                                        <span style={{ color: '#2563eb', cursor: 'pointer', textDecoration: 'underline' }}>View Orders</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
                           <Bar dataKey="Total Orders" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                           <Bar dataKey="Return" fill="#10b981" radius={[4, 4, 0, 0]} />
                           <Bar dataKey="Replacement" fill="#f59e0b" radius={[4, 4, 0, 0]} />
@@ -1054,10 +1367,12 @@ export default function MechanicDetailPage() {
                 <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: '1.25rem' }}>Feedback Keywords</h3>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                   {[
-                    { label: 'Product quality', count: 25, percentage: '50%' },
-                    { label: 'Wrong size ordered', count: 25, percentage: '50%' },
-                    { label: 'Product damaged', count: 25, percentage: '50%' },
-                    { label: 'Received wrong item', count: 25, percentage: '50%' },
+                    { label: 'Product quality (15%)' },
+                    { label: 'Product quality (15%)' },
+                    { label: 'Wrong size ordered (15%)' },
+                    { label: 'Product damaged (15%)' },
+                    { label: 'Product damaged (15%)' },
+                    { label: 'Received wrong item (15%)' }
                   ].map((kw, idx) => (
                     <span key={idx} style={{ 
                       display: 'inline-flex', 
@@ -1071,7 +1386,7 @@ export default function MechanicDetailPage() {
                       fontSize: '0.8125rem',
                       fontWeight: 600
                     }}>
-                      {kw.label} <span style={{ color: '#1e40af', fontWeight: 700 }}>{kw.count} ({kw.percentage})</span>
+                      {kw.label}
                     </span>
                   ))}
                 </div>

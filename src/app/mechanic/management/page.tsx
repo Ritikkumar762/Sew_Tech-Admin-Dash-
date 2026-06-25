@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { useMechanics } from '../_hooks/useMechanics';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
@@ -11,23 +12,27 @@ import {
   ChevronDown, 
   ExternalLink, 
   MoreVertical,
-  Check,
-  Volume2
+  Search,
+  Calendar,
+  SlidersHorizontal,
+  XCircle
 } from 'lucide-react';
 
 export default function MechanicPage() {
   const { mechanics, loading, error } = useMechanics();
   const router = useRouter();
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // Override list data to match the screenshot precisely
-  const displayMechanics = mechanics.map((m) => ({
-    ...m,
-    name: 'Nishant Kumar',
-    rating: 4.5,
-    totalJobs: 30,
-    status: 'Available',
-    location: 'Delhi'
-  }));
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setOpenDropdownId(null);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  // Use real backend data directly from useMechanics hook
+  const displayMechanics = mechanics;
 
   const columns: Column<any>[] = [
     {
@@ -64,7 +69,7 @@ export default function MechanicPage() {
               display: 'inline-block',
               marginTop: '0.125rem'
             }}>
-              Mehcanic ID
+              #{r.id}
             </span>
           </div>
         </div>
@@ -76,8 +81,8 @@ export default function MechanicPage() {
       render: () => (
         <div style={{ display: 'flex', gap: '0.375rem' }}>
           <img src="/instant smart Booking.svg" alt="Smart Booking" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
-          <img src="/video call _assistance.svg" alt="Video Call" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
-          <img src="/invite quote.svg" alt="Invite Quote" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+          <img src="/video call _assistance.svg" alt="Video Call"   style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+          <img src="/invite quote.svg"           alt="Invite Quote" style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
         </div>
       )
     },
@@ -86,14 +91,25 @@ export default function MechanicPage() {
     { 
       key: 'availability', 
       label: 'Availability',
-      render: () => <span style={{ color: '#4b5563', fontWeight: 500 }}>21 Jan &apos;26</span>
+      render: (r) => {
+        // Use submitted_at from API or fallback to lastJob
+        const raw = r.submitted_at ?? r.lastJob ?? r.joiningDate ?? null;
+        let label = '--';
+        if (raw) {
+          try {
+            const d = new Date(raw);
+            label = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
+          } catch { label = raw; }
+        }
+        return <span style={{ color: '#4b5563', fontWeight: 500 }}>{label}</span>;
+      }
     },
     { 
       key: 'rating', 
       label: 'Rating', 
       render: (r) => (
         <span style={{ fontWeight: 600, color: '#f59e0b', display: 'inline-flex', alignItems: 'center', gap: '0.125rem' }}>
-          {r.rating}
+          {r.rating ?? '--'}
           <Star size={12} fill="#f59e0b" stroke="none" />
         </span>
       )
@@ -101,65 +117,153 @@ export default function MechanicPage() {
     { 
       key: 'status', 
       label: 'Status', 
-      render: () => (
-        <span style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          padding: '0.25rem 0.75rem',
-          borderRadius: '2rem',
-          fontSize: '0.75rem',
-          fontWeight: 600,
-          backgroundColor: '#ecfdf5',
-          color: '#059669',
-          border: '1px solid #a7f3d0'
-        }}>
-          Active
-        </span>
-      )
+      render: (r) => {
+        const s = (r.status ?? '').toUpperCase();
+        const cfg =
+          s === 'APPROVED' || s === 'AVAILABLE' || s === 'ACTIVE'
+            ? { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0', label: 'Active' }
+          : s === 'BUSY'
+            ? { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe', label: 'Busy' }
+          : s === 'PENDING'
+            ? { bg: '#fffbeb', color: '#d97706', border: '#fde68a', label: 'Pending' }
+          : s === 'REJECTED' || s === 'SUSPENDED' || s === 'OFFLINE'
+            ? { bg: '#fef2f2', color: '#ef4444', border: '#fecaca', label: 'Inactive' }
+          : { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0', label: r.status ?? 'Active' };
+        return (
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            padding: '0.25rem 0.75rem',
+            borderRadius: '2rem',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            backgroundColor: cfg.bg,
+            color: cfg.color,
+            border: `1px solid ${cfg.border}`
+          }}>
+            {cfg.label}
+          </span>
+        );
+      }
     },
     {
       key: 'action',
       label: 'Action',
       render: (r) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }} onClick={(e) => e.stopPropagation()}>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '0.5rem', justifyContent: 'center' }}>
+
           <button 
-            onClick={() => router.push(`/mechanic/management/${r.id}`)}
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/mechanic/management/${r.id}`);
+            }}
+            className="btn-action"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.25rem',
+              gap: '0.375rem',
               padding: '0.375rem 0.75rem',
-              border: '1px solid #d1d5db',
+              border: 'none',
               borderRadius: '0.375rem',
-              backgroundColor: 'white',
+              backgroundColor: '#0f172a',
               fontSize: '0.75rem',
               fontWeight: 600,
               cursor: 'pointer',
-              color: '#374151',
-              transition: 'background-color 0.15s'
+              color: 'white',
             }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
           >
             View
-            <ExternalLink size={12} />
+            <ExternalLink size={12} strokeWidth={2.5} />
           </button>
-          <button style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#6b7280', padding: '0.25rem' }}>
-            <MoreVertical size={14} />
+          
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpenDropdownId(openDropdownId === r.id ? null : r.id);
+            }}
+            className="btn-action"
+            style={{ 
+              border: 'none', 
+              backgroundColor: '#0f172a',
+              color: 'white', 
+              padding: '0.375rem 0.5rem',
+              borderRadius: '0.375rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <MoreVertical size={14} strokeWidth={2.5} />
           </button>
+
+          {/* Dropdown Menu */}
+          {openDropdownId === r.id && (
+            <div 
+              style={{
+                position: 'absolute',
+                top: '100%',
+                right: '0',
+                marginTop: '0.25rem',
+                backgroundColor: 'white',
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.5rem',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                zIndex: 50,
+                minWidth: '160px',
+                overflow: 'hidden',
+                textAlign: 'left'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div 
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#374151', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                onClick={() => setOpenDropdownId(null)}
+              >
+                Mark Under Review
+              </div>
+              <div 
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#374151', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                onClick={() => setOpenDropdownId(null)}
+              >
+                Pause Services
+              </div>
+              <div 
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#ef4444', cursor: 'pointer' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                onClick={() => setOpenDropdownId(null)}
+              >
+                Suspend Account
+              </div>
+            </div>
+          )}
         </div>
       )
     }
   ];
 
   return (
-    <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
+    <div className="mechanic-management-page">
       <style>
         {`
-          @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
+          @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
           }
+          .animate-fade-in {
+            animation: slideUpFade 0.5s ease-out forwards;
+          }
+          .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+          .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+          .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+          .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+          .stagger-5 { animation-delay: 0.5s; opacity: 0; }
+          
           .kpi-card-vertical {
             background: white;
             border: 1px solid #e5e7eb;
@@ -168,11 +272,12 @@ export default function MechanicPage() {
             display: flex;
             flex-direction: column;
             box-shadow: 0 1px 3px rgba(0,0,0,0.02);
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           }
           .kpi-card-vertical:hover {
-            border-color: #d1d5db;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            border-color: #cbd5e1;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025);
+            transform: translateY(-2px);
           }
           .kpi-icon-wrapper-small {
             width: 28px;
@@ -181,36 +286,59 @@ export default function MechanicPage() {
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: transform 0.3s ease;
+          }
+          .kpi-card-vertical:hover .kpi-icon-wrapper-small {
+            transform: scale(1.1) rotate(5deg);
+          }
+          .btn-action {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          .btn-action:hover {
+            background-color: #1e293b !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+          }
+          .btn-action:active {
+            transform: translateY(0);
+          }
+          .filter-bar {
+            transition: box-shadow 0.3s ease;
+          }
+          .filter-bar:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
           }
         `}
       </style>
-      <PageHeader 
-        title="Mechanic Management" 
-        subtitle="Sewtech Spare • Mechanic Management" 
-        actions={
-          <button style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: '#0f172a',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.5rem',
-            padding: '0.5rem 1.25rem',
-            fontWeight: 600,
-            fontSize: '0.875rem',
-            cursor: 'pointer'
-          }}>
-            Export
-            <ExternalLink size={14} />
-          </button>
-        } 
-      />
+      <div className="animate-fade-in stagger-1">
+        <PageHeader 
+          title="Mechanic Management" 
+          subtitle="Sewtech Spare • Mechanic Management" 
+          actions={
+            <button className="btn-action" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: '#0f172a',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              padding: '0.5rem 1.25rem',
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer'
+            }}>
+              Export
+              <ExternalLink size={14} />
+            </button>
+          } 
+        />
+      </div>
 
       {/* KPI Cards section */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', marginBottom: '1.5rem', marginTop: '1rem' }}>
         {/* Card 1 */}
-        <div className="kpi-card-vertical">
+        <div className="kpi-card-vertical animate-fade-in stagger-2">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <div className="kpi-icon-wrapper-small" style={{ backgroundColor: '#eff6ff' }}>
               <Users size={14} style={{ color: '#2563eb' }} />
@@ -222,7 +350,7 @@ export default function MechanicPage() {
         </div>
         
         {/* Card 2 */}
-        <div className="kpi-card-vertical">
+        <div className="kpi-card-vertical animate-fade-in stagger-2" style={{ animationDelay: '0.25s' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <div className="kpi-icon-wrapper-small" style={{ backgroundColor: '#eff6ff' }}>
               <Users size={14} style={{ color: '#2563eb' }} />
@@ -234,7 +362,7 @@ export default function MechanicPage() {
         </div>
 
         {/* Card 3 */}
-        <div className="kpi-card-vertical">
+        <div className="kpi-card-vertical animate-fade-in stagger-3">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
             <div className="kpi-icon-wrapper-small" style={{ backgroundColor: '#eff6ff' }}>
               <Star size={14} style={{ color: '#2563eb' }} fill="#2563eb" stroke="none" />
@@ -245,15 +373,15 @@ export default function MechanicPage() {
         </div>
 
         {/* Card 4 */}
-        <div className="kpi-card-vertical">
+        <div className="kpi-card-vertical animate-fade-in stagger-3" style={{ animationDelay: '0.35s' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <img src="/red_flag.svg" alt="Flag" style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+            <img src="/red_flag.svg" alt="Flag" style={{ width: '28px', height: '28px', objectFit: 'contain' }} className="kpi-icon-wrapper-small" />
             <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>Flags</span>
             <span style={{ color: '#16a34a', fontSize: '0.6875rem', fontWeight: 700, marginLeft: 'auto' }}>▼ 5% (L7D)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
             <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>100</div>
-            <span style={{ color: '#2563eb', display: 'inline-flex', alignItems: 'center', cursor: 'pointer' }}>
+            <span style={{ color: '#2563eb', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', transition: 'transform 0.2s', padding: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translate(2px, -2px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translate(0, 0)'}>
               <ExternalLink size={12} />
             </span>
           </div>
@@ -261,107 +389,126 @@ export default function MechanicPage() {
       </div>
 
       {/* Filter Bar */}
-      <div style={{
+      <div className="filter-bar animate-fade-in stagger-4" style={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         backgroundColor: 'white',
         border: '1px solid #e5e7eb',
-        borderRadius: '0.75rem',
-        padding: '0.75rem 1rem',
+        borderRadius: '0.5rem',
+        padding: '0.75rem',
         marginBottom: '1rem',
         gap: '1rem',
         flexWrap: 'wrap'
       }}>
+        {/* Left Side: Search & Date Filter */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
-          <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+          
+          {/* Search Input */}
+          <div style={{ position: 'relative', flex: 1, minWidth: '300px' }}>
+            <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b', display: 'flex' }}>
+              <Search size={16} strokeWidth={1.5} />
+            </span>
             <input 
               type="text" 
               placeholder="Search by Mechanic Name" 
               style={{
                 width: '100%',
                 padding: '0.5rem 1rem 0.5rem 2.25rem',
-                border: '1px solid #cbd5e1',
-                borderRadius: '0.5rem',
-                fontSize: '0.875rem',
-                outline: 'none'
-              }}
-            />
-            <span style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}>🔍</span>
-          </div>
-          
-          <div style={{ position: 'relative' }}>
-            <select style={{
-              appearance: 'none',
-              padding: '0.5rem 2.25rem 0.5rem 1rem',
-              border: '1px solid #cbd5e1',
-              borderRadius: '0.5rem',
-              fontSize: '0.875rem',
-              backgroundColor: 'white',
-              outline: 'none',
-              cursor: 'pointer',
-              color: '#374151'
-            }}>
-              <option>Added on</option>
-            </select>
-            <ChevronDown size={14} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b', pointerEvents: 'none' }} />
-          </div>
-          
-          <div style={{ position: 'relative' }}>
-            <input 
-              type="text" 
-              style={{
-                width: '80px',
-                padding: '0.5rem',
-                border: '1px solid #cbd5e1',
-                borderRadius: '0.5rem',
-                fontSize: '0.875rem',
+                border: '1px solid #e5e7eb',
+                borderRadius: '0.375rem',
+                fontSize: '0.8125rem',
+                color: '#0f172a',
                 outline: 'none',
-                textAlign: 'center'
+                fontWeight: 600,
               }}
             />
-            <span style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', fontSize: '0.75rem' }}>📅</span>
+          </div>
+          
+          {/* Date Filter Combo */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            border: '1px solid #e5e7eb', 
+            borderRadius: '0.375rem',
+            overflow: 'hidden',
+            height: '36px'
+          }}>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0 0.75rem',
+              backgroundColor: '#f8fafc',
+              height: '100%',
+              fontSize: '0.8125rem',
+              color: '#334155',
+              fontWeight: 500,
+              borderRight: '1px solid #e5e7eb'
+            }}>
+              Added on
+              <ChevronDown size={14} style={{ color: '#64748b' }} strokeWidth={2} />
+            </div>
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              padding: '0 0.75rem',
+              backgroundColor: 'white',
+              height: '100%',
+              minWidth: '100px',
+              cursor: 'pointer'
+            }}>
+              <Calendar size={15} style={{ color: '#94a3b8' }} strokeWidth={1.5} />
+            </div>
           </div>
         </div>
         
+        {/* Right Side: Action Buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <button style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.375rem',
-            padding: '0.5rem 1rem',
-            backgroundColor: '#0f172a',
-            color: 'white',
-            border: 'none',
-            borderRadius: '0.5rem',
-            fontSize: '0.875rem',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}>
+          <button 
+            className="btn-action" 
+            onClick={() => setIsFilterOpen(true)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              padding: '0 1rem',
+              height: '36px',
+              backgroundColor: '#0f172a',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.375rem',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
             Apply Filters
-            <span style={{ fontSize: '11px' }}>⚙️</span>
+            <SlidersHorizontal size={14} strokeWidth={1.5} />
           </button>
           
-          <button style={{
+          <button className="btn-action" style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.375rem',
-            padding: '0.5rem 1rem',
+            gap: '0.5rem',
+            padding: '0 1rem',
+            height: '36px',
             backgroundColor: '#0f172a',
             color: 'white',
             border: 'none',
-            borderRadius: '0.5rem',
-            fontSize: '0.875rem',
+            borderRadius: '0.375rem',
+            fontSize: '0.8125rem',
             fontWeight: 600,
             cursor: 'pointer'
           }}>
             Bulk Actions
-            <ChevronDown size={14} />
+            <ChevronDown size={14} strokeWidth={2} />
           </button>
         </div>
       </div>
 
-      <div className="card">
+      <div className="card animate-fade-in stagger-5" style={{ transition: 'box-shadow 0.3s ease' }} onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.05)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}>
         {loading && <p className="text-muted">Loading mechanics...</p>}
         {error && <p style={{ color: '#ef4444' }}>{error}</p>}
         {!loading && (
@@ -372,6 +519,169 @@ export default function MechanicPage() {
           />
         )}
       </div>
+
+      {/* Filter Side Drawer Overlay */}
+      {isFilterOpen && (
+        <>
+          <div 
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0, 0, 0, 0.4)',
+              zIndex: 100,
+              animation: 'fadeIn 0.2s ease-out'
+            }}
+            onClick={() => setIsFilterOpen(false)}
+          />
+          <div 
+            style={{
+              position: 'fixed',
+              top: '1rem',
+              right: '1rem',
+              bottom: '1rem',
+              width: '380px',
+              backgroundColor: 'white',
+              borderRadius: '1rem',
+              boxShadow: '-4px 0 20px rgba(0, 0, 0, 0.1)',
+              zIndex: 101,
+              display: 'flex',
+              flexDirection: 'column',
+              animation: 'slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              overflow: 'hidden'
+            }}
+          >
+            {/* Drawer Header */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1.25rem 1.5rem', borderBottom: '1px solid #f3f4f6' }}>
+              <h2 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#111827', margin: 0 }}>Filters</h2>
+              <button 
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.375rem',
+                  padding: '0.375rem 0.625rem',
+                  backgroundColor: '#fef2f2',
+                  color: '#ef4444',
+                  border: 'none',
+                  borderRadius: '1rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+                onClick={() => setIsFilterOpen(false)}
+              >
+                Clear Filters
+                <XCircle size={12} />
+              </button>
+            </div>
+            
+            {/* Drawer Content */}
+            <div style={{ padding: '1.5rem', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              
+              {/* City Filter */}
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.75rem', padding: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937' }}>City</span>
+                  <ChevronDown size={14} color="#6b7280" />
+                </div>
+                <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                  <select style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', appearance: 'none', outline: 'none', color: '#6b7280', fontSize: '0.8125rem', backgroundColor: 'white' }}>
+                    <option>Select City</option>
+                  </select>
+                  <ChevronDown size={14} color="#6b7280" style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {['Delhi NCR', 'Bangalore', 'Gujarat'].map(city => (
+                    <div key={city} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', border: '1px solid #bfdbfe', borderRadius: '1rem', fontSize: '0.75rem', color: '#3b82f6', backgroundColor: '#eff6ff' }}>
+                      {city}
+                      <XCircle size={12} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Select Rating Filter */}
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.75rem', padding: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937' }}>Select Rating</span>
+                  <ChevronDown size={14} color="#6b7280" />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                  {['> 2', '3-5', '> 4'].map(rating => (
+                    <label key={rating} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#4b5563', cursor: 'pointer' }}>
+                      <input type="checkbox" style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }} />
+                      {rating}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Jobs Completed Filter */}
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.75rem', padding: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937' }}>Jobs Completed</span>
+                  <ChevronDown size={14} color="#6b7280" />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
+                  {['< 10', '10-50', '> 50'].map(jobs => (
+                    <label key={jobs} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#4b5563', cursor: 'pointer' }}>
+                      <input type="checkbox" style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }} />
+                      {jobs}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Status Filter */}
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.75rem', padding: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937' }}>Status</span>
+                  <ChevronDown size={14} color="#6b7280" />
+                </div>
+                <div style={{ display: 'flex', gap: '2rem' }}>
+                  {['Active', 'Suspended'].map(status => (
+                    <label key={status} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#4b5563', cursor: 'pointer' }}>
+                      <input type="radio" name="filter_status" style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }} />
+                      {status}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Last Active Filter */}
+              <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.75rem', padding: '1.25rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937' }}>Last Active</span>
+                  <ChevronDown size={14} color="#6b7280" />
+                </div>
+                <div style={{ position: 'relative', marginBottom: '1rem' }}>
+                  <select style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', appearance: 'none', outline: 'none', color: '#6b7280', fontSize: '0.8125rem', backgroundColor: 'white' }}>
+                    <option>Select City</option>
+                  </select>
+                  <ChevronDown size={14} color="#6b7280" style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {['Delhi NCR', 'Bangalore', 'Gujarat'].map(city => (
+                    <div key={city} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', border: '1px solid #bfdbfe', borderRadius: '1rem', fontSize: '0.75rem', color: '#3b82f6', backgroundColor: '#eff6ff' }}>
+                      {city}
+                      <XCircle size={12} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <style>{`
+            @keyframes slideInRight {
+              from { transform: translateX(100%); opacity: 0; }
+              to { transform: translateX(0); opacity: 1; }
+            }
+          `}</style>
+        </>
+      )}
     </div>
   );
 }

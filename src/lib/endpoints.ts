@@ -62,11 +62,13 @@ export const ENDPOINTS = {
 
   // ── Mechanics ────────────────────────────────────────────────
   mechanics: {
-    list:       `${BASE_URL}/mechanics`,
-    byId:       (id: string) => `${BASE_URL}/mechanics/${id}`,
-    create:     `${BASE_URL}/mechanics`,
-    update:     (id: string) => `${BASE_URL}/mechanics/${id}`,
-    assignJob:  (id: string) => `${BASE_URL}/mechanics/${id}/assign`,
+    list:         `${BASE_URL}/mechanics`,
+    byId:         (id: string) => `${BASE_URL}/mechanics/${id}`,
+    create:       `${BASE_URL}/mechanics`,
+    update:       (id: string) => `${BASE_URL}/mechanics/${id}`,
+    assignJob:    (id: string) => `${BASE_URL}/mechanics/${id}/assign`,
+    // Real API — mechanic applications (care module)
+    applications: `${MARKETING_BASE_URL}/api/v1/admin/care/mechanics/applications`,
   },
 
   // ── Support ──────────────────────────────────────────────────
