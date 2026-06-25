@@ -62,12 +62,12 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'Sewtech Academy', 
     path: '/academy', 
-    icon: '/academy_logo.png',
+    icon: '/Academy_logo.svg',
     activeBg: '#f3e8ff',
     activeColor: '#9333ea',
     activeHoverBg: '#e9d5ff'
   },
-  { name: 'Master Data Management', path: '/mdm', icon: 'Network' },
+  { name: 'Master Data Management', path: '/mdm', icon: '/MdM_logo.svg' },
   { 
     name: 'Finance', 
     path: '/finance', 
@@ -92,7 +92,7 @@ export const NAVIGATION_ROUTES: Route[] = [
   { 
     name: 'User Management', 
     path: '/users', 
-    icon: 'Users',
+    icon: '/user _management_logo.svg',
     subItems: [
       { name: 'All Users', path: '/users' },
       { name: 'Add New User', path: '/users/add' }
