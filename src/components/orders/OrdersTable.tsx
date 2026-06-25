@@ -1,4 +1,6 @@
+'use client';
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 type TabType = 'All' | 'Instant Smart Booking' | 'Invite Quote' | 'Video Call Assistance' | 'Assisted Booking';
 
@@ -7,6 +9,7 @@ interface OrdersTableProps {
 }
 
 export default function OrdersTable({ activeTab }: OrdersTableProps) {
+  const router = useRouter();
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
 
   const toggleRow = (id: string) => {
@@ -199,7 +202,7 @@ export default function OrdersTable({ activeTab }: OrdersTableProps) {
                   </td>
                   <td style={{ padding: '1rem' }}>
                     <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="btn-hover" style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <button className="btn-hover" onClick={() => router.push(`/mechanic/orders/${row.id}`)} style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                         View <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                       </button>
                       <button className="btn-hover" style={{ width: '32px', height: '32px', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
