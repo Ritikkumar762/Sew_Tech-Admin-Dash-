@@ -80,6 +80,20 @@ export default function OrderDetailPage() {
   const renderDetailContent = () => {
     const status = order.status;
 
+    if (status === 'Completed') {
+      return (
+        <OrderDetailOrdered
+          order={order}
+          onUpdateStatus={handleUpdateStatus}
+          onCancelOrder={handleCancelOrder}
+          showCancelModal={showCancelModal}
+          setShowCancelModal={setShowCancelModal}
+          copiedText={copiedText}
+          handleCopy={handleCopy}
+        />
+      );
+    }
+
     if (status === 'Cancelled') {
       return (
         <OrderDetailCancelled
@@ -140,8 +154,7 @@ export default function OrderDetailPage() {
       status === 'Requested' || 
       status.includes('Pickup') || 
       status.includes('Replacement') || 
-      status.includes('Delivery') || 
-      status === 'Completed'
+      status.includes('Delivery')
     ) {
       return (
         <OrderDetailReplacement

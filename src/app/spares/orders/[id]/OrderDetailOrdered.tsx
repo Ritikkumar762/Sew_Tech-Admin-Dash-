@@ -152,14 +152,16 @@ export default function OrderDetailOrdered({
               {copiedText === 'orderId' ? <Check size={10} style={{ color: '#16a34a' }} /> : <Copy size={10} />}
             </div>
 
-            <span className={`badge ${getStatusBadgeClass(order.status)}`} style={{ marginLeft: '0.5rem' }}>
-              {order.status}
-            </span>
+            {order.status !== 'Completed' && (
+              <span className={`badge ${getStatusBadgeClass(order.status)}`} style={{ marginLeft: '0.5rem' }}>
+                {order.status}
+              </span>
+            )}
           </div>
 
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', position: 'relative' }}>
-            {order.status !== 'Cancelled' && order.status !== 'Completed' && (
+            {order.status !== 'Cancelled' && (
               <button 
                 onClick={() => setShowCancelModal(true)}
                 style={{
