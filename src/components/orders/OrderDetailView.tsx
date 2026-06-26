@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import AssignMechanicModal, { type Mechanic } from './AssignMechanicModal';
 import CancelRequestModal from './CancelRequestModal';
@@ -91,8 +91,36 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     return { status: finalStatus, isDiag };
   };
 
-  const [orderStatus, setOrderStatus] = useState<OrderStatus>(() => getInitialStatusAndFlow(orderId).status);
-  const [isDiagnosisFlow, setIsDiagnosisFlow] = useState<boolean>(() => getInitialStatusAndFlow(orderId).isDiag);
+  const searchParams = useSearchParams();
+  const paramServiceType = searchParams?.get('serviceType');
+  const paramStatus = searchParams?.get('status');
+
+  const getMappedStatus = (statusStr: string | null): OrderStatus => {
+    if (!statusStr) return 'BidLive';
+    switch (statusStr) {
+      case 'Bid Live': return 'BidLive';
+      case 'Bid Ended': return 'BidEnded';
+      case 'Mechanic Selected': return 'MechanicSelected';
+      case 'Ongoing': return 'Ongoing';
+      case 'Completed': return 'Completed';
+      case 'Diagnosis Available': return 'DiagnosisAvailable';
+      case 'Cancelled': return 'Cancelled';
+      default: return 'BidLive';
+    }
+  };
+
+  const isInviteQuote = paramServiceType === 'Invite Quote';
+
+  const initialStatus = isInviteQuote 
+    ? getMappedStatus(paramStatus) 
+    : getInitialStatusAndFlow(orderId).status;
+
+  const initialIsDiag = isInviteQuote 
+    ? (paramStatus === 'Diagnosis Available') 
+    : getInitialStatusAndFlow(orderId).isDiag;
+
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>(initialStatus);
+  const [isDiagnosisFlow, setIsDiagnosisFlow] = useState<boolean>(initialIsDiag);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
   const getStatusLabel = (status: OrderStatus): string => {
@@ -135,7 +163,10 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     }
   };
 
-  const [activeTab, setActiveTab] = useState<'summary' | 'tracking'>('summary');
+  const [activeTab, setActiveTab] = useState<'summary' | 'quotes' | 'tracking'>('summary');
+  const [sentNotification, setSentNotification] = useState(false);
+  const [searchQuoteQuery, setSearchQuoteQuery] = useState('');
+  const [showToast, setShowToast] = useState(false);
   const [isPlaying, setIsPlaying]   = useState(false);
   const [tlOffset, setTlOffset]     = useState(0);
   const [showAssign, setShowAssign] = useState(false);
@@ -226,7 +257,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
             {/* Booking type */}
             <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '20px', padding: '3px 10px' }}>
-              Instant Smart Booking
+              {['BidLive', 'BidEnded'].includes(orderStatus) ? 'Invite Quote' : 'Instant Smart Booking'}
             </span>
           </div>
 
@@ -306,7 +337,11 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
             { label: 'Email ID:',        value: 'demoemail@gmail.com',   type: 'text'  },
             { label: 'Phone Number:',    value: '+91 9876543210',        type: 'phone' },
             { label: 'Payment Method:',  value: 'UPI',                   type: 'text'  },
-            { label: 'Order Value:',     value: '₹1,600',               type: 'text'  },
+            ...((orderStatus === 'BidLive' || orderStatus === 'BidEnded') ? [
+              { label: 'Bid Ends:',      value: '28.02.2026 | 02:00 PM', type: 'text' }
+            ] : [
+              { label: 'Order Value:',   value: '₹1,600',                type: 'text' }
+            ]),
             { label: 'Status:',          value: getStatusLabel(orderStatus), type: 'badge' },
           ].map((col, i) => (
             <div key={i} style={{ paddingRight: i < 4 ? '1.5rem' : 0, borderRight: i < 4 ? '1px solid #f0f0f0' : 'none', paddingLeft: i > 0 ? '1.5rem' : 0 }}>
@@ -355,27 +390,39 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
         {/* ── Tab row ── */}
         <div style={{ display: 'flex', borderBottom: '1.5px solid #e5e7eb', padding: '0 1.5rem' }}>
-          {([['summary', 'Order Summary'], ['tracking', 'Tracking & Billing Details']] as const).map(([id, label]) => (
-            <button
-              key={id}
-              className="od-tab"
-              onClick={() => setActiveTab(id)}
-              style={{
-                padding: '14px 4px',
-                marginRight: '2rem',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: activeTab === id ? 600 : 400,
-                color: activeTab === id ? '#2563eb' : '#6b7280',
-                borderBottom: activeTab === id ? '2.5px solid #2563eb' : '2.5px solid transparent',
-                marginBottom: '-1.5px',
-              }}
-            >
-              {label}
-            </button>
-          ))}
+          {(() => {
+            const tabs: [string, string][] = [
+              ['summary', 'Order Summary']
+            ];
+            
+            if (['BidLive', 'BidEnded'].includes(orderStatus)) {
+              tabs.push(['quotes', 'Quotes']);
+            }
+            
+            tabs.push(['tracking', 'Tracking & Billing Details']);
+            
+            return tabs.map(([id, label]) => (
+              <button
+                key={id}
+                className="od-tab"
+                onClick={() => setActiveTab(id as any)}
+                style={{
+                  padding: '14px 4px',
+                  marginRight: '2rem',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: activeTab === id ? 600 : 400,
+                  color: activeTab === id ? '#2563eb' : '#6b7280',
+                  borderBottom: activeTab === id ? '2.5px solid #2563eb' : '2.5px solid transparent',
+                  marginBottom: '-1.5px',
+                }}
+              >
+                {label}
+              </button>
+            ));
+          })()}
         </div>
 
         {/* ══════════════════════════════════
@@ -623,6 +670,155 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
               </div>
             </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════
+            QUOTES TAB
+        ══════════════════════════════════ */}
+        {activeTab === 'quotes' && (
+          <div style={{ padding: '1.5rem', animation: 'odFade .3s ease' }}>
+            {/* Search Quote Bar */}
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem' }}>
+              <div style={{ position: 'relative', flex: 1, maxWidth: '400px' }}>
+                <span style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', display: 'flex', alignItems: 'center' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </span>
+                <input 
+                  type="text" 
+                  placeholder="Search by Mechanic Name/ID"
+                  value={searchQuoteQuery}
+                  onChange={(e) => setSearchQuoteQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '0.5rem 0.75rem 0.5rem 2.25rem',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '0.8125rem',
+                    outline: 'none',
+                    color: '#374151',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Notification Toast */}
+            {showToast && (
+              <div style={{
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                backgroundColor: '#10b981',
+                color: 'white',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.5rem',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                zIndex: 1000,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                animation: 'odFade 0.2s ease'
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                Push notification sent to nearby mechanics successfully!
+              </div>
+            )}
+
+            {/* Content Switch: Empty state or Quotes List */}
+            {(!sentNotification && orderStatus === 'BidLive') ? (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 2rem', gap: '1rem', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
+                <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1f2937' }}>No Quotes Received</span>
+                <button
+                  onClick={() => {
+                    setShowToast(true);
+                    setSentNotification(true);
+                    setTimeout(() => setShowToast(false), 3000);
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    padding: '0.625rem 1.25rem',
+                    backgroundColor: '#3b82f6',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '0.8125rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+                    transition: 'background-color 0.2s, transform 0.1s'
+                  }}
+                  className="od-hov"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: '6px' }}>
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                  </svg>
+                  Push Notification Again
+                </button>
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8125rem' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f8fafc', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>
+                      <th style={{ padding: '0.875rem 1rem', fontWeight: 600 }}>Mechanic</th>
+                      <th style={{ padding: '0.875rem 1rem', fontWeight: 600 }}>Bid Price</th>
+                      <th style={{ padding: '0.875rem 1rem', fontWeight: 600 }}>Proximity</th>
+                      <th style={{ padding: '0.875rem 1rem', fontWeight: 600 }}>Submitted On</th>
+                      <th style={{ padding: '0.875rem 1rem', fontWeight: 600 }}>Available</th>
+                      <th style={{ padding: '0.875rem 1rem', fontWeight: 600, textAlign: 'center' }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { name: 'Aditya Bhargav', id: 'MECH-2041', price: 30000, proximity: '5 km away', submitted: '10:30 PM, 21 Jan\' 26', available: '10:30 PM, 21 Jan\' 26' },
+                      { name: 'Sameer Pant', id: 'MECH-2042', price: 28500, proximity: '3 km away', submitted: '10:45 PM, 21 Jan\' 26', available: '10:45 PM, 21 Jan\' 26' },
+                      { name: 'Karan Malhotra', id: 'MECH-2043', price: 31000, proximity: '4 km away', submitted: '11:00 PM, 21 Jan\' 26', available: '11:00 PM, 21 Jan\' 26' }
+                    ]
+                    .filter(item => item.name.toLowerCase().includes(searchQuoteQuery.toLowerCase()) || item.id.toLowerCase().includes(searchQuoteQuery.toLowerCase()))
+                    .map((row, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
+                        <td style={{ padding: '0.875rem 1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#3b82f6', overflow: 'hidden' }}>
+                              <img src="/avatar-clean.svg" alt={row.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            </div>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#111827' }}>{row.name}</div>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', fontWeight: 500, color: '#2563eb', border: '1.5px dashed #93c5fd', borderRadius: '4px', padding: '1px 4px', cursor: 'pointer', marginTop: '2px' }}>
+                                {row.id}
+                                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '0.875rem 1rem', fontWeight: 600, color: '#111827' }}>₹{row.price.toLocaleString('en-IN')}</td>
+                        <td style={{ padding: '0.875rem 1rem', fontWeight: 500, color: '#4b5563' }}>{row.proximity}</td>
+                        <td style={{ padding: '0.875rem 1rem', color: '#4b5563', fontWeight: 500 }}>{row.submitted}</td>
+                        <td style={{ padding: '0.875rem 1rem', color: '#4b5563', fontWeight: 500 }}>{row.available}</td>
+                        <td style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>
+                          <button
+                            onClick={() => {
+                              setAssignedMechanic({ name: row.name, id: 'm-selected', avatarColor: '#3b82f6', location: row.proximity, jobsCompleted: 150, totalJobs: 150 });
+                              setOrderStatus('MechanicSelected');
+                              setActiveTab('summary');
+                            }}
+                            style={{ padding: '6px 12px', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                            className="od-hov"
+                          >
+                            Select Quote
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
