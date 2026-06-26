@@ -1,10 +1,10 @@
+'use client';
+
+import { useParams } from 'next/navigation';
 import OrderDetailView from '@/components/orders/OrderDetailView';
 
-interface Props {
-  params: Promise<{ orderId: string }>;
-}
-
-export default async function OrderDetailPage({ params }: Props) {
-  const { orderId } = await params;
+export default function OrderDetailPage() {
+  const { orderId } = useParams<{ orderId: string }>();
   return <OrderDetailView orderId={orderId} />;
 }
+
