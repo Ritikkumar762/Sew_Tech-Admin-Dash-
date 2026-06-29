@@ -3,13 +3,16 @@
 import React, { useState } from 'react';
 import OrdersSummaryCards from './OrdersSummaryCards';
 import OrdersToolbar from './OrdersToolbar';
-import OrdersTable from './OrdersTable';
+import AllBookings from './AllBookings';
+import InstantSmartBooking from './InstantSmartBooking';
+import InviteQuote from './InviteQuote';
+import VideoCallAssistance from './VideoCallAssistance';
+import AssistedBooking from './AssistedBooking';
 
 type TabType = 'All' | 'Instant Smart Booking' | 'Invite Quote' | 'Video Call Assistance' | 'Assisted Booking';
 
 export default function OrdersDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('All');
-  const [activeFilter, setActiveFilter] = useState('All');
 
   const tabs: { id: TabType, label: string, count: number, alert?: boolean }[] = [
     { id: 'All', label: 'All', count: 1085 },
@@ -18,54 +21,6 @@ export default function OrdersDashboard() {
     { id: 'Video Call Assistance', label: 'Video Call Assistance', count: 1085 },
     { id: 'Assisted Booking', label: 'Assisted Booking', count: 1085, alert: true }
   ];
-
-  interface FilterOption {
-    label: string;
-    count: number | null;
-    active?: boolean;
-  }
-
-  const getFilters = (tab: TabType): FilterOption[] => {
-    switch (tab) {
-      case 'Instant Smart Booking':
-        return [
-          { label: 'Flagged', count: 767 },
-          { label: 'Delayed', count: null, active: true },
-          { label: 'Support Required', count: 34 }
-        ];
-      case 'Assisted Booking':
-        return [
-          { label: 'All', count: null },
-          { label: 'Call Requested', count: 767 },
-          { label: 'Payment Pending', count: 767 },
-          { label: 'Mechanic Allotted', count: 767 },
-          { label: 'Ongoing', count: null },
-          { label: 'Completed', count: null },
-          { label: 'Cancelled', count: null }
-        ];
-      case 'Invite Quote':
-        return [
-          { label: 'All', count: null },
-          { label: 'Bid Live', count: 767 },
-          { label: 'Bid Ended', count: 767 },
-          { label: 'Mechanic Selected', count: null },
-          { label: 'Ongoing', count: null },
-          { label: 'Completed', count: null },
-        ];
-      default:
-        // All & Video Call
-        return [
-          { label: 'All', count: null },
-          { label: 'Mechanic Allotted', count: 767 },
-          { label: 'Ongoing', count: null },
-          { label: 'Completed', count: null },
-          { label: 'Diagnosis Available', count: null },
-          { label: 'Cancelled', count: null }
-        ];
-    }
-  };
-
-  const currentFilters = getFilters(activeTab);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.5s ease-in-out' }}>
@@ -76,8 +31,6 @@ export default function OrdersDashboard() {
             to { opacity: 1; transform: translateY(0); }
           }
           .tab-btn { transition: color 0.2s, border-color 0.2s; }
-          .filter-pill { transition: background-color 0.2s, color 0.2s, transform 0.1s; }
-          .filter-pill:hover { transform: scale(1.02); }
         `}
       </style>
 
@@ -109,7 +62,7 @@ export default function OrdersDashboard() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => { setActiveTab(tab.id); setActiveFilter(tab.id === 'Instant Smart Booking' ? 'Delayed' : 'All'); }}
+              onClick={() => setActiveTab(tab.id)}
               className="tab-btn"
               style={{
                 display: 'flex',
@@ -133,41 +86,12 @@ export default function OrdersDashboard() {
           ))}
         </div>
 
-        {/* Secondary Filter Pills */}
-        <div style={{ display: 'flex', gap: '1rem', padding: '1rem 0', borderBottom: '1px solid #e5e7eb', overflowX: 'auto' }}>
-          {currentFilters.map((filter, idx) => {
-            const isFilterActive = filter.label === activeFilter || filter.active;
-            return (
-              <button
-                key={idx}
-                onClick={() => setActiveFilter(filter.label)}
-                className="filter-pill"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem 1rem',
-                  borderRadius: '2rem',
-                  border: isFilterActive ? '1px solid #1f2937' : '1px solid #e5e7eb',
-                  backgroundColor: isFilterActive ? '#1f2937' : 'white',
-                  color: isFilterActive ? 'white' : '#4b5563',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                {filter.label} {filter.count !== null && <span style={{ color: isFilterActive ? '#9ca3af' : '#9ca3af' }}>({filter.count})</span>}
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Table Container */}
-        <div style={{ marginTop: '0', margin: '0 -1.5rem -1.5rem -1.5rem' }}>
-          <OrdersTable activeTab={activeTab} activeFilter={activeFilter} />
-        </div>
+        {/* Tab Content */}
+        {activeTab === 'All' && <AllBookings />}
+        {activeTab === 'Instant Smart Booking' && <InstantSmartBooking />}
+        {activeTab === 'Invite Quote' && <InviteQuote />}
+        {activeTab === 'Video Call Assistance' && <VideoCallAssistance />}
+        {activeTab === 'Assisted Booking' && <AssistedBooking />}
 
       </div>
     </div>

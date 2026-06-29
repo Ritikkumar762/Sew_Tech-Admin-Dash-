@@ -58,6 +58,8 @@ function ratingColor(r: number) {
   return { bg: '#fee2e2', color: '#dc2626' };
 }
 
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJleHAiOjE3ODI5OTExODMsImlhdCI6MTc4MjM4NjM4M30.DAmKNvtQT2y-_AvnB2g9U588udsdLt72FofspB_sTIM';
+
 // ─── Mock fallback data ─────────────────────────────────────────────
 const MOCK_MECHANICS: Mechanic[] = [
   { id: 'm-1', name: 'Suresh Sharma',  mechanicId: 'MCH-001', lastActivity: '3 days ago',        jobsCompleted: 4,  rating: 5, flags: null },
@@ -94,20 +96,46 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
     setLoading(true);
     setError(null);
     try {
-      const params = new URLSearchParams({
-        page: String(page),
-        pageSize: String(PER_PAGE),
-        ...(debouncedSearch ? { search: debouncedSearch } : {}),
+      const res = await fetch(ENDPOINTS.mechanics.applications, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${HARDCODED_TOKEN}`,
+        },
       });
-      const url = `${ENDPOINTS.mechanics.list}?${params.toString()}`;
-      const res = await apiClient.get<ApiResponse>(url);
 
-      if (res?.data?.items) {
-        setMechanics(res.data.items);
-        setTotal(res.data.total ?? res.data.items.length);
-      } else {
-        throw new Error('Unexpected response format');
+      if (!res.ok) throw new Error(`API error ${res.status}: ${res.statusText}`);
+      const json = await res.json();
+      
+      const raw: any[] = Array.isArray(json)
+        ? json
+        : json.data ?? json.applications ?? json.mechanics ?? json.results ?? [];
+
+      if (raw.length === 0) {
+        throw new Error('Empty mechanics list returned');
       }
+
+      // Map raw API list to Modal Mechanic format
+      const mapped = raw.map((app: any, idx: number) => {
+        const name = app.display_name || [app.firstName, app.lastName].filter(Boolean).join(' ') || app.name || `Mechanic ${idx + 1}`;
+        return {
+          id: String(app.application_id ?? app._id ?? app.id ?? `api-${idx}`),
+          name,
+          mechanicId: app.mechanicId ?? app.id ?? `MCH-00${idx + 1}`,
+          lastActivity: app.lastActivity ?? app.lastLogin ?? 'Yesterday, 4:32 PM',
+          jobsCompleted: app.jobsCompleted ?? app.totalJobs ?? 12,
+          rating: typeof app.rating === 'number' ? app.rating : 4,
+          flags: app.flags ?? null
+        };
+      });
+
+      const filtered = debouncedSearch
+        ? mapped.filter(m => m.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+        : mapped;
+
+      const start = (page - 1) * PER_PAGE;
+      setMechanics(filtered.slice(start, start + PER_PAGE));
+      setTotal(filtered.length);
     } catch {
       // Fallback to mock data when backend not available
       const filtered = debouncedSearch
