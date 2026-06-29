@@ -122,12 +122,10 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
       
       {/* ── Row 1 (Trend & Risk) ────────────────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '699px 381px', gap: '20px', width: '100%' }}>
+      <div className={styles.revenueGrid}>
         
         {/* Revenue Trend */}
         <div className={styles.card} style={{ 
-          flex: '1 1 699px', 
-          maxWidth: '699px', 
           height: '326px', 
           padding: '20px', 
           boxSizing: 'border-box',
@@ -177,8 +175,6 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
           display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'flex-start',
-          flex: '0 0 381px',
-          maxWidth: '381px',
           height: '326px',
           padding: '20px', 
           boxSizing: 'border-box',
@@ -199,7 +195,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
             gap: '12px',
             marginTop: '8px'
           }}>
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1, gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1, gap: '12px', flexWrap: 'wrap' }}>
               {/* Pie Chart */}
               <div style={{
                 position: 'relative',
@@ -270,12 +266,10 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
       </div>
 
       {/* ── Row 2 (Category & Transactions) ────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '699px 381px', gap: '20px', width: '100%' }}>
+      <div className={styles.revenueGrid}>
         
         {/* Revenue by Category */}
         <div className={styles.card} style={{ 
-          flex: '1 1 699px', 
-          maxWidth: '699px', 
           height: '326px', 
           padding: '20px', 
           boxSizing: 'border-box',
@@ -319,8 +313,6 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
           display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'flex-start',
-          flex: '0 0 381px',
-          maxWidth: '381px',
           height: '326px',
           padding: '20px', 
           boxSizing: 'border-box',
@@ -341,7 +333,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
             gap: '12px',
             marginTop: '8px'
           }}>
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1, gap: '12px' }}>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1, gap: '12px', flexWrap: 'wrap' }}>
               {/* Pie Chart */}
               <div style={{
                 position: 'relative',

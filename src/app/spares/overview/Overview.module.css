@@ -199,6 +199,33 @@
   gap: 1rem;
 }
 
+.revenueGrid {
+  display: grid;
+  grid-template-columns: 1.83fr 1fr;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.inventoryGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.83fr;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.keyInsightsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  width: 100%;
+}
+
+.scrollContainer {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 /* ── Donut Center ────────────────────────────────────────── */
 .donutCenter {
   position: absolute;
@@ -236,9 +263,15 @@
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .metricsGrid { grid-template-columns: repeat(2, 1fr); }
-  .grid2Col, .grid2ColEqual { grid-template-columns: 1fr; }
+  .grid2Col, .grid2ColEqual, .revenueGrid, .inventoryGrid { grid-template-columns: 1fr; }
+  .keyInsightsGrid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
-  .headerRow { flex-direction: column; gap: 1rem; }
+  .headerRow { flex-direction: column; gap: 1rem; align-items: stretch; }
+  .keyInsightsGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 520px) {
+  .metricsGrid { grid-template-columns: 1fr; }
 }

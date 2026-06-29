@@ -58,15 +58,13 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       
       {/* ── Top Row ───────────────────────────────────────────── */}
-      <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap', width: '100%' }}>
+      <div className={styles.inventoryGrid}>
         
         {/* Fast vs Slow Moving */}
         <div className={styles.card} style={{ 
           display: 'flex', 
           flexDirection: 'column', 
           alignItems: 'flex-start',
-          flex: '0 0 381px',
-          maxWidth: '381px',
           height: '326px',
           padding: '25px 20px 20px 20px',
           boxSizing: 'border-box',
@@ -154,8 +152,6 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
 
         {/* Stock by Category */}
         <div className={styles.card} style={{ 
-          flex: '1 1 699px', 
-          maxWidth: '699px', 
           height: '326px', 
           padding: '20px', 
           boxSizing: 'border-box',
@@ -194,7 +190,7 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
             {stockAlerts.map((item, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <img src="/sewing_machine _needle.svg" alt="Spare" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0 }} />
                   <div>
@@ -202,7 +198,7 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
                     <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>{item.sku}</div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                   {item.status === 'Out of Stock' ? (
                     <span style={{ color: '#ef4444', background: '#fef2f2', padding: '0.25rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 500 }}>⚠️ Out of Stock</span>
                   ) : (
@@ -243,7 +239,7 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
             {deadStock.map((item, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <img src="/sewing_machine _needle.svg" alt="Spare" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0 }} />
                   <div>

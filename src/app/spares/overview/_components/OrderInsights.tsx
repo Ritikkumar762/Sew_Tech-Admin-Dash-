@@ -320,17 +320,19 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
           </div>
         </div>
         
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: `repeat(${numStages}, 1fr)`, 
-          border: '1px solid #e5e7eb',
-          borderRadius: '12px',
-          overflow: 'hidden',
-          background: 'white',
-          marginTop: '1.5rem',
-          height: '240px',
-          position: 'relative'
-        }}>
+        <div className={styles.scrollContainer}>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: `repeat(${numStages}, 1fr)`, 
+            border: '1px solid #e5e7eb',
+            borderRadius: '12px',
+            overflow: 'hidden',
+            background: 'white',
+            marginTop: '1.5rem',
+            height: '240px',
+            position: 'relative',
+            minWidth: '768px'
+          }}>
           {/* Vertical dividers & text */}
           {activeFunnel.map((stage, idx) => (
             <div 
@@ -411,6 +413,7 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
             </ResponsiveContainer>
           </div>
         </div>
+        </div>
       </div>
 
       <div className={styles.grid2ColEqual}>
@@ -418,7 +421,7 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
         {/* ── Order Outcome Overview ─────────────────────────── */}
         <div className={styles.card} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <h2 className={styles.cardTitle} style={{ alignSelf: 'flex-start' }}>Order Outcome Overview</h2>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', width: '100%', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', width: '100%', marginTop: '0.5rem', flexWrap: 'wrap' }}>
             {/* Donut Chart */}
             <div style={{ position: 'relative', width: 260, height: 260, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <div className={styles.donutCenter}>
@@ -462,11 +465,11 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
 
         {/* ── Orders Trend ─────────────────────────────────────── */}
         <div className={styles.card}>
-          <div className={styles.cardHeaderRow} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'nowrap' }}>
+          <div className={styles.cardHeaderRow} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', flexWrap: 'wrap', gap: '1rem' }}>
             <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Orders Trend</h2>
             
             {/* Custom Interactive Legend */}
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'nowrap' }}>
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
               {[
                 { name: 'Cancellation', color: '#9ca3af' },
                 { name: 'Replacement', color: '#fbbf24' },

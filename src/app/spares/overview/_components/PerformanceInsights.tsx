@@ -130,7 +130,7 @@ export default function PerformanceInsights({ perfInsights }: Props) {
       {/* ── Key Insights Row ───────────────────────────────────── */}
       <div className={styles.card} style={{ padding: '20px' }}>
         <h2 className={styles.cardTitle} style={{ margin: '0 0 16px 0' }}>Key Insights</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', width: '100%' }}>
+        <div className={styles.keyInsightsGrid}>
           {perfInsights.map((card, i) => {
             const bgColors = ['#E8F0FE', '#E8F0FE', '#FCE8E6', '#FCE8E6'];
             const titleColors = ['#1a73e8', '#1a73e8', '#d93025', '#d93025'];
@@ -205,9 +205,9 @@ export default function PerformanceInsights({ perfInsights }: Props) {
 
       {/* ── Performance Trend ──────────────────────────────────── */}
       <div className={styles.card} style={{ padding: '20px' }}>
-        <div className={styles.cardHeaderRow} style={{ marginBottom: '16px' }}>
+        <div className={styles.cardHeaderRow} style={{ marginBottom: '16px', flexWrap: 'wrap', gap: '1rem' }}>
           <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Performance Trend</h2>
-          <div style={{ display: 'flex', gap: '8px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             <button 
               onClick={() => setIsComparing(!isComparing)}
               style={{ 
@@ -352,8 +352,8 @@ export default function PerformanceInsights({ perfInsights }: Props) {
 
       {/* ── Top Categories ────────────────────────────── */}
       <div className={styles.card} style={{ padding: '20px' }}>
-        <div className={styles.cardHeaderRow} style={{ marginBottom: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className={styles.cardHeaderRow} style={{ marginBottom: '16px', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Top Categories</h2>
             <select style={{ 
               backgroundColor: '#f3f4f6', 
@@ -402,15 +402,15 @@ export default function PerformanceInsights({ perfInsights }: Props) {
             </button>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
+        <div style={{ display: 'flex', gap: '16px', width: '100%', flexWrap: 'wrap' }}>
           {[1, 2, 3, 4].map(num => <TopCard key={num} num={num} />)}
         </div>
       </div>
 
       {/* ── Top SKUs ────────────────────────────── */}
       <div className={styles.card} style={{ padding: '20px' }}>
-        <div className={styles.cardHeaderRow} style={{ marginBottom: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className={styles.cardHeaderRow} style={{ marginBottom: '16px', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
             <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Top SKUs</h2>
             <select style={{ 
               backgroundColor: '#f3f4f6', 
@@ -459,7 +459,7 @@ export default function PerformanceInsights({ perfInsights }: Props) {
             </button>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '16px', width: '100%' }}>
+        <div style={{ display: 'flex', gap: '16px', width: '100%', flexWrap: 'wrap' }}>
           {[1, 2, 3, 4].map(num => <TopCard key={num} num={num} />)}
         </div>
       </div>
