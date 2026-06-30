@@ -103,6 +103,7 @@ export default function BannerDetailPage() {
   const bannerIdParam = params?.id as string;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [creativeDetails, setCreativeDetails] = useState<any>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -159,21 +160,20 @@ export default function BannerDetailPage() {
     const loadBannerDetails = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get<{ success: boolean; data: any }>(ENDPOINTS.marketing.bannerById(bannerIdParam));
+        const response = await apiClient.get<{ success: boolean; data: any }>(ENDPOINTS.marketing.creativeById(bannerIdParam));
         if (response && response.success && response.data) {
-          const b = response.data;
-          setAudience(b.targetAudience || 'Gold Members');
-          setStartDate(b.startDate || '28.02.2026, 01:00-02:00 PM');
-          setEndDate(b.endDate || '28.02.2026, 01:00-02:00 PM');
-          if (b.creative) {
-            setCarousel(b.creative.carousel || false);
-            setLinkTo(b.creative.linkTo || 'ST Spares');
-            setOpenType(b.creative.openType || 'Spare');
-            setSpareId(b.creative.spareId || 'ST Spares');
-            setCategoryId(b.creative.categoryId || 'Sewing Machine Spares');
-            setMachineId(b.creative.machineId || 'Lockstitch Machine');
-            setExternalLink(b.creative.externalLink || '');
-          }
+          const c = response.data;
+          setAudience(c.targetAudience || 'Gold Members');
+          setStartDate(c.startDate || '28.02.2026, 01:00-02:00 PM');
+          setEndDate(c.endDate || '28.02.2026, 01:00-02:00 PM');
+          setCarousel(c.carousel || false);
+          setLinkTo(c.linkTo || 'ST Spares');
+          setOpenType(c.openType || 'Spare');
+          setSpareId(c.spareId || 'ST Spares');
+          setCategoryId(c.categoryId || 'Sewing Machine Spares');
+          setMachineId(c.machineId || 'Lockstitch Machine');
+          setExternalLink(c.externalLink || '');
+          setCreativeDetails(c);
         }
       } catch (err) {
         console.error('Failed to fetch banner details from local API server:', err);
@@ -190,29 +190,30 @@ export default function BannerDetailPage() {
     setLoading(true);
     try {
       const payload = {
+        ...creativeDetails,
         targetAudience: audience,
         startDate,
         endDate,
-        creative: {
-          carousel,
-          linkTo,
-          openType,
-          spareId,
-          categoryId,
-          machineId,
-          externalLink
-        }
+        carousel,
+        linkTo,
+        openType,
+        spareId: spareId || null,
+        categoryId: categoryId || null,
+        machineId: machineId || null,
+        externalLink: externalLink || null,
+        name: creativeDetails?.name || `ST Spares Banner 1 – ${new Date().toLocaleDateString('en-GB').replace(/\//g, '.')}`,
+        title: creativeDetails?.title || 'ST Spares Banner 1',
+        bannerType: creativeDetails?.bannerType || 'Hero Banner'
       };
 
       if (bannerIdParam && !bannerIdParam.startsWith('banner-')) {
-        await apiClient.put(ENDPOINTS.marketing.bannerById(bannerIdParam), payload);
+        await apiClient.put(ENDPOINTS.marketing.creativeById(bannerIdParam), payload);
       } else {
-        await apiClient.post(ENDPOINTS.marketing.banners, payload);
+        await apiClient.post(ENDPOINTS.marketing.creatives, payload);
       }
       router.push('/marketing');
     } catch (err) {
       console.error('Error publishing banner to backend:', err);
-      // Fallback redirect so UI flow remains completely unbroken
       router.push('/marketing');
     } finally {
       setLoading(false);
