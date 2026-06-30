@@ -61,13 +61,23 @@ export default function PerformanceInsights() {
           .table-row-hover:hover {
             background-color: #f8fafc;
           }
+          .perf-insights-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+          }
+          @media (max-width: 1024px) {
+            .perf-insights-grid {
+              grid-template-columns: 1fr;
+            }
+          }
         `}
       </style>
 
       {/* Key Insights */}
       <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', backgroundColor: 'white' }}>
         <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0, marginBottom: '1.5rem' }}>Key Insights</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        <div className="perf-insights-grid">
           
           <div className="hover-card" style={{ backgroundColor: '#f0fdf4', borderRadius: '0.5rem', padding: '1.25rem', border: '1px solid #dcfce7' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563', fontSize: '0.875rem', fontWeight: 500, marginBottom: '0.75rem' }}>

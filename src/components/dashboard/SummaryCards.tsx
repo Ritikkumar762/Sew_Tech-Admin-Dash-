@@ -41,7 +41,26 @@ export default function SummaryCards() {
   ];
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+    <div className="summary-cards-grid">
+      <style>
+        {`
+          .summary-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+          }
+          @media (max-width: 1024px) {
+            .summary-cards-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+          @media (max-width: 640px) {
+            .summary-cards-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}
+      </style>
       {cards.map((card, idx) => (
         <div key={idx} style={{ backgroundColor: '#f8fafc', padding: '1.25rem', borderRadius: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#4b5563', fontSize: '0.875rem', fontWeight: 500 }}>

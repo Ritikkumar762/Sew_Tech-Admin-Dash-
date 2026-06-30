@@ -1,9 +1,61 @@
 import React, { useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, Legend } from 'recharts';
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({
+  cx, cy, midAngle, innerRadius, outerRadius, percent
+}: any) => {
+  const radius = outerRadius + 8;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  const percentageVal = Math.round(percent * 100);
+  if (percentageVal === 0) return null;
+
+  return (
+    <g>
+      <rect
+        x={x - 10}
+        y={y - 6}
+        width={20}
+        height={12}
+        rx={3}
+        fill="white"
+        stroke="#e5e7eb"
+        strokeWidth={1}
+      />
+      <text
+        x={x}
+        y={y + 0.5}
+        fill="#374151"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="7px"
+        fontWeight="bold"
+      >
+        {`${percentageVal}%`}
+      </text>
+    </g>
+  );
+};
+
 export default function RequestInsights() {
   const [funnelFilter, setFunnelFilter] = useState('All Jobs');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [ordersChartType, setOrdersChartType] = useState<'bar' | 'line'>('bar');
+  const [ordersVisibleSeries, setOrdersVisibleSeries] = useState({
+    total: true,
+    escalated: true,
+    cancelled: true
+  });
+  const [breakupChartType, setBreakupChartType] = useState<'bar' | 'line'>('bar');
+  const [breakupVisibleSeries, setBreakupVisibleSeries] = useState({
+    instant: true,
+    assisted: true,
+    invite: true,
+    video: true,
+    direct: true
+  });
 
   const filterOptions = [
     'All Jobs',
@@ -107,6 +159,42 @@ export default function RequestInsights() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+      <style>
+        {`
+          .dashboard-grid-1 {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+          }
+          .dashboard-funnel-grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            overflow: hidden;
+          }
+          .dashboard-funnel-grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            background-color: #f9fafb;
+            border-radius: 0.75rem;
+            overflow: hidden;
+          }
+          @media (max-width: 1024px) {
+            .dashboard-grid-1 {
+              grid-template-columns: 1fr;
+            }
+            .dashboard-funnel-grid-4, .dashboard-funnel-grid-5 {
+              grid-template-columns: 1fr 1fr;
+            }
+          }
+          @media (max-width: 640px) {
+            .dashboard-funnel-grid-4, .dashboard-funnel-grid-5 {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}
+      </style>
       {/* Funnel Section */}
       <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -138,7 +226,7 @@ export default function RequestInsights() {
           </div>
         </div>
         
-        <div style={{ display: 'grid', gridTemplateColumns: `repeat(${currentFunnel.stages.length}, 1fr)`, backgroundColor: '#f9fafb', borderRadius: '0.75rem', overflow: 'hidden' }}>
+        <div className={`dashboard-funnel-grid-${currentFunnel.stages.length}`}>
           {currentFunnel.stages.map((item, idx) => (
             <div 
               key={idx} 
@@ -183,91 +271,274 @@ export default function RequestInsights() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
+      <div className="dashboard-grid-1">
         {/* Order Outcome */}
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0, marginBottom: '1.5rem' }}>Order Outcome Overview</h3>
-          <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.5rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ height: '200px', width: '100%', position: 'relative' }}>
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie data={pieData} innerRadius={60} outerRadius={80} paddingAngle={2} dataKey="value" stroke="none">
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '340px' }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0, marginBottom: '1rem' }}>Order Outcome Overview</h3>
+          <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.5rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', flexGrow: 1, justifyContent: 'center' }}>
+            
+            <div style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+              {/* Doughnut Wrapper */}
+              <div style={{ position: 'relative', width: '151px', height: '151px', flexShrink: 0 }}>
+                <div style={{
+                  position: 'absolute',
+                  textAlign: 'center',
+                  left: '50%',
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '100%',
+                  pointerEvents: 'none',
+                  zIndex: 10
+                }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#111827', lineHeight: 1.2 }}>400</div>
+                  <div style={{ fontSize: '0.625rem', color: '#6b7280', fontWeight: 600 }}>Request</div>
+                </div>
+                <PieChart width={151} height={151}>
+                  <Pie 
+                    data={pieData} 
+                    cx={75.5} 
+                    cy={75.5} 
+                    innerRadius={36} 
+                    outerRadius={56} 
+                    dataKey="value" 
+                    startAngle={90} 
+                    endAngle={-270}
+                    label={renderCustomizedLabel}
+                    labelLine={false}
+                    stroke="none"
+                  >
                     {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
                   </Pie>
+                  <Tooltip />
                 </PieChart>
-              </ResponsiveContainer>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>400</div>
-                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Request</div>
+              </div>
+
+              {/* Legend with percentages */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', minWidth: '110px', flexShrink: 0 }}>
+                {pieData.map(d => {
+                  const total = pieData.reduce((acc, curr) => acc + curr.value, 0);
+                  const percent = Math.round((d.value / total) * 100);
+                  return (
+                    <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                      <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.fill }} />
+                      <span style={{ whiteSpace: 'nowrap' }}>{d.name} - {percent}%</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            {/* Custom Legend */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignSelf: 'flex-end', marginTop: '-150px', marginRight: '20px', zIndex: 10 }}>
-              {pieData.map(d => (
-                <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.fill }}></div>
-                  {d.name}
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: '150px', textAlign: 'center' }}>
+
+            <div style={{ textAlign: 'center', width: '100%', borderTop: '1px dashed #e5e7eb', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
               <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '0.25rem' }}>Request Cancellation Rate - 20%</div>
-              <div style={{ fontSize: '0.75rem', color: '#3b82f6', cursor: 'pointer' }}>View Cancellation Reasons</div>
+              <div style={{ fontSize: '0.75rem', color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline', fontWeight: 600 }}>View Cancellation Reasons</div>
             </div>
           </div>
         </div>
 
         {/* Orders Trend */}
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', minHeight: '340px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0 }}>Orders Trend</h3>
-            <div style={{ display: 'flex', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#3b82f6' }}></div>Total Requests</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#ef4444' }}></div>Escalated</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#9ca3af' }}></div>Cancelled</div>
+            
+            {/* Controls */}
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              {/* Chart Type Toggle */}
+              <div style={{ display: 'flex', gap: '0.25rem', border: '1px solid #cbd5e1', padding: '0.125rem', borderRadius: '0.375rem', backgroundColor: '#f8fafc' }}>
+                <button 
+                  onClick={() => setOrdersChartType('bar')}
+                  style={{
+                    border: 'none',
+                    background: ordersChartType === 'bar' ? '#111827' : 'transparent',
+                    color: ordersChartType === 'bar' ? 'white' : '#4b5563',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '0.25rem',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Bar
+                </button>
+                <button 
+                  onClick={() => setOrdersChartType('line')}
+                  style={{
+                    border: 'none',
+                    background: ordersChartType === 'line' ? '#111827' : 'transparent',
+                    color: ordersChartType === 'line' ? 'white' : '#4b5563',
+                    padding: '0.25rem 0.5rem',
+                    borderRadius: '0.25rem',
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Line
+                </button>
+              </div>
+
+              {/* Toggles */}
+              <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                <div 
+                  onClick={() => setOrdersVisibleSeries({ ...ordersVisibleSeries, total: !ordersVisibleSeries.total })}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: '#4b5563', cursor: 'pointer', opacity: ordersVisibleSeries.total ? 1 : 0.4 }}
+                >
+                  <div style={{ width: '12px', height: '6px', borderRadius: '3px', backgroundColor: '#3b82f6' }}></div>
+                  Total Requests
+                </div>
+                <div 
+                  onClick={() => setOrdersVisibleSeries({ ...ordersVisibleSeries, escalated: !ordersVisibleSeries.escalated })}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: '#4b5563', cursor: 'pointer', opacity: ordersVisibleSeries.escalated ? 1 : 0.4 }}
+                >
+                  <div style={{ width: '12px', height: '6px', borderRadius: '3px', backgroundColor: '#ef4444' }}></div>
+                  Escalated
+                </div>
+                <div 
+                  onClick={() => setOrdersVisibleSeries({ ...ordersVisibleSeries, cancelled: !ordersVisibleSeries.cancelled })}
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: '#4b5563', cursor: 'pointer', opacity: ordersVisibleSeries.cancelled ? 1 : 0.4 }}
+                >
+                  <div style={{ width: '12px', height: '6px', borderRadius: '3px', backgroundColor: '#9ca3af' }}></div>
+                  Cancelled
+                </div>
+              </div>
             </div>
           </div>
-          <div style={{ height: '280px', width: '100%' }}>
+          <div style={{ height: '260px', width: '100%', flexGrow: 1 }}>
             <ResponsiveContainer>
-              <BarChart data={barData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} />
-                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                <Bar dataKey="Total" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} />
-                <Bar dataKey="Escalated" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={12} />
-                <Bar dataKey="Cancelled" fill="#9ca3af" radius={[4, 4, 0, 0]} barSize={12} />
-              </BarChart>
+              {ordersChartType === 'bar' ? (
+                <BarChart data={barData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} />
+                  <Tooltip cursor={false} contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                  {ordersVisibleSeries.total && <Bar dataKey="Total" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={12} />}
+                  {ordersVisibleSeries.escalated && <Bar dataKey="Escalated" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={12} />}
+                  {ordersVisibleSeries.cancelled && <Bar dataKey="Cancelled" fill="#9ca3af" radius={[4, 4, 0, 0]} barSize={12} />}
+                </BarChart>
+              ) : (
+                <AreaChart data={barData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} />
+                  <Tooltip cursor={false} contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                  {ordersVisibleSeries.total && <Area type="monotone" dataKey="Total" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.15} strokeWidth={2.5} />}
+                  {ordersVisibleSeries.escalated && <Area type="monotone" dataKey="Escalated" stroke="#ef4444" fill="#ef4444" fillOpacity={0.15} strokeWidth={2.5} />}
+                  {ordersVisibleSeries.cancelled && <Area type="monotone" dataKey="Cancelled" stroke="#9ca3af" fill="#9ca3af" fillOpacity={0.15} strokeWidth={2.5} />}
+                </AreaChart>
+              )}
             </ResponsiveContainer>
           </div>
         </div>
       </div>
 
       {/* Request Breakup Trend */}
-      <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0 }}>Request Breakup Trend</h3>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#3b82f6' }}></div>Instant Smart Booking</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#ef4444' }}></div>Assisted Booking</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#f59e0b' }}></div>Invite Quotes</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#06b6d4' }}></div>Video Assistance</div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#8b5cf6' }}></div>Direct Booking</div>
+          
+          {/* Controls */}
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            {/* Chart Type Toggle */}
+            <div style={{ display: 'flex', gap: '0.25rem', border: '1px solid #cbd5e1', padding: '0.125rem', borderRadius: '0.375rem', backgroundColor: '#f8fafc' }}>
+              <button 
+                onClick={() => setBreakupChartType('bar')}
+                style={{
+                  border: 'none',
+                  background: breakupChartType === 'bar' ? '#111827' : 'transparent',
+                  color: breakupChartType === 'bar' ? 'white' : '#4b5563',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '0.25rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Bar
+              </button>
+              <button 
+                onClick={() => setBreakupChartType('line')}
+                style={{
+                  border: 'none',
+                  background: breakupChartType === 'line' ? '#111827' : 'transparent',
+                  color: breakupChartType === 'line' ? 'white' : '#4b5563',
+                  padding: '0.25rem 0.5rem',
+                  borderRadius: '0.25rem',
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Line
+              </button>
+            </div>
+
+            {/* Clickable Legend Toggles */}
+            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <div 
+                onClick={() => setBreakupVisibleSeries({ ...breakupVisibleSeries, instant: !breakupVisibleSeries.instant })}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: '#4b5563', cursor: 'pointer', opacity: breakupVisibleSeries.instant ? 1 : 0.4 }}
+              >
+                <div style={{ width: '12px', height: '6px', borderRadius: '3px', backgroundColor: '#3b82f6' }}></div>
+                Instant Smart Booking
+              </div>
+              <div 
+                onClick={() => setBreakupVisibleSeries({ ...breakupVisibleSeries, assisted: !breakupVisibleSeries.assisted })}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: '#4b5563', cursor: 'pointer', opacity: breakupVisibleSeries.assisted ? 1 : 0.4 }}
+              >
+                <div style={{ width: '12px', height: '6px', borderRadius: '3px', backgroundColor: '#ef4444' }}></div>
+                Assisted Booking
+              </div>
+              <div 
+                onClick={() => setBreakupVisibleSeries({ ...breakupVisibleSeries, invite: !breakupVisibleSeries.invite })}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: '#4b5563', cursor: 'pointer', opacity: breakupVisibleSeries.invite ? 1 : 0.4 }}
+              >
+                <div style={{ width: '12px', height: '6px', borderRadius: '3px', backgroundColor: '#f59e0b' }}></div>
+                Invite Quotes
+              </div>
+              <div 
+                onClick={() => setBreakupVisibleSeries({ ...breakupVisibleSeries, video: !breakupVisibleSeries.video })}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: '#4b5563', cursor: 'pointer', opacity: breakupVisibleSeries.video ? 1 : 0.4 }}
+              >
+                <div style={{ width: '12px', height: '6px', borderRadius: '3px', backgroundColor: '#06b6d4' }}></div>
+                Video Assistance
+              </div>
+              <div 
+                onClick={() => setBreakupVisibleSeries({ ...breakupVisibleSeries, direct: !breakupVisibleSeries.direct })}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.375rem', fontSize: '0.75rem', color: '#4b5563', cursor: 'pointer', opacity: breakupVisibleSeries.direct ? 1 : 0.4 }}
+              >
+                <div style={{ width: '12px', height: '6px', borderRadius: '3px', backgroundColor: '#8b5cf6' }}></div>
+                Direct Booking
+              </div>
+            </div>
           </div>
         </div>
+
         <div style={{ height: '280px', width: '100%' }}>
           <ResponsiveContainer>
-            <BarChart data={breakupData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-              <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} />
-              <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-              <Bar dataKey="Instant" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={8} />
-              <Bar dataKey="Assisted" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={8} />
-              <Bar dataKey="Invite" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={8} />
-              <Bar dataKey="Video" fill="#06b6d4" radius={[4, 4, 0, 0]} barSize={8} />
-              <Bar dataKey="Direct" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={8} />
-            </BarChart>
+            {breakupChartType === 'bar' ? (
+              <BarChart data={breakupData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} />
+                <Tooltip cursor={false} contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                {breakupVisibleSeries.instant && <Bar dataKey="Instant" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={8} />}
+                {breakupVisibleSeries.assisted && <Bar dataKey="Assisted" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={8} />}
+                {breakupVisibleSeries.invite && <Bar dataKey="Invite" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={8} />}
+                {breakupVisibleSeries.video && <Bar dataKey="Video" fill="#06b6d4" radius={[4, 4, 0, 0]} barSize={8} />}
+                {breakupVisibleSeries.direct && <Bar dataKey="Direct" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={8} />}
+              </BarChart>
+            ) : (
+              <AreaChart data={breakupData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} />
+                <Tooltip cursor={false} contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
+                {breakupVisibleSeries.instant && <Area type="monotone" dataKey="Instant" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.1} strokeWidth={2} />}
+                {breakupVisibleSeries.assisted && <Area type="monotone" dataKey="Assisted" stroke="#ef4444" fill="#ef4444" fillOpacity={0.1} strokeWidth={2} />}
+                {breakupVisibleSeries.invite && <Area type="monotone" dataKey="Invite" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.1} strokeWidth={2} />}
+                {breakupVisibleSeries.video && <Area type="monotone" dataKey="Video" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.1} strokeWidth={2} />}
+                {breakupVisibleSeries.direct && <Area type="monotone" dataKey="Direct" stroke="#8b5cf6" fill="#8b5cf6" fillOpacity={0.1} strokeWidth={2} />}
+              </AreaChart>
+            )}
           </ResponsiveContainer>
         </div>
       </div>

@@ -708,130 +708,17 @@ function AddCreativeContent() {
           <h3 style={{ margin: '0 0 1.5rem 0', fontWeight: 700, fontSize: '1.125rem', color: '#111827' }}>Preview</h3>
           
           {/* Mobile Mockup */}
+          {/* Mobile Mockup */}
           <div style={{ 
             width: '280px', 
-            height: '580px', 
-            background: '#111', 
-            borderRadius: '2rem', 
-            border: '8px solid #000',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+            borderRadius: '1.25rem',
             overflow: 'hidden',
             position: 'relative',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
           }}>
-            {/* Notch */}
-            <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100px', height: '24px', background: '#000', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', zIndex: 10 }}></div>
-            
-            {/* App UI */}
-            <div style={{ background: '#1c1c1e', color: '#fff', flex: 1, padding: '2rem 1rem 1rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              
-              {/* App Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ef4444' }}>SEWTECH</div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <div style={{ width: '24px', height: '24px', background: '#333', borderRadius: '50%' }}></div>
-                  <div style={{ width: '24px', height: '24px', background: '#333', borderRadius: '50%' }}></div>
-                </div>
-              </div>
-
-              {/* Banner Area */}
-              <div style={{ 
-                background: 'linear-gradient(to right, #ec4899, #ef4444)', 
-                borderRadius: '0.75rem', 
-                padding: '1rem', 
-                color: '#fff',
-                position: 'relative',
-                overflow: 'hidden',
-                minHeight: '120px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center'
-              }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9 }}>{subheader}</div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '0.25rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{title}</div>
-                <div style={{ fontSize: '0.65rem', marginTop: '0.25rem', opacity: 0.85 }}>{body}</div>
-                
-                {/* Ribbon Tag label badge if present */}
-                {selectedLabel && (
-                  <div style={{ position: 'absolute', top: 0, right: '8px', zIndex: 1 }}>
-                    <div style={{ 
-                      background: '#ef4444', 
-                      color: '#fff', 
-                      fontSize: '0.45rem', 
-                      fontWeight: 700, 
-                      padding: '4px 6px 6px 6px', 
-                      clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%)',
-                      textTransform: 'uppercase'
-                    }}>
-                      {selectedLabel === 'SALE up to 50%' ? '50% Off' : selectedLabel === 'NEW COLLECTION' ? 'NEW' : selectedLabel}
-                    </div>
-                  </div>
-                )}
-
-                {/* Mock image placeholder */}
-                <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', width: '100px', height: '100px', background: '#000', opacity: 0.15, borderRadius: '0.5rem', transform: 'rotate(-10deg)' }}></div>
-                
-                {/* Dots */}
-                <div style={{ position: 'absolute', bottom: '8px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                  <div style={{ width: '12px', height: '4px', background: '#fff', borderRadius: '2px' }}></div>
-                  <div style={{ width: '4px', height: '4px', background: '#fff', opacity: 0.5, borderRadius: '50%' }}></div>
-                  <div style={{ width: '4px', height: '4px', background: '#fff', opacity: 0.5, borderRadius: '50%' }}></div>
-                </div>
-              </div>
-
-              {/* Grid Area */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#9ca3af' }}>Quick Search</span>
-                <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Part Catalogues &gt;</span>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-                {[
-                  { label: 'Search by Category', icon: '🔍' },
-                  { label: 'Guided Search', icon: '⚡' },
-                  { label: 'Search by Photo', icon: '📷' },
-                  { label: 'Order by Hand Notes', icon: '📝' },
-                  { label: 'Whatsapp US', icon: '💬' },
-                  { label: 'Send Audio Notes', icon: '🎙️' }
-                ].map((item, i) => (
-                  <div key={i} style={{ background: '#2c2c2e', borderRadius: '0.5rem', padding: '0.75rem 0.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem', justifyContent: 'center', border: '1px solid #3a3a3c' }}>
-                    <div style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</div>
-                    <div style={{ fontSize: '0.55rem', color: '#9ca3af', textAlign: 'center', lineHeight: '1.2', fontWeight: 500 }}>{item.label}</div>
-                  </div>
-                ))}
-              </div>
-
-            </div>
-
-            {/* Bottom Nav */}
-            <div style={{ background: '#fff', height: '55px', borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '0 0.5rem', position: 'relative', borderTop: '1px solid #f3f4f6' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>🛠️</span>
-                <span style={{ fontSize: '0.5rem', color: '#6b7280', fontWeight: 600, marginTop: '2px' }}>Services</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>🛒</span>
-                <span style={{ fontSize: '0.5rem', color: '#6b7280', fontWeight: 600, marginTop: '2px' }}>Cart</span>
-                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#ef4444', color: '#fff', fontSize: '0.5rem', padding: '1px 4px', borderRadius: '50%', fontWeight: 700 }}>2</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', transform: 'translateY(-12px)', cursor: 'pointer' }}>
-                <div style={{ width: '36px', height: '36px', background: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '4px solid #1c1c1e', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-                  <span style={{ fontSize: '0.9rem', color: '#fff' }}>🏠</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>❤️</span>
-                <span style={{ fontSize: '0.5rem', color: '#6b7280', fontWeight: 600, marginTop: '2px' }}>Wishlist</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>📦</span>
-                <span style={{ fontSize: '0.5rem', color: '#6b7280', fontWeight: 600, marginTop: '2px' }}>My Orders</span>
-              </div>
-            </div>
-            
-            {/* Home indicator */}
-            <div style={{ position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)', width: '40px', height: '4px', background: '#000', borderRadius: '2px' }}></div>
+            <img src="/Machine Spares Home Screen.svg" alt="App Preview Screen" style={{ width: '100%', height: 'auto', display: 'block' }} />
           </div>
         </div>
       </div>

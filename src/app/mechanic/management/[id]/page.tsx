@@ -53,6 +53,44 @@ import {
   Bar
 } from 'recharts';
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({
+  cx, cy, midAngle, innerRadius, outerRadius, percent
+}: any) => {
+  const radius = outerRadius + 8;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  const percentageVal = Math.round(percent * 100);
+  if (percentageVal === 0) return null;
+
+  return (
+    <g>
+      <rect
+        x={x - 10}
+        y={y - 6}
+        width={20}
+        height={12}
+        rx={3}
+        fill="white"
+        stroke="#e5e7eb"
+        strokeWidth={1}
+      />
+      <text
+        x={x}
+        y={y + 0.5}
+        fill="#374151"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="7px"
+        fontWeight="bold"
+      >
+        {`${percentageVal}%`}
+      </text>
+    </g>
+  );
+};
+
 // Mock data matching useMechanics definitions
 const MOCK_MECHANIC_DETAILS: Record<string, any> = {
   'm1': {

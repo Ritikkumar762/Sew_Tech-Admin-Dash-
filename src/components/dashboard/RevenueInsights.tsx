@@ -1,6 +1,44 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 
+const RADIAN = Math.PI / 180;
+const renderCustomizedLabel = ({
+  cx, cy, midAngle, innerRadius, outerRadius, percent
+}: any) => {
+  const radius = outerRadius + 8;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  const percentageVal = Math.round(percent * 100);
+  if (percentageVal === 0) return null;
+
+  return (
+    <g>
+      <rect
+        x={x - 10}
+        y={y - 6}
+        width={20}
+        height={12}
+        rx={3}
+        fill="white"
+        stroke="#e5e7eb"
+        strokeWidth={1}
+      />
+      <text
+        x={x}
+        y={y + 0.5}
+        fill="#374151"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="7px"
+        fontWeight="bold"
+      >
+        {`${percentageVal}%`}
+      </text>
+    </g>
+  );
+};
+
 export default function RevenueInsights() {
   const lineData = [
     { date: '1 Feb', Revenue: 7500 },
@@ -32,7 +70,21 @@ export default function RevenueInsights() {
   ];
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
+    <div className="revenue-grid">
+      <style>
+        {`
+          .revenue-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+          }
+          @media (max-width: 1024px) {
+            .revenue-grid {
+              grid-template-columns: 1fr;
+            }
+          }
+        `}
+      </style>
       {/* Left Column */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
@@ -59,9 +111,9 @@ export default function RevenueInsights() {
 
         {/* Revenue by Service */}
         <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0 }}>Revenue by Service</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem 1rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem 1rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#3b82f6' }}></div>Instant Smart Booking</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#ef4444' }}></div>Assisted Booking</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#f59e0b' }}></div>Invite Quotes</div>
@@ -92,65 +144,125 @@ export default function RevenueInsights() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
         
         {/* Cash-flow Breakup */}
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0, marginBottom: '1.5rem' }}>Cash-flow Breakup</h3>
-          <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.5rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', flexGrow: 1, justifyContent: 'center' }}>
-            <div style={{ height: '220px', width: '100%', position: 'relative' }}>
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie data={cashflowData} innerRadius={65} outerRadius={90} paddingAngle={2} dataKey="value" stroke="none">
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', minHeight: '340px' }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0, marginBottom: '1rem' }}>Cash-flow Breakup</h3>
+          <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.5rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', flexGrow: 1, justifyContent: 'center' }}>
+            
+            <div style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+              {/* Doughnut Wrapper */}
+              <div style={{ position: 'relative', width: '151px', height: '151px', flexShrink: 0 }}>
+                <div style={{
+                  position: 'absolute',
+                  textAlign: 'center',
+                  left: '50%',
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '100%',
+                  pointerEvents: 'none',
+                  zIndex: 10
+                }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#111827', lineHeight: 1.2 }}>₹1L</div>
+                </div>
+                <PieChart width={151} height={151}>
+                  <Pie 
+                    data={cashflowData} 
+                    cx={75.5} 
+                    cy={75.5} 
+                    innerRadius={36} 
+                    outerRadius={56} 
+                    dataKey="value" 
+                    startAngle={90} 
+                    endAngle={-270}
+                    label={renderCustomizedLabel}
+                    labelLine={false}
+                    stroke="none"
+                  >
                     {cashflowData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
                   </Pie>
+                  <Tooltip formatter={(value: any) => `₹${Number(value || 0).toLocaleString()}`} />
                 </PieChart>
-              </ResponsiveContainer>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>₹1,00,000</div>
+              </div>
+
+              {/* Legend with percentages */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', minWidth: '110px', flexShrink: 0 }}>
+                {cashflowData.map(d => {
+                  const total = cashflowData.reduce((acc, curr) => acc + curr.value, 0);
+                  const percent = Math.round((d.value / total) * 100);
+                  return (
+                    <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                      <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.fill }} />
+                      <span style={{ whiteSpace: 'nowrap' }}>{d.name.split(' ')[0]} - {percent}%</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            {/* Custom Legend */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignSelf: 'flex-end', marginTop: '-150px', zIndex: 10 }}>
-              {cashflowData.map(d => (
-                <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.fill }}></div>
-                  {d.name}
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: '130px', textAlign: 'center' }}>
-              <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer' }}>
-                20% of Mechanic Payouts Pending <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+
+            <div style={{ textAlign: 'center', width: '100%', borderTop: '1px dashed #e5e7eb', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
+              <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.25rem', cursor: 'pointer' }}>
+                20% Payouts Pending <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
               </div>
             </div>
           </div>
         </div>
 
         {/* Transaction Insights */}
-        <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0, marginBottom: '1.5rem' }}>Transaction Insights</h3>
-          <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.5rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', flexGrow: 1, justifyContent: 'center' }}>
-            <div style={{ height: '220px', width: '100%', position: 'relative' }}>
-              <ResponsiveContainer>
-                <PieChart>
-                  <Pie data={transactionData} innerRadius={65} outerRadius={90} paddingAngle={2} dataKey="value" stroke="none">
+        <div style={{ border: '1px solid #e5e7eb', borderRadius: '0.75rem', padding: '1.5rem', display: 'flex', flexDirection: 'column', minHeight: '340px' }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0, marginBottom: '1rem' }}>Transaction Insights</h3>
+          <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.5rem', padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', flexGrow: 1, justifyContent: 'center' }}>
+            
+            <div style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+              {/* Doughnut Wrapper */}
+              <div style={{ position: 'relative', width: '151px', height: '151px', flexShrink: 0 }}>
+                <div style={{
+                  position: 'absolute',
+                  textAlign: 'center',
+                  left: '50%',
+                  top: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '100%',
+                  pointerEvents: 'none',
+                  zIndex: 10
+                }}>
+                  <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#111827', lineHeight: 1.2 }}>400</div>
+                  <div style={{ fontSize: '0.625rem', color: '#6b7280', fontWeight: 600 }}>Orders</div>
+                </div>
+                <PieChart width={151} height={151}>
+                  <Pie 
+                    data={transactionData} 
+                    cx={75.5} 
+                    cy={75.5} 
+                    innerRadius={36} 
+                    outerRadius={56} 
+                    dataKey="value" 
+                    startAngle={90} 
+                    endAngle={-270}
+                    label={renderCustomizedLabel}
+                    labelLine={false}
+                    stroke="none"
+                  >
                     {transactionData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
                   </Pie>
+                  <Tooltip />
                 </PieChart>
-              </ResponsiveContainer>
-              <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>400</div>
-                <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>Orders</div>
+              </div>
+
+              {/* Legend with percentages */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', minWidth: '110px', flexShrink: 0 }}>
+                {transactionData.map(d => {
+                  const total = transactionData.reduce((acc, curr) => acc + curr.value, 0);
+                  const percent = Math.round((d.value / total) * 100);
+                  return (
+                    <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                      <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.fill }} />
+                      <span style={{ whiteSpace: 'nowrap' }}>{d.name} - {percent}%</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            {/* Custom Legend */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignSelf: 'flex-end', marginTop: '-150px', zIndex: 10 }}>
-              {transactionData.map(d => (
-                <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}>
-                  <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.fill }}></div>
-                  {d.name}
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop: '130px', textAlign: 'center' }}>
+
+            <div style={{ textAlign: 'center', width: '100%', borderTop: '1px dashed #e5e7eb', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
               <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>
                 Payment Success Rate - 75%
               </div>
