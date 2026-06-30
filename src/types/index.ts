@@ -112,6 +112,7 @@ export type Mechanic = {
   panName?: string;
   panNumber?: string;
   panCardFile?: string;
+  availability?: string | string[];
 };
 
 // --- ACADEMY COURSE ---

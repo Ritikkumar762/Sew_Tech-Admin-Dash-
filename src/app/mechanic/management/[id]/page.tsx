@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useMechanics } from '../../_hooks/useMechanics';
 import { 
@@ -9,6 +9,7 @@ import {
   Check, 
   Play, 
   Volume2, 
+  VolumeX,
   Download, 
   Trash2, 
   Edit3, 
@@ -162,6 +163,361 @@ const MOCK_MECHANIC_DETAILS: Record<string, any> = {
 
 // Colors for Pie Charts
 const PIE_COLORS = ['#10b981', '#ef4444', '#3b82f6', '#f59e0b'];
+
+// ── Custom Audio Pitch Player Component ──────────────────────────────────────────
+type AudioPitchPlayerProps = {
+  src: string;
+  onDelete?: () => void;
+};
+
+function AudioPitchPlayer({ src, onDelete }: AudioPitchPlayerProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  }, [src]);
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(err => console.error("Audio play error:", err));
+      setIsPlaying(true);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (!audioRef.current) return;
+    setCurrentTime(audioRef.current.currentTime);
+  };
+
+  const handleLoadedMetadata = () => {
+    if (!audioRef.current) return;
+    setDuration(audioRef.current.duration || 0);
+  };
+
+  const handleAudioEnded = () => {
+    setIsPlaying(false);
+    setCurrentTime(0);
+  };
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!audioRef.current) return;
+    const time = parseFloat(e.target.value);
+    audioRef.current.currentTime = time;
+    setCurrentTime(time);
+  };
+
+  const skip = (seconds: number) => {
+    if (!audioRef.current) return;
+    let newTime = audioRef.current.currentTime + seconds;
+    if (newTime < 0) newTime = 0;
+    if (newTime > duration) newTime = duration;
+    audioRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const toggleMute = () => {
+    if (!audioRef.current) return;
+    const nextMuted = !isMuted;
+    audioRef.current.muted = nextMuted;
+    setIsMuted(nextMuted);
+  };
+
+  const formatTime = (time: number) => {
+    if (isNaN(time)) return '00:00';
+    const mins = Math.floor(time / 60);
+    const secs = Math.floor(time % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '1rem',
+      backgroundColor: '#f8fafc',
+      border: '1px solid #e2e8f0',
+      borderRadius: '16px',
+      padding: '1.5rem',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+      flex: 1
+    }}>
+      <audio
+        ref={audioRef}
+        src={src}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={handleAudioEnded}
+      />
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b' }}>Mechanic Audio Pitch</span>
+        {onDelete && (
+          <button 
+            type="button"
+            onClick={onDelete}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              padding: '0.5rem 1rem',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2)',
+              transition: 'background-color 0.2s, transform 0.1s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Delete Pitch
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
+
+      <div style={{
+        backgroundColor: 'white',
+        border: '1px solid #e2e8f0',
+        borderRadius: '12px',
+        padding: '3rem 2rem 2rem 2rem',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1.5rem',
+        minHeight: '260px',
+        justifyContent: 'center'
+      }}>
+        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ position: 'relative', width: '100%', height: '8px', display: 'flex', alignItems: 'center' }}>
+            <input 
+              type="range" 
+              min={0} 
+              max={duration || 100} 
+              value={currentTime} 
+              onChange={handleSeek}
+              className="player-range-slider"
+              style={{
+                width: '100%',
+                height: '8px',
+                borderRadius: '4px',
+                appearance: 'none',
+                background: `linear-gradient(to right, #2563eb 0%, #2563eb ${(currentTime / (duration || 100)) * 100}%, #e2e8f0 ${(currentTime / (duration || 100)) * 100}%, #e2e8f0 100%)`,
+                outline: 'none',
+                cursor: 'pointer',
+              }}
+            />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }}>
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '2rem', marginTop: '0.5rem' }}>
+          <button 
+            type="button"
+            onClick={toggleMute}
+            style={{ border: 'none', backgroundColor: 'transparent', cursor: 'pointer', color: '#1e40af', display: 'flex', padding: '0.5rem' }}
+          >
+            {isMuted ? <VolumeX size={22} /> : <Volume2 size={22} />}
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => skip(-10)}
+            style={{ 
+              border: 'none', 
+              backgroundColor: 'transparent', 
+              cursor: 'pointer', 
+              color: '#1e40af', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              position: 'relative'
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2.5 2v6h6" />
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 13.5" />
+            </svg>
+            <span style={{ position: 'absolute', fontSize: '9px', fontWeight: 900, top: '9px', color: '#1e40af' }}>10</span>
+          </button>
+
+          <button 
+            type="button"
+            onClick={togglePlay}
+            style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              backgroundColor: '#1e40af',
+              color: 'white',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 8px 16px rgba(30, 64, 175, 0.3)',
+              transition: 'transform 0.15s, background-color 0.2s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1e40af'}
+          >
+            {isPlaying ? (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="4" width="4" height="16" /><rect x="16" y="4" width="4" height="16" /></svg>
+            ) : (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style={{ marginLeft: '4px' }}><polygon points="5 3 19 12 5 21" /></svg>
+            )}
+          </button>
+
+          <button 
+            type="button"
+            onClick={() => skip(10)}
+            style={{ 
+              border: 'none', 
+              backgroundColor: 'transparent', 
+              cursor: 'pointer', 
+              color: '#1e40af', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              position: 'relative'
+            }}
+          >
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21.5 2v6h-6" />
+              <path d="M3 11.5a8.38 8.38 0 0 0 .9 3.8 8.5 8.5 0 0 0 7.6 4.7 8.38 8.38 0 0 0 3.8-.9L21 13.5" />
+            </svg>
+            <span style={{ position: 'absolute', fontSize: '9px', fontWeight: 900, top: '9px', color: '#1e40af' }}>10</span>
+          </button>
+
+          <a 
+            href={src} 
+            download="audio_pitch.mp3"
+            style={{ border: 'none', backgroundColor: 'transparent', cursor: 'pointer', color: '#1e40af', display: 'flex', padding: '0.5rem' }}
+          >
+            <Download size={22} />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Custom Video Pitch Player Component ──────────────────────────────────────────
+type VideoPitchPlayerProps = {
+  src: string;
+  onDelete?: () => void;
+};
+
+function VideoPitchPlayer({ src, onDelete }: VideoPitchPlayerProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  const handleStartPlay = () => {
+    if (!src) return;
+    setIsPlaying(true);
+  };
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '1rem',
+      backgroundColor: '#f8fafc',
+      border: '1px solid #e2e8f0',
+      borderRadius: '16px',
+      padding: '1.5rem',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+      flex: 1
+    }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span style={{ fontSize: '1rem', fontWeight: 700, color: '#1e293b' }}>Mechanic Video Pitch</span>
+        {onDelete && (
+          <button 
+            type="button"
+            onClick={onDelete}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.375rem',
+              backgroundColor: '#ef4444',
+              color: 'white',
+              border: 'none',
+              borderRadius: '0.5rem',
+              padding: '0.5rem 1rem',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 6px -1px rgba(239, 68, 68, 0.2)',
+              transition: 'background-color 0.2s, transform 0.1s'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#dc2626'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ef4444'}
+          >
+            Delete Pitch
+            <Trash2 size={14} />
+          </button>
+        )}
+      </div>
+
+      <div style={{
+        position: 'relative',
+        borderRadius: '12px',
+        overflow: 'hidden',
+        border: '1px solid #e2e8f0',
+        backgroundColor: '#0f172a',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '260px'
+      }}>
+        {isPlaying ? (
+          <video
+            src={src}
+            controls
+            autoPlay
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onPause={() => setIsPlaying(false)}
+            onEnded={() => setIsPlaying(false)}
+          />
+        ) : (
+          <div 
+            onClick={handleStartPlay}
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              cursor: 'pointer', 
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <img 
+              src="/mm_video.svg" 
+              alt="Mechanic Video Pitch Preview" 
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 
 export default function MechanicDetailPage() {
   const params = useParams();
@@ -423,6 +779,25 @@ export default function MechanicDetailPage() {
           @keyframes fadeIn {
             from { opacity: 0; transform: translateY(8px); }
             to { opacity: 1; transform: translateY(0); }
+          }
+          .player-range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+          .player-range-slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
           }
           .stats-bar {
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
@@ -871,25 +1246,22 @@ export default function MechanicDetailPage() {
 
                   {/* Audio & Video Pitch Players */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1rem' }}>
-                    {/* Audio Pitch */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151' }}>
-                        Mechanic Audio Pitch <span style={{ color: '#ef4444' }}>*</span>
-                      </span>
-                      <div style={{ display: 'block', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e5e7eb', backgroundColor: '#f8fafc' }}>
-                        <img src="/recording.svg" alt="Mechanic Audio Pitch" style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }} />
-                      </div>
-                    </div>
-
-                    {/* Video Pitch */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#374151' }}>
-                        Mechanic Video Pitch <span style={{ color: '#ef4444' }}>*</span>
-                      </span>
-                      <div style={{ display: 'block', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e5e7eb' }}>
-                        <img src="/mm_video.svg" alt="Mechanic Video Pitch" style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'cover' }} />
-                      </div>
-                    </div>
+                    <AudioPitchPlayer 
+                      src={mechanic?.media?.audioPitchUrl || mechanic?.audioPitchUrl || 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'} 
+                      onDelete={() => {
+                        setToastMessage("Audio pitch deleted successfully!");
+                        setShowToast(true);
+                        setTimeout(() => setShowToast(false), 3000);
+                      }}
+                    />
+                    <VideoPitchPlayer 
+                      src={mechanic?.media?.videoPitchUrl || mechanic?.videoPitchUrl || 'https://assets.mixkit.co/videos/preview/mixkit-mechanical-gears-close-up-40432-large.mp4'} 
+                      onDelete={() => {
+                        setToastMessage("Video pitch deleted successfully!");
+                        setShowToast(true);
+                        setTimeout(() => setShowToast(false), 3000);
+                      }}
+                    />
                   </div>
 
                 </div>

@@ -44,6 +44,7 @@ function mapApplication(app: any, index: number): Mechanic {
     panName:   app.panName ?? '',
     panNumber: app.panNumber ?? '',
     panCardFile: app.panCardFile ?? app.panCard ?? '',
+    availability: app.availability ?? '',
   };
 }
 

@@ -98,14 +98,21 @@ export default function MechanicPage() {
       key: 'availability', 
       label: 'Availability',
       render: (r) => {
-        // Use submitted_at from API or fallback to lastJob
-        const raw = r.submitted_at ?? r.lastJob ?? r.joiningDate ?? null;
         let label = '--';
-        if (raw) {
-          try {
-            const d = new Date(raw);
-            label = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
-          } catch { label = raw; }
+        if (r.availability) {
+          if (Array.isArray(r.availability)) {
+            label = r.availability.join(', ');
+          } else {
+            label = r.availability;
+          }
+        } else {
+          const raw = r.submitted_at ?? r.lastJob ?? r.joiningDate ?? null;
+          if (raw) {
+            try {
+              const d = new Date(raw);
+              label = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' });
+            } catch { label = raw; }
+          }
         }
         return <span style={{ color: '#4b5563', fontWeight: 500 }}>{label}</span>;
       }
