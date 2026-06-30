@@ -21,10 +21,32 @@ import {
 export default function MechanicPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  const { mechanics, loading, error, refetch, updateMechanicStatus } = useMechanics();
+  const { mechanics, loading, error, refetch, updateMechanicStatus, metrics } = useMechanics();
   const router = useRouter();
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [statusModalConfig, setStatusModalConfig] = useState<{
+    isOpen: boolean;
+    mechanicId: string;
+    mechanicName: string;
+    targetStatus: string;
+    reason: string;
+  }>({
+    isOpen: false,
+    mechanicId: '',
+    mechanicName: '',
+    targetStatus: 'Active',
+    reason: ''
+  });
+  const [toastConfig, setToastConfig] = useState<{
+    show: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    show: false,
+    message: '',
+    type: 'success'
+  });
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -139,8 +161,12 @@ export default function MechanicPage() {
             ? { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe', label: 'Busy' }
           : s === 'PENDING'
             ? { bg: '#fffbeb', color: '#d97706', border: '#fde68a', label: 'Pending' }
-          : s === 'REJECTED' || s === 'SUSPENDED' || s === 'OFFLINE'
-            ? { bg: '#fef2f2', color: '#ef4444', border: '#fecaca', label: 'Inactive' }
+          : s === 'SUSPENDED'
+            ? { bg: '#fef2f2', color: '#ef4444', border: '#fecaca', label: 'Suspended' }
+          : s === 'OFFLINE'
+            ? { bg: '#f3f4f6', color: '#4b5563', border: '#d1d5db', label: 'Offline' }
+          : s === 'REJECTED'
+            ? { bg: '#fef2f2', color: '#ef4444', border: '#fecaca', label: 'Rejected' }
           : { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0', label: r.status ?? 'Active' };
         return (
           <span style={{
@@ -223,44 +249,93 @@ export default function MechanicPage() {
                 borderRadius: '0.5rem',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                 zIndex: 50,
-                minWidth: '160px',
+                minWidth: '180px',
                 overflow: 'hidden',
                 textAlign: 'left'
               }}
               onClick={(e) => e.stopPropagation()}
             >
               <div 
-                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#374151', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#059669', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#ecfdf5'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={async () => {
-                  await updateMechanicStatus(r.id, 'Pending', 'Admin marked under review');
+                onClick={() => {
+                  setStatusModalConfig({
+                    isOpen: true,
+                    mechanicId: r.id,
+                    mechanicName: r.name,
+                    targetStatus: 'Active',
+                    reason: 'Account activated by administrator.'
+                  });
                   setOpenDropdownId(null);
-                  refetch({ search, status: statusFilter });
                 }}
               >
-                Mark Under Review
+                Activate Account
               </div>
               <div 
-                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#374151', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#2563eb', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={async () => {
-                  await updateMechanicStatus(r.id, 'Busy', 'Admin paused services');
+                onClick={() => {
+                  setStatusModalConfig({
+                    isOpen: true,
+                    mechanicId: r.id,
+                    mechanicName: r.name,
+                    targetStatus: 'Busy',
+                    reason: 'Admin paused services temporarily.'
+                  });
                   setOpenDropdownId(null);
-                  refetch({ search, status: statusFilter });
                 }}
               >
                 Pause Services
               </div>
               <div 
-                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#ef4444', cursor: 'pointer' }}
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#d97706', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fffbeb'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                onClick={() => {
+                  setStatusModalConfig({
+                    isOpen: true,
+                    mechanicId: r.id,
+                    mechanicName: r.name,
+                    targetStatus: 'Pending',
+                    reason: 'Under review for compliance.'
+                  });
+                  setOpenDropdownId(null);
+                }}
+              >
+                Mark Under Review
+              </div>
+              <div 
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#4b5563', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                onClick={() => {
+                  setStatusModalConfig({
+                    isOpen: true,
+                    mechanicId: r.id,
+                    mechanicName: r.name,
+                    targetStatus: 'Offline',
+                    reason: 'Marked offline due to inactivity.'
+                  });
+                  setOpenDropdownId(null);
+                }}
+              >
+                Mark Offline
+              </div>
+              <div 
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#ef4444', fontWeight: 600, cursor: 'pointer' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={async () => {
-                  await updateMechanicStatus(r.id, 'Suspended', 'Admin suspended account');
+                onClick={() => {
+                  setStatusModalConfig({
+                    isOpen: true,
+                    mechanicId: r.id,
+                    mechanicName: r.name,
+                    targetStatus: 'Suspended',
+                    reason: 'Repeatedly rejected bookings without valid reason.'
+                  });
                   setOpenDropdownId(null);
-                  refetch({ search, status: statusFilter });
                 }}
               >
                 Suspend Account
@@ -371,7 +446,9 @@ export default function MechanicPage() {
             <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>Total Mechanics</span>
             <span style={{ color: '#16a34a', fontSize: '0.6875rem', fontWeight: 700, marginLeft: 'auto' }}>▲ 5% (L7D)</span>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>1,500</div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>
+            {metrics?.totalMechanics?.toLocaleString('en-IN') ?? '1,500'}
+          </div>
         </div>
         
         {/* Card 2 */}
@@ -383,7 +460,9 @@ export default function MechanicPage() {
             <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>Active Mechanics</span>
             <span style={{ color: '#16a34a', fontSize: '0.6875rem', fontWeight: 700, marginLeft: 'auto' }}>▲ 5% (L7D)</span>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>1,000</div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>
+            {metrics?.activeMechanics?.toLocaleString('en-IN') ?? '1,000'}
+          </div>
         </div>
 
         {/* Card 3 */}
@@ -394,7 +473,9 @@ export default function MechanicPage() {
             </div>
             <span style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>Average Rating</span>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>140</div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>
+            {metrics?.averageRating ?? '4.5'}
+          </div>
         </div>
 
         {/* Card 4 */}
@@ -405,7 +486,9 @@ export default function MechanicPage() {
             <span style={{ color: '#16a34a', fontSize: '0.6875rem', fontWeight: 700, marginLeft: 'auto' }}>▼ 5% (L7D)</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>100</div>
+            <div style={{ fontSize: '1.75rem', fontWeight: 700, color: '#0f172a' }}>
+              {metrics?.flags?.toLocaleString('en-IN') ?? '100'}
+            </div>
             <span style={{ color: '#2563eb', display: 'inline-flex', alignItems: 'center', cursor: 'pointer', transition: 'transform 0.2s', padding: '0.25rem' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translate(2px, -2px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translate(0, 0)'}>
               <ExternalLink size={12} />
             </span>
@@ -718,6 +801,176 @@ export default function MechanicPage() {
             }
           `}</style>
         </>
+      )}
+
+      {/* Update Mechanic Status Modal */}
+      {statusModalConfig.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, animation: 'fadeIn 0.2s ease' }}>
+          <style>
+            {`
+              @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+              @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+              .status-modal-content { animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); position: relative; width: 90%; max-width: 500px; }
+            `}
+          </style>
+          <div className="status-modal-content" style={{ backgroundColor: 'white', borderRadius: '16px', padding: '2rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)', border: '1px solid #e5e7eb' }}>
+            <button onClick={() => setStatusModalConfig(prev => ({ ...prev, isOpen: false }))} style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '0.25rem' }}>Update Mechanic Status</h2>
+            <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '1.5rem' }}>Change status for <strong style={{ color: '#111827' }}>{statusModalConfig.mechanicName}</strong> (ID: #{statusModalConfig.mechanicId})</p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginBottom: '2rem' }}>
+              {/* Status Select */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>Target Status</label>
+                <div style={{ position: 'relative' }}>
+                  <select 
+                    value={statusModalConfig.targetStatus}
+                    onChange={(e) => {
+                      const newStatus = e.target.value;
+                      let defaultReason = '';
+                      if (newStatus === 'Active') defaultReason = 'Account activated by administrator.';
+                      if (newStatus === 'Busy') defaultReason = 'Admin paused services temporarily.';
+                      if (newStatus === 'Pending') defaultReason = 'Under review for compliance.';
+                      if (newStatus === 'Offline') defaultReason = 'Marked offline due to inactivity.';
+                      if (newStatus === 'Suspended') defaultReason = 'Repeatedly rejected bookings without valid reason.';
+                      setStatusModalConfig(prev => ({ ...prev, targetStatus: newStatus, reason: defaultReason }));
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.625rem 1rem',
+                      borderRadius: '0.5rem',
+                      border: '1px solid #d1d5db',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#1f2937',
+                      appearance: 'none',
+                      outline: 'none',
+                      backgroundColor: 'white',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Busy">Busy</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Offline">Offline</option>
+                    <option value="Suspended">Suspended</option>
+                  </select>
+                  <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280', pointerEvents: 'none', display: 'flex' }}>
+                    <ChevronDown size={16} />
+                  </span>
+                </div>
+              </div>
+
+              {/* Reason Textarea */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>Reason for Change <span style={{ color: '#ef4444' }}>*</span></label>
+                <textarea 
+                  value={statusModalConfig.reason}
+                  onChange={(e) => setStatusModalConfig(prev => ({ ...prev, reason: e.target.value }))}
+                  placeholder="Enter reason for this status change..."
+                  style={{
+                    width: '100%',
+                    minHeight: '100px',
+                    padding: '0.75rem 1rem',
+                    borderRadius: '0.5rem',
+                    border: '1px solid #d1d5db',
+                    fontSize: '0.875rem',
+                    color: '#1f2937',
+                    outline: 'none',
+                    resize: 'none',
+                    fontFamily: 'inherit',
+                    lineHeight: '1.5'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={() => setStatusModalConfig(prev => ({ ...prev, isOpen: false }))}
+                style={{
+                  padding: '0.5rem 1.25rem',
+                  borderRadius: '0.375rem',
+                  border: '1px solid #d1d5db',
+                  backgroundColor: 'white',
+                  color: '#374151',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={async () => {
+                  try {
+                    await updateMechanicStatus(statusModalConfig.mechanicId, statusModalConfig.targetStatus, statusModalConfig.reason);
+                    setStatusModalConfig(prev => ({ ...prev, isOpen: false }));
+                    setToastConfig({
+                      show: true,
+                      message: `Status updated to ${statusModalConfig.targetStatus} successfully!`,
+                      type: 'success'
+                    });
+                    setTimeout(() => setToastConfig(prev => ({ ...prev, show: false })), 3000);
+                    refetch({ search, status: statusFilter });
+                  } catch (err: any) {
+                    setToastConfig({
+                      show: true,
+                      message: err.message || 'Failed to update status',
+                      type: 'error'
+                    });
+                    setTimeout(() => setToastConfig(prev => ({ ...prev, show: false })), 3000);
+                  }
+                }}
+                disabled={!statusModalConfig.reason.trim()}
+                style={{
+                  padding: '0.5rem 1.25rem',
+                  borderRadius: '0.375rem',
+                  border: 'none',
+                  backgroundColor: '#0f172a',
+                  color: 'white',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: statusModalConfig.reason.trim() ? 'pointer' : 'not-allowed',
+                  opacity: statusModalConfig.reason.trim() ? 1 : 0.6
+                }}
+              >
+                Update Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toastConfig.show && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          backgroundColor: toastConfig.type === 'success' ? '#10b981' : '#ef4444',
+          color: 'white',
+          padding: '0.75rem 1.25rem',
+          borderRadius: '0.5rem',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          zIndex: 1100,
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          {toastConfig.type === 'success' ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+          )}
+          {toastConfig.message}
+        </div>
       )}
     </div>
   );

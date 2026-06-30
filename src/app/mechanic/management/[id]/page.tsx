@@ -525,7 +525,7 @@ export default function MechanicDetailPage() {
   const id = (params.id as string);
 
   // Load API helper methods
-  const { fetchMechanicDetails, updateMechanic, fetchMechanicJobs, fetchMechanicPerformance } = useMechanics();
+  const { fetchMechanicDetails, updateMechanic, fetchMechanicJobs, fetchMechanicPerformance, updateMechanicStatus } = useMechanics();
 
   // Initialize data, fallback to Nishant Kumar (m1)
   const defaultData = MOCK_MECHANIC_DETAILS[id] || MOCK_MECHANIC_DETAILS['m1'];
@@ -639,6 +639,24 @@ export default function MechanicDetailPage() {
   // Save changes
   const handleSaveChanges = async () => {
     try {
+      // 1. If status changed, call PATCH status endpoint
+      let latestStatus = mechanic.status;
+      if (editForm.status !== mechanic.status) {
+        try {
+          const statusRes = await updateMechanicStatus(
+            id, 
+            editForm.status, 
+            `Status updated to ${editForm.status} from detail edit page.`
+          );
+          if (statusRes && statusRes.success) {
+            latestStatus = editForm.status;
+          }
+        } catch (statusErr) {
+          console.error('[MechanicDetailPage] Failed to save status changes:', statusErr);
+        }
+      }
+
+      // 2. Call PUT details endpoint
       const payload = {
         display_name: editForm.name || editForm.display_name,
         phone: editForm.phone,
@@ -661,6 +679,7 @@ export default function MechanicDetailPage() {
           panName: res.data.documents?.panName ?? res.data.panName,
           panNumber: res.data.documents?.panNumber ?? res.data.panNumber,
           panCardFile: res.data.documents?.panCardFileUrl ?? res.data.panCardFile,
+          status: latestStatus
         };
         setMechanic(resolved);
         // Show Success Toast
@@ -1996,8 +2015,10 @@ export default function MechanicDetailPage() {
                     cursor: 'pointer',
                   }}
                 >
-                  <option value="Active">Live</option>
+                  <option value="Active">Active</option>
                   <option value="Busy">Busy</option>
+                  <option value="Pending">Pending</option>
+                  <option value="Suspended">Suspended</option>
                   <option value="Offline">Offline</option>
                 </select>
                 <ChevronDown size={14} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#2563eb', pointerEvents: 'none' }} />

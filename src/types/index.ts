@@ -103,7 +103,7 @@ export type Mechanic = {
   phone: string;
   location: string;
   expertise: string;
-  status: 'Available' | 'Busy' | 'Offline';
+  status: 'Active' | 'Busy' | 'Pending' | 'Suspended' | 'Offline' | 'Available' | 'Rejected';
   rating: number;
   totalJobs: number;
   userId?: string;

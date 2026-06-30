@@ -24,10 +24,20 @@ function mapApplication(app: any, index: number): Mechanic {
     app.name ||
     `Mechanic ${index + 1}`;
 
-  const rawStatus = (app.status ?? '').toUpperCase();
-  const status: Mechanic['status'] =
-    rawStatus === 'SUSPENDED' || rawStatus === 'OFFLINE' ? 'Offline' :
-    rawStatus === 'BUSY'                                 ? 'Busy'    : 'Available';
+  // Preserve actual API status casing and values
+  let status: Mechanic['status'] = 'Active';
+  if (app.status) {
+    const s = String(app.status).toUpperCase();
+    if (s === 'ACTIVE' || s === 'AVAILABLE' || s === 'APPROVED') status = 'Active';
+    else if (s === 'BUSY') status = 'Busy';
+    else if (s === 'PENDING') status = 'Pending';
+    else if (s === 'SUSPENDED') status = 'Suspended';
+    else if (s === 'OFFLINE') status = 'Offline';
+    else if (s === 'REJECTED') status = 'Rejected';
+    else status = (app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()) as any;
+  } else {
+    status = 'Active';
+  }
 
   return {
     id:        String(app.application_id ?? app._id ?? app.id ?? `api-${index}`),
@@ -54,6 +64,12 @@ export function useMechanics() {
   const [error, setError]                 = useState<string | null>(null);
   const [usingFallback, setUsingFallback] = useState(false);
   const [totalCount, setTotalCount]       = useState(0);
+  const [metrics, setMetrics]             = useState({
+    totalMechanics: 1500,
+    activeMechanics: 1000,
+    averageRating: 4.5,
+    flags: 100
+  });
 
   const fetchMechanics = useCallback(async (params: { page?: number; limit?: number; status?: string; search?: string } = {}) => {
     setLoading(true);
@@ -90,6 +106,15 @@ export function useMechanics() {
 
       const total = json.meta?.total ?? json.total ?? raw.length;
       setTotalCount(total);
+
+      if (json.metrics) {
+        setMetrics({
+          totalMechanics: json.metrics.totalMechanics ?? 1500,
+          activeMechanics: json.metrics.activeMechanics ?? 1000,
+          averageRating: json.metrics.averageRating ?? 4.5,
+          flags: json.metrics.flags ?? 100
+        });
+      }
 
       if (raw.length === 0) {
         console.warn('[useMechanics] API returned empty array — using fallback mock data');
@@ -226,6 +251,7 @@ export function useMechanics() {
     error,
     usingFallback,
     totalCount,
+    metrics,
     refetch: fetchMechanics,
     fetchMechanicDetails,
     updateMechanic,
