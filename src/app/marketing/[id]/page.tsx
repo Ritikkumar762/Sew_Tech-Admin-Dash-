@@ -1,12 +1,119 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { apiClient, ENDPOINTS } from '@/lib';
+
+const MOCK_BANNER_DETAILS: Record<string, any> = {
+  'banner-1': {
+    name: 'ST Spares Banner 1',
+    carousel: false,
+    linkTo: 'ST Spares',
+    openType: 'Spare',
+    spareId: 'CTEC 300U',
+    categoryId: 'Sewing Machine Spares',
+    machineId: 'Lockstitch Machine',
+    externalLink: '',
+    targetAudience: 'Gold Members',
+    startDate: '28.02.2026, 01:00-02:00 PM',
+    endDate: '28.02.2026, 01:00-02:00 PM'
+  },
+  'banner-2': {
+    name: 'ST Spares Banner 2',
+    carousel: false,
+    linkTo: 'ST Spares',
+    openType: 'Spare',
+    spareId: 'Brother S-7200C',
+    categoryId: 'Sewing Machine Spares',
+    machineId: 'Lockstitch Machine',
+    externalLink: '',
+    targetAudience: 'Gold Members',
+    startDate: '28.02.2026, 01:00-02:00 PM',
+    endDate: '28.02.2026, 01:00-02:00 PM'
+  },
+  'banner-3': {
+    name: 'ST Spares Banner 3',
+    carousel: false,
+    linkTo: 'ST Mechanic',
+    openType: 'Service',
+    spareId: 'Full Service',
+    categoryId: 'Sewing Machine Spares',
+    machineId: 'Lockstitch Machine',
+    externalLink: '',
+    targetAudience: 'Gold Members',
+    startDate: '28.02.2026, 01:00-02:00 PM',
+    endDate: '28.02.2026, 01:00-02:00 PM'
+  },
+  'banner-4': {
+    name: 'ST Spares Banner 4',
+    carousel: false,
+    linkTo: 'ST Spares',
+    openType: 'Spare',
+    spareId: 'Juki DDL-9000B',
+    categoryId: 'Sewing Machine Spares',
+    machineId: 'Lockstitch Machine',
+    externalLink: '',
+    targetAudience: 'Gold Members',
+    startDate: '28.02.2026, 01:00-02:00 PM',
+    endDate: '28.02.2026, 01:00-02:00 PM'
+  },
+  'banner-5': {
+    name: 'ST Spares Banner 5',
+    carousel: false,
+    linkTo: 'ST Spares',
+    openType: 'Spare',
+    spareId: 'CTEC 300U',
+    categoryId: 'Sewing Machine Spares',
+    machineId: 'Lockstitch Machine',
+    externalLink: '',
+    targetAudience: 'Gold Members',
+    startDate: '28.02.2026, 01:00-02:00 PM',
+    endDate: '28.02.2026, 01:00-02:00 PM'
+  },
+  'banner-6': {
+    name: 'ST Spares Banner 6',
+    carousel: false,
+    linkTo: 'ST Spares',
+    openType: 'Spare',
+    spareId: 'Brother S-7200C',
+    categoryId: 'Sewing Machine Spares',
+    machineId: 'Lockstitch Machine',
+    externalLink: '',
+    targetAudience: 'Gold Members',
+    startDate: '28.02.2026, 01:00-02:00 PM',
+    endDate: '28.02.2026, 01:00-02:00 PM'
+  },
+  'banner-7': {
+    name: 'ST Spares Banner 7',
+    carousel: false,
+    linkTo: 'ST Spares',
+    openType: 'Spare',
+    spareId: 'Juki DDL-9000B',
+    categoryId: 'Sewing Machine Spares',
+    machineId: 'Lockstitch Machine',
+    externalLink: '',
+    targetAudience: 'Gold Members',
+    startDate: '28.02.2026, 01:00-02:00 PM',
+    endDate: '28.02.2026, 01:00-02:00 PM'
+  }
+};
 
 export default function BannerDetailPage() {
   const router = useRouter();
   const params = useParams();
   const bannerIdParam = params?.id as string;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        setUploadedImage(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const [step, setStep] = useState<1 | 2 | 3>(1); // Changed default to 1 as per design flow
   const [carousel, setCarousel] = useState(false);
@@ -28,7 +135,26 @@ export default function BannerDetailPage() {
 
   // Fetch current banner details if id exists
   useEffect(() => {
-    if (!bannerIdParam || bannerIdParam.startsWith('banner-')) return; // skip for mock banner-1, banner-2 prefix placeholders
+    if (!bannerIdParam) return;
+
+    // Pre-populate with mock details first
+    const mockData = MOCK_BANNER_DETAILS[bannerIdParam];
+    if (mockData) {
+      setAudience(mockData.targetAudience || 'Gold Members');
+      setStartDate(mockData.startDate || '28.02.2026, 01:00-02:00 PM');
+      setEndDate(mockData.endDate || '28.02.2026, 01:00-02:00 PM');
+      setCarousel(mockData.carousel || false);
+      setLinkTo(mockData.linkTo || 'ST Spares');
+      setOpenType(mockData.openType || 'Spare');
+      setSpareId(mockData.spareId || 'ST Spares');
+      setCategoryId(mockData.categoryId || 'Sewing Machine Spares');
+      setMachineId(mockData.machineId || 'Lockstitch Machine');
+      setExternalLink(mockData.externalLink || '');
+    }
+
+    if (bannerIdParam.startsWith('banner-')) {
+      return;
+    }
 
     const loadBannerDetails = async () => {
       setLoading(true);
@@ -306,10 +432,10 @@ export default function BannerDetailPage() {
           </button>
           <div style={{ display: 'inline-block', verticalAlign: 'middle' }}>
             <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              ST Spares Banner 1
+              {bannerIdParam === 'banner-hs-1' ? 'Hero Banner — Summer Sale' : (MOCK_BANNER_DETAILS[bannerIdParam]?.name || 'ST Spares Banner 1')}
             </h1>
             <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-              Ads & Marketing <span style={{ margin: '0 0.5rem' }}>•</span> All Banners <span style={{ margin: '0 0.5rem' }}>•</span> <span style={{ fontWeight: 600, color: '#111827' }}>ST Spares Banner 1</span>
+              Ads & Marketing <span style={{ margin: '0 0.5rem' }}>•</span> All Banners <span style={{ margin: '0 0.5rem' }}>•</span> <span style={{ fontWeight: 600, color: '#111827' }}>{bannerIdParam === 'banner-hs-1' ? 'Hero Banner — Summer Sale' : (MOCK_BANNER_DETAILS[bannerIdParam]?.name || 'ST Spares Banner 1')}</span>
             </div>
           </div>
         </div>
@@ -326,7 +452,7 @@ export default function BannerDetailPage() {
             </button>
           ) : (
             <button onClick={handlePublish} disabled={loading} style={{ background: '#10b981', color: '#fff', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: loading ? 0.7 : 1 }}>
-              {loading ? 'Publishing...' : 'Publish Banner'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              {loading ? 'Publishing...' : 'Publish Banner'} <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
             </button>
           )}
         </div>
@@ -421,86 +547,22 @@ export default function BannerDetailPage() {
                   />
                   <span style={{ fontWeight: 600, fontSize: '0.875rem', color: '#111827' }}>Carousel</span>
                 </div>
-                <div style={{ border: '2px dashed #3b82f6', borderRadius: '0.5rem', padding: '4rem', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#eff6ff' }}>
-                  <button style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 4px rgba(59, 130, 246, 0.15)' }}>
-                    Select From Saved Creatives
-                  </button>
-                </div>
-              </div>
-
-              {/* Add Interaction Card */}
-              <div className="card" style={{ background: '#fff', borderRadius: '0.75rem', padding: '2rem', border: '1px solid #e5e7eb' }}>
-                <h2 style={{ fontSize: '1.125rem', fontWeight: 700, margin: '0 0 1rem 0', color: '#111827' }}>Add Interaction</h2>
-                <div style={{ borderTop: '1px dashed #e5e7eb', margin: '1rem 0 1.5rem 0' }}></div>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                  {/* Link To dropdown */}
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>
-                      Link to <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <div style={{ position: 'relative' }}>
-                      <select 
-                        value={linkTo}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setLinkTo(val);
-                          if (val === 'ST Spares') setOpenType('Spare');
-                          else if (val === 'ST Mechanic') setOpenType('Service');
-                          else if (val === 'ST Exchange' || val === 'ST Kaarigar') setOpenType('Default');
-                          else if (val === 'ST Academics') setOpenType('Course');
-                        }}
-                        style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #e5e7eb', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem', appearance: 'none', background: '#fff', fontWeight: 500, color: '#111827' }}
-                      >
-                        <option value="ST Spares">ST Spares</option>
-                        <option value="ST Mechanic">ST Mechanic</option>
-                        <option value="ST Exchange">ST Exchange</option>
-                        <option value="ST Kaarigar">ST Kaarigar</option>
-                        <option value="ST Academics">ST Academics</option>
-                        <option value="Open Service Category">Open Service Category</option>
-                        <option value="External Link">External Link</option>
-                      </select>
-                      <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                    </div>
-                  </div>
-
-                  {/* Open dropdown or Add Link input */}
-                  {hasOpenField(linkTo) ? (
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>
-                        Open <span style={{ color: '#ef4444' }}>*</span>
-                      </label>
-                      <div style={{ position: 'relative' }}>
-                        <select 
-                          value={openType}
-                          onChange={(e) => setOpenType(e.target.value)}
-                          style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #e5e7eb', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem', appearance: 'none', background: '#fff', fontWeight: 500, color: '#111827' }}
-                        >
-                          {getOpenOptions(linkTo).map((opt) => (
-                            <option key={opt.value} value={opt.value}>{opt.label}</option>
-                          ))}
-                        </select>
-                        <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-                      </div>
-                    </div>
+                <div 
+                  onClick={() => fileInputRef.current?.click()}
+                  style={{ border: '2px dashed #3b82f6', borderRadius: '0.5rem', padding: uploadedImage ? '0' : '4rem', display: 'flex', justifyContent: 'center', alignItems: 'center', background: '#eff6ff', cursor: 'pointer', position: 'relative', overflow: 'hidden', minHeight: '200px' }}
+                >
+                  <input type="file" accept="image/*" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
+                  {uploadedImage ? (
+                    <img src={uploadedImage} alt="Uploaded Creative" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>
-                        Add Link <span style={{ color: '#ef4444' }}>*</span>
-                      </label>
-                      <input 
-                        type="text" 
-                        value={externalLink}
-                        onChange={(e) => setExternalLink(e.target.value)}
-                        placeholder="Enter Link" 
-                        style={{ width: '100%', padding: '0.75rem 1rem', border: '1px solid #e5e7eb', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem', fontWeight: 500, color: '#111827', background: '#fff' }} 
-                      />
-                    </div>
+                    <button style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', boxShadow: '0 2px 4px rgba(59, 130, 246, 0.15)', pointerEvents: 'none' }}>
+                      Select From Saved Creatives
+                    </button>
                   )}
                 </div>
-
-                {renderThirdField(linkTo, openType)}
               </div>
+
+              {/* Interaction details have been hidden to match UI flow exactly */}
             </>
           )}
 
@@ -569,111 +631,63 @@ export default function BannerDetailPage() {
           {/* Mobile Mockup */}
           <div style={{ 
             width: '280px', 
-            height: '580px', 
-            background: '#111', 
-            borderRadius: '2rem', 
-            border: '8px solid #000',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+            borderRadius: '1.25rem',
             overflow: 'hidden',
             position: 'relative',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
           }}>
-            {/* Notch */}
-            <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '100px', height: '24px', background: '#000', borderBottomLeftRadius: '12px', borderBottomRightRadius: '12px', zIndex: 10 }}></div>
-            
-            {/* App UI */}
-            <div style={{ background: '#1c1c1e', color: '#fff', flex: 1, padding: '2rem 1rem 1rem 1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              
-              {/* App Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, color: '#ef4444' }}>SEWTECH</div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <div style={{ width: '24px', height: '24px', background: '#333', borderRadius: '50%' }}></div>
-                  <div style={{ width: '24px', height: '24px', background: '#333', borderRadius: '50%' }}></div>
-                </div>
-              </div>
+            <img src="/Machine Spares Home Screen.svg" alt="App Preview Screen" style={{ width: '100%', height: 'auto', display: 'block' }} />
 
-              {/* Banner Area */}
-              <div style={{ 
-                background: 'linear-gradient(to right, #ec4899, #ef4444)', 
-                borderRadius: '0.75rem', 
-                padding: '1rem', 
-                color: '#fff',
-                position: 'relative',
-                overflow: 'hidden',
-                minHeight: '120px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center'
-              }}>
-                <div style={{ fontSize: '0.75rem', fontWeight: 600, opacity: 0.9 }}>{previewData.sub}</div>
-                <div style={{ fontSize: '1.25rem', fontWeight: 800, marginTop: '0.25rem', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>{previewData.title}</div>
-                <div style={{ fontSize: '0.65rem', marginTop: '0.25rem', opacity: 0.85 }}>{previewData.footer}</div>
-                
-                {/* Mock image placeholder */}
-                <div style={{ position: 'absolute', right: '-10px', bottom: '-10px', width: '100px', height: '100px', background: '#000', opacity: 0.15, borderRadius: '0.5rem', transform: 'rotate(-10deg)' }}></div>
-                
-                {/* Dots */}
-                <div style={{ position: 'absolute', bottom: '8px', left: '0', right: '0', display: 'flex', justifyContent: 'center', gap: '4px' }}>
-                  <div style={{ width: carousel ? '12px' : '4px', height: '4px', background: '#fff', borderRadius: '2px', transition: 'width 0.2s' }}></div>
-                  <div style={{ width: '4px', height: '4px', background: '#fff', opacity: 0.5, borderRadius: '50%' }}></div>
-                  <div style={{ width: '4px', height: '4px', background: '#fff', opacity: 0.5, borderRadius: '50%' }}></div>
-                </div>
-              </div>
-
-              {/* Grid Area */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#9ca3af' }}>Quick Search</span>
-                <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Part Catalogues &gt;</span>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
-                {[
-                  { label: 'Search by Category', icon: '🔍' },
-                  { label: 'Guided Search', icon: '⚡' },
-                  { label: 'Search by Photo', icon: '📷' },
-                  { label: 'Order by Hand Notes', icon: '📝' },
-                  { label: 'Whatsapp US', icon: '💬' },
-                  { label: 'Send Audio Notes', icon: '🎙️' }
-                ].map((item, i) => (
-                  <div key={i} style={{ background: '#2c2c2e', borderRadius: '0.5rem', padding: '0.75rem 0.25rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.35rem', justifyContent: 'center', border: '1px solid #3a3a3c' }}>
-                    <div style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{item.icon}</div>
-                    <div style={{ fontSize: '0.55rem', color: '#9ca3af', textAlign: 'center', lineHeight: '1.2', fontWeight: 500 }}>{item.label}</div>
+            {/* Dynamic Banner Overlay */}
+            <div style={{
+              position: 'absolute',
+              left: '6.5%',
+              top: '17.9%',
+              width: '87%',
+              height: '17.2%',
+              background: uploadedImage ? `url(${uploadedImage}) center/cover no-repeat` : 'linear-gradient(135deg, #ec4899, #ef4444)',
+              borderRadius: '0.5rem',
+              padding: uploadedImage ? '0' : '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              color: '#fff',
+              boxSizing: 'border-box',
+              overflow: 'hidden'
+            }}>
+              {!uploadedImage && (
+                <>
+                  {/* Left Content */}
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, overflow: 'hidden' }}>
+                    <span style={{ fontSize: '0.5rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      {previewData.sub}
+                    </span>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: '2px 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      {previewData.title}
+                    </h4>
+                    <span style={{ fontSize: '0.45rem', opacity: 0.85, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      {previewData.footer}
+                    </span>
                   </div>
-                ))}
-              </div>
 
+                  {/* Right Image */}
+                  <img 
+                    src="/rotary-hook.png" 
+                    alt="Spare Part" 
+                    style={{ 
+                      width: '42px', 
+                      height: '42px', 
+                      objectFit: 'contain', 
+                      backgroundColor: 'rgba(255,255,255,0.15)',
+                      borderRadius: '0.25rem',
+                      padding: '2px'
+                    }} 
+                  />
+                </>
+              )}
             </div>
-
-            {/* Bottom Nav */}
-            <div style={{ background: '#fff', height: '55px', borderTopLeftRadius: '1rem', borderTopRightRadius: '1rem', display: 'flex', justifyContent: 'space-around', alignItems: 'center', padding: '0 0.5rem', position: 'relative', borderTop: '1px solid #f3f4f6' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>🛠️</span>
-                <span style={{ fontSize: '0.5rem', color: '#6b7280', fontWeight: 600, marginTop: '2px' }}>Services</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>🛒</span>
-                <span style={{ fontSize: '0.5rem', color: '#6b7280', fontWeight: 600, marginTop: '2px' }}>Cart</span>
-                <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: '#ef4444', color: '#fff', fontSize: '0.5rem', padding: '1px 4px', borderRadius: '50%', fontWeight: 700 }}>2</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', transform: 'translateY(-12px)', cursor: 'pointer' }}>
-                <div style={{ width: '36px', height: '36px', background: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '4px solid #1c1c1e', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-                  <span style={{ fontSize: '0.9rem', color: '#fff' }}>🏠</span>
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>❤️</span>
-                <span style={{ fontSize: '0.5rem', color: '#6b7280', fontWeight: 600, marginTop: '2px' }}>Wishlist</span>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ fontSize: '1rem' }}>📦</span>
-                <span style={{ fontSize: '0.5rem', color: '#6b7280', fontWeight: 600, marginTop: '2px' }}>My Orders</span>
-              </div>
-            </div>
-            
-            {/* Home indicator */}
-            <div style={{ position: 'absolute', bottom: '8px', left: '50%', transform: 'translateX(-50%)', width: '40px', height: '4px', background: '#000', borderRadius: '2px' }}></div>
           </div>
         </div>
       </div>

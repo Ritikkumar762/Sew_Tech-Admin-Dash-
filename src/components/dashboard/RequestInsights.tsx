@@ -149,7 +149,7 @@ export default function RequestInsights() {
 
   const breakupData = [
     { date: '1 Feb', Instant: 75, Assisted: 60, Invite: 45, Video: 55, Direct: 30 },
-    { date: '2 Feb', Instant: 0, Assisted: 0, Invite: 0, Video: 0, Direct: 0 },
+    { date: '2 Feb', Instant: 60, Assisted: 50, Invite: 40, Video: 50, Direct: 20 },
     { date: '3 Feb', Instant: 75, Assisted: 45, Invite: 60, Video: 45, Direct: 30 },
     { date: '4 Feb', Instant: 75, Assisted: 45, Invite: 60, Video: 45, Direct: 30 },
     { date: '5 Feb', Instant: 75, Assisted: 45, Invite: 60, Video: 45, Direct: 30 },

@@ -3,20 +3,22 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMarketing } from './_hooks/useMarketing';
 
-// Icons mapping for tabs
-const tabs = [
-  { label: 'Home Screen', count: 1 },
-  { label: 'ST Spares', count: 1 },
-  { label: 'ST Mechanic', count: 1 },
-  { label: 'ST Kaarigar', count: 1 },
-  { label: 'ST Exchange', count: 1 },
-  { label: 'ST Academics', count: 1 }
-];
-
 export default function MarketingPage() {
   const router = useRouter();
   const { campaigns, stats, loading } = useMarketing();
   const [activeTab, setActiveTab] = useState('Home Screen');
+
+  // Dynamic tabs mapping with counts calculated from loaded campaigns
+  const tabs = [
+    { label: 'Home Screen', count: campaigns.filter(c => c.tabCategory === 'Home Screen').length },
+    { label: 'ST Spares', count: campaigns.filter(c => c.tabCategory === 'ST Spares').length },
+    { label: 'ST Mechanic', count: campaigns.filter(c => c.tabCategory === 'ST Mechanic').length },
+    { label: 'ST Kaarigar', count: campaigns.filter(c => c.tabCategory === 'ST Kaarigar').length },
+    { label: 'ST Exchange', count: campaigns.filter(c => c.tabCategory === 'ST Exchange').length },
+    { label: 'ST Academics', count: campaigns.filter(c => c.tabCategory === 'ST Academics').length }
+  ];
+
+  const filteredCampaigns = campaigns.filter(c => c.tabCategory === activeTab);
 
   return (
     <div style={{ animation: 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
@@ -174,42 +176,49 @@ export default function MarketingPage() {
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={8} style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>Loading...</td></tr>}
-              {!loading && campaigns.map((campaign, idx) => (
-                <tr key={campaign.id} className="animate-table-row" style={{ borderBottom: '1px solid #e5e7eb', animation: `fadeInUp 0.3s ease-out ${idx * 0.05}s both` }}>
-                  <td style={{ padding: '1rem 1.5rem' }}>
-                    <input type="checkbox" style={{ accentColor: '#3b82f6', width: '16px', height: '16px', borderRadius: '4px', border: '1px solid #d1d5db' }} />
-                  </td>
-                  <td style={{ padding: '1rem', fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{campaign.spareName}</td>
-                  <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#111827', textAlign: 'center', fontWeight: 600 }}>{campaign.startDate} - {campaign.endDate}</td>
-                  <td style={{ padding: '1rem', textAlign: 'center' }}>
-                    <span style={{ background: '#eff6ff', color: '#3b82f6', padding: '4px 12px', borderRadius: '4px', fontSize: '0.875rem', fontWeight: 600 }}>{campaign.impressionsL30D}</span>
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'center' }}>
-                    <span style={{ background: '#eff6ff', color: '#3b82f6', padding: '4px 12px', borderRadius: '4px', fontSize: '0.875rem', fontWeight: 600 }}>{campaign.currentImpressions}</span>
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'center' }}>
-                    <span style={{ color: '#3b82f6', fontSize: '0.875rem', fontWeight: 600 }}>{campaign.currentClicks}</span>
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{campaign.currentCTR}</td>
-                  <td style={{ padding: '1rem', textAlign: 'center' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                      <button 
-                        onClick={() => router.push(`/marketing/${campaign.id}`)}
-                        className="animate-button"
-                        style={{ border: '1px solid #e5e7eb', background: '#fff', color: '#111827', padding: '6px 12px', borderRadius: '24px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
-                      >
-                        Update
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                      </button>
-                      <button style={{ border: 'none', background: '#111827', color: '#fff', padding: '6px 12px', borderRadius: '24px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                        View
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                      </button>
-                    </div>
+              {filteredCampaigns.length === 0 ? (
+                <tr>
+                  <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem' }}>
+                    No banners found for <strong style={{ color: '#6b7280' }}>{activeTab}</strong>
                   </td>
                 </tr>
-              ))}
+              ) : (
+                filteredCampaigns.map((campaign, idx) => (
+                  <tr key={campaign.id} className="animate-table-row" style={{ borderBottom: '1px solid #e5e7eb', animation: `fadeInUp 0.3s ease-out ${idx * 0.05}s both` }}>
+                    <td style={{ padding: '1rem 1.5rem' }}>
+                      <input type="checkbox" style={{ accentColor: '#3b82f6', width: '16px', height: '16px', borderRadius: '4px', border: '1px solid #d1d5db' }} />
+                    </td>
+                    <td style={{ padding: '1rem', fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{campaign.spareName}</td>
+                    <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#111827', textAlign: 'center', fontWeight: 600 }}>{campaign.startDate} - {campaign.endDate}</td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                      <span style={{ background: '#eff6ff', color: '#3b82f6', padding: '4px 12px', borderRadius: '4px', fontSize: '0.875rem', fontWeight: 600 }}>{campaign.impressionsL30D}</span>
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                      <span style={{ background: '#eff6ff', color: '#3b82f6', padding: '4px 12px', borderRadius: '4px', fontSize: '0.875rem', fontWeight: 600 }}>{campaign.currentImpressions}</span>
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                      <span style={{ color: '#3b82f6', fontSize: '0.875rem', fontWeight: 600 }}>{campaign.currentClicks}</span>
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{campaign.currentCTR}</td>
+                    <td style={{ padding: '1rem', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                        <button 
+                          onClick={() => router.push(`/marketing/${campaign.id}`)}
+                          className="animate-button"
+                          style={{ border: '1px solid #e5e7eb', background: '#fff', color: '#111827', padding: '6px 12px', borderRadius: '24px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
+                        >
+                          Update
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                        </button>
+                        <button style={{ border: 'none', background: '#111827', color: '#fff', padding: '6px 12px', borderRadius: '24px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                          View
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
