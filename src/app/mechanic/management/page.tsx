@@ -19,7 +19,9 @@ import {
 } from 'lucide-react';
 
 export default function MechanicPage() {
-  const { mechanics, loading, error } = useMechanics();
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const { mechanics, loading, error, refetch, updateMechanicStatus } = useMechanics();
   const router = useRouter();
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -31,7 +33,11 @@ export default function MechanicPage() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  // Use real backend data directly from useMechanics hook
+  // Fetch data when filters/search changes
+  useEffect(() => {
+    refetch({ search, status: statusFilter });
+  }, [search, statusFilter, refetch]);
+
   const displayMechanics = mechanics;
 
   const columns: Column<any>[] = [
@@ -220,7 +226,11 @@ export default function MechanicPage() {
                 style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#374151', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={() => setOpenDropdownId(null)}
+                onClick={async () => {
+                  await updateMechanicStatus(r.id, 'Pending', 'Admin marked under review');
+                  setOpenDropdownId(null);
+                  refetch({ search, status: statusFilter });
+                }}
               >
                 Mark Under Review
               </div>
@@ -228,7 +238,11 @@ export default function MechanicPage() {
                 style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#374151', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={() => setOpenDropdownId(null)}
+                onClick={async () => {
+                  await updateMechanicStatus(r.id, 'Busy', 'Admin paused services');
+                  setOpenDropdownId(null);
+                  refetch({ search, status: statusFilter });
+                }}
               >
                 Pause Services
               </div>
@@ -236,7 +250,11 @@ export default function MechanicPage() {
                 style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#ef4444', cursor: 'pointer' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={() => setOpenDropdownId(null)}
+                onClick={async () => {
+                  await updateMechanicStatus(r.id, 'Suspended', 'Admin suspended account');
+                  setOpenDropdownId(null);
+                  refetch({ search, status: statusFilter });
+                }}
               >
                 Suspend Account
               </div>
@@ -412,6 +430,8 @@ export default function MechanicPage() {
             <input 
               type="text" 
               placeholder="Search by Mechanic Name" 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               style={{
                 width: '100%',
                 padding: '0.5rem 1rem 0.5rem 2.25rem',
@@ -570,7 +590,11 @@ export default function MechanicPage() {
                   fontWeight: 600,
                   cursor: 'pointer'
                 }}
-                onClick={() => setIsFilterOpen(false)}
+                onClick={() => {
+                  setStatusFilter('');
+                  setSearch('');
+                  setIsFilterOpen(false);
+                }}
               >
                 Clear Filters
                 <XCircle size={12} />
@@ -640,10 +664,16 @@ export default function MechanicPage() {
                   <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937' }}>Status</span>
                   <ChevronDown size={14} color="#6b7280" />
                 </div>
-                <div style={{ display: 'flex', gap: '2rem' }}>
-                  {['Active', 'Suspended'].map(status => (
-                    <label key={status} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#4b5563', cursor: 'pointer' }}>
-                      <input type="radio" name="filter_status" style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }} />
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  {['Active', 'Busy', 'Pending', 'Suspended', 'Offline'].map(status => (
+                    <label key={status} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8125rem', color: '#4b5563', cursor: 'pointer', padding: '0.25rem 0.5rem', border: '1px solid #e5e7eb', borderRadius: '0.375rem', backgroundColor: statusFilter === status ? '#eff6ff' : 'white' }}>
+                      <input 
+                        type="radio" 
+                        name="filter_status" 
+                        checked={statusFilter === status}
+                        onChange={() => setStatusFilter(statusFilter === status ? '' : status)}
+                        style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }} 
+                      />
                       {status}
                     </label>
                   ))}

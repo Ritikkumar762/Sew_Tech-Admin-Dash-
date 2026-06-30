@@ -38,6 +38,12 @@ function mapApplication(app: any, index: number): Mechanic {
     status,
     rating:    typeof app.rating === 'number' ? app.rating : 4.5,
     totalJobs: app.totalJobs ?? app.jobsCompleted ?? 0,
+    userId:    app.user_id ?? app.userId ?? '',
+    aadharName: app.aadharName ?? app.aadhaarName ?? '',
+    aadharNumber: app.aadharNumber ?? app.aadhaarNumber ?? '',
+    panName:   app.panName ?? '',
+    panNumber: app.panNumber ?? '',
+    panCardFile: app.panCardFile ?? app.panCard ?? '',
   };
 }
 
@@ -46,18 +52,29 @@ export function useMechanics() {
   const [loading, setLoading]             = useState(true);
   const [error, setError]                 = useState<string | null>(null);
   const [usingFallback, setUsingFallback] = useState(false);
+  const [totalCount, setTotalCount]       = useState(0);
 
-  const fetchMechanics = useCallback(async () => {
+  const fetchMechanics = useCallback(async (params: { page?: number; limit?: number; status?: string; search?: string } = {}) => {
     setLoading(true);
     setError(null);
     setUsingFallback(false);
 
     try {
-      const res = await fetch(ENDPOINTS.mechanics.applications, {
+      const queryParts = [];
+      if (params.page) queryParts.push(`page=${params.page}`);
+      if (params.limit) queryParts.push(`limit=${params.limit}`);
+      if (params.status) queryParts.push(`status=${params.status}`);
+      if (params.search) queryParts.push(`search=${encodeURIComponent(params.search)}`);
+      const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') ?? localStorage.getItem('adminToken') : null) || HARDCODED_TOKEN;
+      const url = `http://localhost:8000/api/v1/admin/care/mechanics/applications${queryString}`;
+      
+      const res = await fetch(url, {
         method: 'GET',
         headers: {
           'Accept':        'application/json',
-          'Authorization': `Bearer ${HARDCODED_TOKEN}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
 
@@ -66,28 +83,153 @@ export function useMechanics() {
       const json = await res.json();
       console.log('[useMechanics] API response:', json);
 
-      // Handle different possible shapes: { data:[...] } | { applications:[...] } | [...]
       const raw: any[] = Array.isArray(json)
         ? json
         : json.data ?? json.applications ?? json.mechanics ?? json.results ?? [];
 
+      const total = json.meta?.total ?? json.total ?? raw.length;
+      setTotalCount(total);
+
       if (raw.length === 0) {
         console.warn('[useMechanics] API returned empty array — using fallback mock data');
         setMechanics(MOCK_MECHANICS);
+        setTotalCount(MOCK_MECHANICS.length);
         setUsingFallback(true);
       } else {
         setMechanics(raw.map(mapApplication));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn('[useMechanics] API call failed — using fallback mock data:', err);
       setMechanics(MOCK_MECHANICS);
+      setTotalCount(MOCK_MECHANICS.length);
       setUsingFallback(true);
+      setError(err?.message || 'Failed to fetch mechanics');
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { fetchMechanics(); }, [fetchMechanics]);
+  const fetchMechanicDetails = useCallback(async (id: string) => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') ?? localStorage.getItem('adminToken') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${id}`, {
+        method: 'GET',
+        headers: {
+          'Accept':        'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Failed to fetch details: ${res.status}`);
+      const json = await res.json();
+      return json.data;
+    } catch (err) {
+      console.error('[useMechanics] Error fetching single mechanic details:', err);
+      return null;
+    }
+  }, []);
 
-  return { mechanics, loading, error, usingFallback, refetch: fetchMechanics };
+  const updateMechanic = useCallback(async (id: string, payload: any) => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') ?? localStorage.getItem('adminToken') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type':  'application/json',
+          'Accept':        'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`Failed to update mechanic: ${res.status}`);
+      const json = await res.json();
+      return json;
+    } catch (err) {
+      console.error('[useMechanics] Error updating mechanic details:', err);
+      throw err;
+    }
+  }, []);
+
+  const updateMechanicStatus = useCallback(async (id: string, status: string, reason?: string) => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') ?? localStorage.getItem('adminToken') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type':  'application/json',
+          'Accept':        'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status, reason })
+      });
+      if (!res.ok) throw new Error(`Failed to update status: ${res.status}`);
+      const json = await res.json();
+      return json;
+    } catch (err) {
+      console.error('[useMechanics] Error updating status:', err);
+      throw err;
+    }
+  }, []);
+
+  const fetchMechanicJobs = useCallback(async (id: string, params: { tab?: string; status?: string; page?: number; limit?: number } = {}) => {
+    try {
+      const queryParts = [];
+      if (params.tab) queryParts.push(`tab=${params.tab}`);
+      if (params.status) queryParts.push(`status=${params.status}`);
+      if (params.page) queryParts.push(`page=${params.page}`);
+      if (params.limit) queryParts.push(`limit=${params.limit}`);
+      const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') ?? localStorage.getItem('adminToken') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${id}/jobs${queryString}`, {
+        method: 'GET',
+        headers: {
+          'Accept':        'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Failed to fetch jobs: ${res.status}`);
+      const json = await res.json();
+      return json;
+    } catch (err) {
+      console.error('[useMechanics] Error fetching jobs:', err);
+      return { success: false, data: [] };
+    }
+  }, []);
+
+  const fetchMechanicPerformance = useCallback(async (id: string, timeframe: string = 'this_week') => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') ?? localStorage.getItem('adminToken') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${id}/performance?timeframe=${timeframe}`, {
+        method: 'GET',
+        headers: {
+          'Accept':        'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Failed to fetch performance: ${res.status}`);
+      const json = await res.json();
+      return json;
+    } catch (err) {
+      console.error('[useMechanics] Error fetching performance:', err);
+      return { success: false, data: null };
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMechanics();
+  }, [fetchMechanics]);
+
+  return {
+    mechanics,
+    loading,
+    error,
+    usingFallback,
+    totalCount,
+    refetch: fetchMechanics,
+    fetchMechanicDetails,
+    updateMechanic,
+    updateMechanicStatus,
+    fetchMechanicJobs,
+    fetchMechanicPerformance
+  };
 }

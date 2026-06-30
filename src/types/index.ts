@@ -106,6 +106,12 @@ export type Mechanic = {
   status: 'Available' | 'Busy' | 'Offline';
   rating: number;
   totalJobs: number;
+  userId?: string;
+  aadharName?: string;
+  aadharNumber?: string;
+  panName?: string;
+  panNumber?: string;
+  panCardFile?: string;
 };
 
 // --- ACADEMY COURSE ---

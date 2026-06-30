@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useMechanics } from '../../_hooks/useMechanics';
 import { 
   ChevronLeft, 
   Copy, 
@@ -167,6 +168,9 @@ export default function MechanicDetailPage() {
   const router = useRouter();
   const id = (params.id as string);
 
+  // Load API helper methods
+  const { fetchMechanicDetails, updateMechanic, fetchMechanicJobs, fetchMechanicPerformance } = useMechanics();
+
   // Initialize data, fallback to Nishant Kumar (m1)
   const defaultData = MOCK_MECHANIC_DETAILS[id] || MOCK_MECHANIC_DETAILS['m1'];
   
@@ -179,6 +183,13 @@ export default function MechanicDetailPage() {
   const [openServiceMenu, setOpenServiceMenu] = useState<string | null>(null);
   const [openJobDropdownId, setOpenJobDropdownId] = useState<string | null>(null);
 
+  // API states
+  const [apiJobs, setApiJobs] = useState<any[]>([]);
+  const [performance, setPerformance] = useState<any>(null);
+  const [timeframe, setTimeframe] = useState('this_week');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
   React.useEffect(() => {
     setIsMounted(true);
     const handleClickOutside = () => {
@@ -189,12 +200,72 @@ export default function MechanicDetailPage() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
+  // Fetch Mechanic Profile details from API
+  useEffect(() => {
+    let active = true;
+    const loadDetails = async () => {
+      const data = await fetchMechanicDetails(id);
+      if (active) {
+        if (data) {
+          const resolved = {
+            ...data,
+            name: data.display_name ?? data.name,
+            location: data.city ?? data.location,
+            aadharName: data.documents?.aadharName ?? data.aadharName,
+            aadharNumber: data.documents?.aadharNumber ?? data.aadharNumber,
+            panName: data.documents?.panName ?? data.panName,
+            panNumber: data.documents?.panNumber ?? data.panNumber,
+            panCardFile: data.documents?.panCardFileUrl ?? data.panCardFile,
+          };
+          setMechanic(resolved);
+          setEditForm(resolved);
+        } else {
+          setMechanic(defaultData);
+          setEditForm(defaultData);
+        }
+      }
+    };
+    loadDetails();
+    return () => { active = false; };
+  }, [id, fetchMechanicDetails, defaultData]);
+
   // Form edit temporary states
   const [editForm, setEditForm] = useState<any>(defaultData);
 
   // Subtabs & filters inside Jobs Tab
   const [jobsSubtab, setJobsSubtab] = useState<'All' | 'Instant Smart Booking' | 'Invite Quote' | 'Video Call Assistance' | 'Assisted Booking'>('All');
   const [jobsFilter, setJobsFilter] = useState<'All' | 'Ongoing' | 'Completed' | 'Diagnosis Available' | 'Cancelled'>('All');
+
+  // Fetch Jobs dynamically
+  useEffect(() => {
+    if (activeTab !== 'jobs') return;
+    let active = true;
+    const loadJobs = async () => {
+      const res = await fetchMechanicJobs(id, {
+        tab: jobsSubtab === 'All' ? undefined : jobsSubtab,
+        status: jobsFilter === 'All' ? undefined : jobsFilter
+      });
+      if (active && res && res.success) {
+        setApiJobs(res.data);
+      }
+    };
+    loadJobs();
+    return () => { active = false; };
+  }, [id, activeTab, jobsSubtab, jobsFilter, fetchMechanicJobs]);
+
+  // Fetch Performance dynamically
+  useEffect(() => {
+    if (activeTab !== 'performance') return;
+    let active = true;
+    const loadPerformance = async () => {
+      const res = await fetchMechanicPerformance(id, timeframe);
+      if (active && res && res.success) {
+        setPerformance(res.data);
+      }
+    };
+    loadPerformance();
+    return () => { active = false; };
+  }, [id, activeTab, timeframe, fetchMechanicPerformance]);
 
   // Copy helper
   const handleCopy = (text: string, label: string) => {
@@ -210,8 +281,43 @@ export default function MechanicDetailPage() {
   };
 
   // Save changes
-  const handleSaveChanges = () => {
-    setMechanic({ ...editForm });
+  const handleSaveChanges = async () => {
+    try {
+      const payload = {
+        display_name: editForm.name || editForm.display_name,
+        phone: editForm.phone,
+        email: editForm.email,
+        city: editForm.location || editForm.city,
+        skills: editForm.skills || [],
+        documents: {
+          aadharNumber: editForm.aadharNumber || '',
+          panNumber: editForm.panNumber || ''
+        }
+      };
+      const res = await updateMechanic(id, payload);
+      if (res && res.success) {
+        const resolved = {
+          ...res.data,
+          name: res.data.display_name ?? res.data.name,
+          location: res.data.city ?? res.data.location,
+          aadharName: res.data.documents?.aadharName ?? res.data.aadharName,
+          aadharNumber: res.data.documents?.aadharNumber ?? res.data.aadharNumber,
+          panName: res.data.documents?.panName ?? res.data.panName,
+          panNumber: res.data.documents?.panNumber ?? res.data.panNumber,
+          panCardFile: res.data.documents?.panCardFileUrl ?? res.data.panCardFile,
+        };
+        setMechanic(resolved);
+        // Show Success Toast
+        setToastMessage("Mechanic details updated successfully!");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
+      } else {
+        setMechanic({ ...editForm });
+      }
+    } catch (err) {
+      console.error('[MechanicDetailPage] Failed to save changes:', err);
+      setMechanic({ ...editForm });
+    }
     setIsEditing(false);
   };
 
@@ -221,37 +327,43 @@ export default function MechanicDetailPage() {
   };
 
   // Mock charts data for performance tab
-  const revenueTrendData = [
-    { name: '1 Feb', Revenue: 4000 },
-    { name: '2 Feb', Revenue: 8000 },
-    { name: '3 Feb', Revenue: 6000 },
-    { name: '4 Feb', Revenue: 10000 },
-    { name: '5 Feb', Revenue: 9000 },
-    { name: '6 Feb', Revenue: 7500 },
-    { name: '7 Feb', Revenue: 9500 },
-  ];
+  const revenueTrendData = performance?.ratingTrend 
+    ? performance.ratingTrend.map((r: any) => ({ name: r.date, Revenue: Math.round(r.rating * 1000) }))
+    : [
+        { name: '1 Feb', Revenue: 4000 },
+        { name: '2 Feb', Revenue: 8000 },
+        { name: '3 Feb', Revenue: 6000 },
+        { name: '4 Feb', Revenue: 10000 },
+        { name: '5 Feb', Revenue: 9000 },
+        { name: '6 Feb', Revenue: 7500 },
+        { name: '7 Feb', Revenue: 9500 },
+      ];
 
   const performanceBreakdownData = [
     { name: 'Completed', value: 80 },
     { name: 'Cancelled', value: 20 },
   ];
 
-  const typeBreakdownData = [
-    { name: 'Invite Quote', value: 30 },
-    { name: 'Instant Smart Booking', value: 20 },
-    { name: 'Video Call Assistance', value: 10 },
-    { name: 'Assisted Booking', value: 40 },
-  ];
+  const typeBreakdownData = performance?.earnings?.categoryWise
+    ? performance.earnings.categoryWise.map((c: any) => ({ name: c.category, value: c.earnings }))
+    : [
+        { name: 'Invite Quote', value: 30 },
+        { name: 'Instant Smart Booking', value: 20 },
+        { name: 'Video Call Assistance', value: 10 },
+        { name: 'Assisted Booking', value: 40 },
+      ];
 
-  const jobTrendData = [
-    { name: '1 Feb', 'Total Orders': 100, Return: 25, Replacement: 10, Cancellation: 5 },
-    { name: '2 Feb', 'Total Orders': 120, Return: 30, Replacement: 15, Cancellation: 8 },
-    { name: '3 Feb', 'Total Orders': 90, Return: 20, Replacement: 12, Cancellation: 4 },
-    { name: '4 Feb', 'Total Orders': 140, Return: 35, Replacement: 20, Cancellation: 10 },
-    { name: '5 Feb', 'Total Orders': 110, Return: 28, Replacement: 14, Cancellation: 6 },
-    { name: '6 Feb', 'Total Orders': 130, Return: 32, Replacement: 18, Cancellation: 7 },
-    { name: '7 Feb', 'Total Orders': 150, Return: 38, Replacement: 22, Cancellation: 9 },
-  ];
+  const jobTrendData = performance?.jobsTrend
+    ? performance.jobsTrend.map((j: any) => ({ name: j.day, 'Total Orders': j.jobs, Return: 0, Replacement: 0, Cancellation: 0 }))
+    : [
+        { name: '1 Feb', 'Total Orders': 100, Return: 25, Replacement: 10, Cancellation: 5 },
+        { name: '2 Feb', 'Total Orders': 120, Return: 30, Replacement: 15, Cancellation: 8 },
+        { name: '3 Feb', 'Total Orders': 90, Return: 20, Replacement: 12, Cancellation: 4 },
+        { name: '4 Feb', 'Total Orders': 140, Return: 35, Replacement: 20, Cancellation: 10 },
+        { name: '5 Feb', 'Total Orders': 110, Return: 28, Replacement: 14, Cancellation: 6 },
+        { name: '6 Feb', 'Total Orders': 130, Return: 32, Replacement: 18, Cancellation: 7 },
+        { name: '7 Feb', 'Total Orders': 150, Return: 38, Replacement: 22, Cancellation: 9 },
+      ];
 
   // Mock jobs list data
   const MOCK_JOBS = [
@@ -263,7 +375,17 @@ export default function MechanicDetailPage() {
     { id: 'JOB-2046', customerName: 'Priya Patel', type: 'Invite Quote', location: 'Mumbai', date: "04:30 PM, 19 Jan' 26", status: 'Ongoing', feedback: '' }
   ];
 
-  const filteredJobs = MOCK_JOBS.filter(job => {
+  const displayJobs = apiJobs.length > 0 ? apiJobs.map(j => ({
+    id: j.job_id ?? j.jobId,
+    customerName: j.customerName,
+    type: j.service ?? j.serviceType,
+    location: j.location,
+    date: j.date ? new Date(j.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' }) : '-',
+    status: j.status,
+    feedback: j.feedbackRating ? `${j.feedbackRating} ★` : j.feedbackText || ''
+  })) : MOCK_JOBS;
+
+  const filteredJobs = displayJobs.filter(job => {
     // Subtab filter
     if (jobsSubtab !== 'All' && job.type !== jobsSubtab) return false;
     
@@ -274,6 +396,28 @@ export default function MechanicDetailPage() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeIn 0.4s ease-out' }}>
+      {showToast && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          backgroundColor: '#10b981',
+          color: 'white',
+          padding: '0.75rem 1.25rem',
+          borderRadius: '0.5rem',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+          zIndex: 1000,
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          animation: 'fadeIn 0.2s ease'
+        }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          {toastMessage}
+        </div>
+      )}
       <style>
         {`
           @keyframes fadeIn {
@@ -1272,7 +1416,7 @@ export default function MechanicDetailPage() {
                               paddingAngle={3}
                               dataKey="value"
                             >
-                              {typeBreakdownData.map((entry, index) => (
+                              {typeBreakdownData.map((entry: any, index: number) => (
                                 <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                               ))}
                             </Pie>
@@ -1511,7 +1655,7 @@ export default function MechanicDetailPage() {
                 <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <input 
                     type="text" 
-                    value={editForm.dob} 
+                    value={editForm.dob || ""} 
                     onChange={(e) => setEditForm({ ...editForm, dob: e.target.value })}
                     className="form-input-prem"
                     style={{ paddingRight: '2.5rem' }}
@@ -1621,7 +1765,7 @@ export default function MechanicDetailPage() {
                   <label style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Availability <span style={{ color: '#ef4444' }}>*</span></label>
                   <div style={{ position: 'relative' }}>
                     <select
-                      value={editForm.availability}
+                      value={Array.isArray(editForm.availability) ? editForm.availability.join(', ') : (editForm.availability || '')}
                       onChange={(e) => setEditForm({ ...editForm, availability: e.target.value })}
                       style={{
                         appearance: 'none',
