@@ -707,26 +707,28 @@ function AddCreativeContent() {
         <div style={{ flex: 1, background: '#eff6ff', borderRadius: '0.75rem', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', border: '1px solid #e5e7eb', minWidth: '320px' }}>
           <h3 style={{ margin: '0 0 1.5rem 0', fontWeight: 700, fontSize: '1.125rem', color: '#111827' }}>Preview</h3>
           
-          {/* Mobile Mockup - Realistic Device Frame */}
+          {/* Mobile Mockup - Figma-Matched Device Frame */}
           <div style={{ 
             position: 'relative',
-            width: '280px', 
+            width: '290.71px', 
+            height: '540px',
             background: '#000000',
-            borderRadius: '2.5rem',
-            padding: '12px',
+            borderRadius: '26px',
             boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
             boxSizing: 'border-box',
-            border: '4px solid #1f2937',
+            border: '8.14px solid #000000',
             display: 'flex',
             flexDirection: 'column',
+            overflow: 'hidden'
           }}>
             {/* Screen Container */}
             <div style={{
               position: 'relative',
-              borderRadius: '1.8rem',
-              overflow: 'hidden',
+              width: '100%',
+              height: '100%',
               display: 'flex',
               flexDirection: 'column',
+              overflow: 'hidden',
               background: '#111827',
             }}>
               <img 
@@ -734,10 +736,10 @@ function AddCreativeContent() {
                 alt="App Preview Screen" 
                 style={{ 
                   width: '100%', 
-                  height: 'auto', 
+                  height: '100%', 
+                  objectFit: 'cover',
                   display: 'block',
-                  filter: 'blur(4px)',
-                  transform: 'scale(1.05)'
+                  filter: 'blur(1px)'
                 }} 
               />
 
