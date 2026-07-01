@@ -98,7 +98,7 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
       case 'Booked':
         return { bg: '#fef3c7', color: '#f59e0b' };
       case 'Ongoing':
-        return { bg: '#dbeafe', color: '#0ea5e9' };
+        return { bg: '#cffafe', color: '#0891b2' };
       case 'Diagnosis Available':
         return { bg: '#fae8ff', color: '#d946ef' };
       case 'Bid Ended':
@@ -148,7 +148,9 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
           <td style={{ padding: '1rem' }}>
             {row.mechanic !== '-' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f59e0b' }}></div>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f3f4f6', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/avatar-clean.svg" alt={row.mechanic} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
                 {row.mechanic}
               </div>
             ) : <span style={{ fontWeight: 500 }}>-</span>}
@@ -164,7 +166,9 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
           <td style={{ padding: '1rem' }}>
             {row.quoteSelected ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f59e0b' }}></div>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f3f4f6', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/avatar-clean.svg" alt={row.quoteSelected} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
                 {row.quoteSelected}
               </div>
             ) : <span style={{ fontWeight: 500 }}>-</span>}
@@ -179,7 +183,9 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
           <td style={{ padding: '1rem' }}>
             {row.mechanic !== '-' ? (
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 500 }}>
-                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f59e0b' }}></div>
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: '#f3f4f6', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <img src="/avatar-clean.svg" alt={row.mechanic} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                </div>
                 {row.mechanic}
               </div>
             ) : <span style={{ fontWeight: 500 }}>-</span>}
@@ -222,7 +228,9 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
                   <td style={{ padding: '1rem' }}><input type="checkbox" style={{ accentColor: '#111827' }} /></td>
                   <td style={{ padding: '1rem' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#fbbf24' }}></div>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#f3f4f6', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <img src="/avatar-clean.svg" alt={row.orderId} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      </div>
                       <div>
                         <div style={{ fontWeight: 600, color: '#111827', cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>{row.orderId}</div>
                         <div style={{ fontSize: '0.75rem', color: '#3b82f6', border: '1px dashed #bfdbfe', borderRadius: '0.25rem', padding: '0.125rem 0.25rem', display: 'inline-block', marginTop: '0.25rem', cursor: 'pointer' }}>{row.reqIdText} <svg style={{ display: 'inline' }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></div>

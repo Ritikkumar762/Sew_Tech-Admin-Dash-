@@ -707,77 +707,129 @@ function AddCreativeContent() {
         <div style={{ flex: 1, background: '#eff6ff', borderRadius: '0.75rem', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', border: '1px solid #e5e7eb', minWidth: '320px' }}>
           <h3 style={{ margin: '0 0 1.5rem 0', fontWeight: 700, fontSize: '1.125rem', color: '#111827' }}>Preview</h3>
           
+          {/* Mobile Mockup - Realistic Device Frame */}
           <div style={{ 
-            width: '280px', 
-            borderRadius: '1.25rem',
-            overflow: 'hidden',
             position: 'relative',
+            width: '280px', 
+            background: '#000000',
+            borderRadius: '2.5rem',
+            padding: '12px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+            boxSizing: 'border-box',
+            border: '4px solid #1f2937',
             display: 'flex',
             flexDirection: 'column',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
           }}>
-            <img src="/Machine Spares Home Screen.svg" alt="App Preview Screen" style={{ width: '100%', height: 'auto', display: 'block' }} />
-
-            {/* Dynamic Banner Overlay */}
+            {/* Screen Container */}
             <div style={{
-              position: 'absolute',
-              left: '6.5%',
-              top: '17.9%',
-              width: '87%',
-              height: '17.2%',
-              background: 'linear-gradient(135deg, #ec4899, #ef4444)',
-              borderRadius: '0.5rem',
-              padding: '0.5rem',
+              position: 'relative',
+              borderRadius: '1.8rem',
+              overflow: 'hidden',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              color: '#fff',
-              boxSizing: 'border-box',
-              overflow: 'hidden'
+              flexDirection: 'column',
+              background: '#111827',
             }}>
-              {/* Left Content */}
-              <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, overflow: 'hidden' }}>
-                <span style={{ fontSize: '0.5rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  {subheader}
-                </span>
-                <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: '2px 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  {title}
-                </h4>
-                <span style={{ fontSize: '0.45rem', opacity: 0.85, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                  {body}
-                </span>
-              </div>
-              
-              {/* Ribbon Tag label badge if present */}
-              {selectedLabel && (
-                <div style={{ position: 'absolute', top: 0, right: '42px', zIndex: 1 }}>
-                  <div style={{ 
-                    background: '#ef4444', 
-                    color: '#fff', 
-                    fontSize: '0.425rem', 
-                    fontWeight: 700, 
-                    padding: '3px 5px 5px 5px', 
-                    clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%)',
-                    textTransform: 'uppercase'
-                  }}>
-                    {selectedLabel === 'SALE up to 50%' ? '50% Off' : selectedLabel === 'NEW COLLECTION' ? 'NEW' : selectedLabel}
-                  </div>
-                </div>
-              )}
-
-              {/* Right Image */}
               <img 
-                src={uploadedFileUrl || "/rotary-hook.png"} 
-                alt="Spare Part" 
+                src="/Machine Spares Home Screen (1).svg" 
+                alt="App Preview Screen" 
                 style={{ 
-                  width: '42px', 
-                  height: '42px', 
-                  objectFit: 'contain', 
-                  backgroundColor: 'rgba(255,255,255,0.15)',
-                  borderRadius: '0.25rem',
-                  padding: '2px'
+                  width: '100%', 
+                  height: 'auto', 
+                  display: 'block',
+                  filter: 'blur(4px)',
+                  transform: 'scale(1.05)'
                 }} 
               />
+
+              {/* Dynamic Banner Overlay */}
+              <div style={{
+                position: 'absolute',
+                left: '6.5%',
+                top: '17.9%',
+                width: '87%',
+                height: '17.2%',
+                background: 'linear-gradient(135deg, #ec4899, #ef4444)',
+                borderRadius: '0.5rem',
+                padding: '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                color: '#fff',
+                boxSizing: 'border-box',
+                overflow: 'hidden'
+              }}>
+                {/* Left Content */}
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, overflow: 'hidden' }}>
+                  <span style={{ fontSize: '0.5rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {subheader}
+                  </span>
+                  <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: '2px 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    {title}
+                  </h4>
+                  <span style={{ fontSize: '0.45rem', opacity: 0.85, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    {body}
+                  </span>
+                </div>
+                
+                {/* Ribbon Tag label badge if present */}
+                {selectedLabel && (
+                  <div style={{ position: 'absolute', top: 0, right: '42px', zIndex: 1 }}>
+                    <div style={{ 
+                      background: '#ef4444', 
+                      color: '#fff', 
+                      fontSize: '0.425rem', 
+                      fontWeight: 700, 
+                      padding: '3px 5px 5px 5px', 
+                      clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%)',
+                      textTransform: 'uppercase'
+                    }}>
+                      {selectedLabel === 'SALE up to 50%' ? '50% Off' : selectedLabel === 'NEW COLLECTION' ? 'NEW' : selectedLabel}
+                    </div>
+                  </div>
+                )}
+
+                {/* Right Image */}
+                <div style={{
+                  position: 'relative',
+                  height: '140%',
+                  width: '55%',
+                  flexShrink: 0,
+                  marginRight: '-5%'
+                }}>
+                  {/* Simulated shadow for images with white backgrounds */}
+                  <img 
+                    src={uploadedFileUrl || "/rotary-hook.png"} 
+                    alt="" 
+                    style={{ 
+                      position: 'absolute',
+                      right: 0,
+                      top: '12px',
+                      height: '100%',
+                      width: '100%',
+                      objectFit: 'contain',
+                      objectPosition: 'right center',
+                      mixBlendMode: 'multiply',
+                      filter: 'blur(15px) contrast(1.2)',
+                      opacity: 0.6
+                    }} 
+                  />
+                  <img 
+                    src={uploadedFileUrl || "/rotary-hook.png"} 
+                    alt="Spare Part" 
+                    style={{ 
+                      position: 'absolute',
+                      right: 0,
+                      top: 0,
+                      height: '100%',
+                      width: '100%',
+                      objectFit: 'contain',
+                      objectPosition: 'right center',
+                      mixBlendMode: 'multiply',
+                      filter: 'contrast(1.05)'
+                    }} 
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

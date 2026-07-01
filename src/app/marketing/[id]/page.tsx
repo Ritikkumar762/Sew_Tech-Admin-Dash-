@@ -629,65 +629,116 @@ export default function BannerDetailPage() {
         <div style={{ flex: 1, background: '#eff6ff', borderRadius: '0.75rem', padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', border: '1px solid #e5e7eb' }}>
           <h3 style={{ margin: '0 0 1.5rem 0', fontWeight: 700, fontSize: '1.125rem', color: '#111827' }}>Preview</h3>
           
-          {/* Mobile Mockup */}
+          {/* Mobile Mockup - Realistic Device Frame */}
           <div style={{ 
-            width: '280px', 
-            borderRadius: '1.25rem',
-            overflow: 'hidden',
             position: 'relative',
+            width: '280px', 
+            background: '#000000',
+            borderRadius: '2.5rem',
+            padding: '12px',
+            boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+            boxSizing: 'border-box',
+            border: '4px solid #1f2937',
             display: 'flex',
             flexDirection: 'column',
-            boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
           }}>
-            <img src="/Machine Spares Home Screen.svg" alt="App Preview Screen" style={{ width: '100%', height: 'auto', display: 'block' }} />
-
-            {/* Dynamic Banner Overlay */}
+            {/* Screen Container */}
             <div style={{
-              position: 'absolute',
-              left: '6.5%',
-              top: '17.9%',
-              width: '87%',
-              height: '17.2%',
-              background: uploadedImage ? `url(${uploadedImage}) center/cover no-repeat` : 'linear-gradient(135deg, #ec4899, #ef4444)',
-              borderRadius: '0.5rem',
-              padding: uploadedImage ? '0' : '0.5rem',
+              position: 'relative',
+              borderRadius: '1.8rem',
+              overflow: 'hidden',
               display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              color: '#fff',
-              boxSizing: 'border-box',
-              overflow: 'hidden'
+              flexDirection: 'column',
+              background: '#111827',
             }}>
-              {!uploadedImage && (
-                <>
-                  {/* Left Content */}
-                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, overflow: 'hidden' }}>
-                    <span style={{ fontSize: '0.5rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      {previewData.sub}
-                    </span>
-                    <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: '2px 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                      {previewData.title}
-                    </h4>
-                    <span style={{ fontSize: '0.45rem', opacity: 0.85, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                      {previewData.footer}
-                    </span>
-                  </div>
+              <img 
+                src="/Machine Spares Home Screen (1).svg" 
+                alt="App Preview Screen" 
+                style={{ 
+                  width: '100%', 
+                  height: 'auto', 
+                  display: 'block',
+                  filter: 'blur(4px)',
+                  transform: 'scale(1.05)'
+                }} 
+              />
 
-                  {/* Right Image */}
-                  <img 
-                    src="/rotary-hook.png" 
-                    alt="Spare Part" 
-                    style={{ 
-                      width: '42px', 
-                      height: '42px', 
-                      objectFit: 'contain', 
-                      backgroundColor: 'rgba(255,255,255,0.15)',
-                      borderRadius: '0.25rem',
-                      padding: '2px'
-                    }} 
-                  />
-                </>
-              )}
+              {/* Dynamic Banner Overlay */}
+              <div style={{
+                position: 'absolute',
+                left: '6.5%',
+                top: '17.9%',
+                width: '87%',
+                height: '17.2%',
+                background: uploadedImage ? `url(${uploadedImage}) center/cover no-repeat` : 'linear-gradient(135deg, #ec4899, #ef4444)',
+                borderRadius: '0.5rem',
+                padding: uploadedImage ? '0' : '0.5rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                color: '#fff',
+                boxSizing: 'border-box',
+                overflow: 'hidden'
+              }}>
+                {!uploadedImage && (
+                  <>
+                    {/* Left Content */}
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, overflow: 'hidden' }}>
+                      <span style={{ fontSize: '0.5rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {previewData.sub}
+                      </span>
+                      <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: '2px 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                        {previewData.title}
+                      </h4>
+                      <span style={{ fontSize: '0.45rem', opacity: 0.85, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                        {previewData.footer}
+                      </span>
+                    </div>
+
+                    {/* Right Image */}
+                    <div style={{
+                      position: 'relative',
+                      height: '140%',
+                      width: '55%',
+                      flexShrink: 0,
+                      marginRight: '-5%'
+                    }}>
+                      {/* Simulated shadow for images with white backgrounds */}
+                      <img 
+                        src={creativeDetails?.imageUrl || "/rotary-hook.png"} 
+                        alt="" 
+                        style={{ 
+                          position: 'absolute',
+                          right: 0,
+                          top: '12px',
+                          height: '100%',
+                          width: '100%',
+                          objectFit: 'contain',
+                          objectPosition: 'right center',
+                          mixBlendMode: 'multiply',
+                          filter: 'blur(15px) contrast(1.2)',
+                          opacity: 0.6
+                        }} 
+                      />
+                      <img 
+                        src={creativeDetails?.imageUrl || "/rotary-hook.png"} 
+                        alt="Spare Part" 
+                        style={{ 
+                          position: 'absolute',
+                          right: 0,
+                          top: 0,
+                          height: '100%',
+                          width: '100%',
+                          objectFit: 'contain',
+                          objectPosition: 'right center',
+                          mixBlendMode: 'multiply',
+                          filter: 'contrast(1.05)'
+                        }} 
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

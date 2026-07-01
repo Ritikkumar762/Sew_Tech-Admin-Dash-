@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import AssignMechanicModal, { type Mechanic } from './AssignMechanicModal';
 import CancelRequestModal from './CancelRequestModal';
+import { useMechanics } from '@/app/mechanic/_hooks/useMechanics';
 
 interface OrderDetailViewProps {
   orderId: string;
@@ -171,20 +172,97 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const [tlOffset, setTlOffset]     = useState(0);
   const [showAssign, setShowAssign] = useState(false);
   
+  const [quotes, setQuotes] = useState<any[]>([]);
+  const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
+  
+  const { mechanics: apiMechanics, loading: loadingMechanics } = useMechanics();
+
   // Backend Integration Note: Initialize mechanic data if already assigned based on status
   const [assignedMechanic, setAssignedMechanic] = useState<Mechanic | null>(null);
 
+  // Sync mechanic details if status is updated externally
   React.useEffect(() => {
     const mechanicStatuses = ['MechanicAlloted', 'MechanicAssigned', 'MechanicSelected', 'Ongoing', 'DiagnosisAvailable', 'Completed', 'PickUp'];
     if (mechanicStatuses.includes(orderStatus) && !assignedMechanic) {
       setAssignedMechanic({ name: 'Sameer Pant', id: 'm1', avatarColor: '#3b82f6', location: 'East Kailash', jobsCompleted: 300, totalJobs: 300 });
     } else if (!mechanicStatuses.includes(orderStatus) && assignedMechanic) {
-      setAssignedMechanic(null);
+      const hasAcceptedQuote = quotes.some(q => q.status === 'accepted');
+      if (!hasAcceptedQuote) {
+        setAssignedMechanic(null);
+      }
     }
     
     // Sync cancellation state
     setIsCancelled(orderStatus === 'Cancelled');
-  }, [orderStatus]);
+  }, [orderStatus, quotes]);
+
+  // Seeding Quote Data from Mechanics API (Replace this with real quotes API call)
+  React.useEffect(() => {
+    if (!loadingMechanics && apiMechanics.length > 0) {
+      const formattedQuotes = apiMechanics.map((m, idx) => ({
+        id: `MECH-${2040 + idx}`,
+        name: m.name || 'Unknown Mechanic',
+        price: 25000 + (idx * 1500),
+        proximity: m.location ? `${m.location}` : '5 km away',
+        submitted: '10:30 PM, 21 Jan\' 26',
+        available: '10:30 PM, 21 Jan\' 26',
+        status: idx === 0 ? 'accepted' : 'pending' // default accept first quote
+      }));
+      setQuotes(formattedQuotes);
+      
+      setAssignedMechanic(prev => {
+        if (!prev) {
+          return {
+            name: apiMechanics[0].name || 'Aditya Bhargav',
+            id: 'm-selected',
+            avatarColor: '#3b82f6',
+            location: apiMechanics[0].location || '5 km away',
+            jobsCompleted: 150,
+            totalJobs: 150
+          };
+        }
+        return prev;
+      });
+    }
+  }, [apiMechanics, loadingMechanics]);
+
+  // ── Quotes State Handlers (Easy to integrate with your backend APIs) ──
+  const handleAcceptQuote = (quoteId: string) => {
+    // API mock: PATCH /api/quotes/:id { status: 'accepted' }
+    setQuotes(prev => prev.map(q => {
+      if (q.id === quoteId) return { ...q, status: 'accepted' };
+      if (q.status === 'accepted') return { ...q, status: 'pending' }; // deselect old accepted quote
+      return q;
+    }));
+    
+    const selected = quotes.find(q => q.id === quoteId);
+    if (selected) {
+      setAssignedMechanic({
+        name: selected.name,
+        id: 'm-selected',
+        avatarColor: '#3b82f6',
+        location: selected.proximity,
+        jobsCompleted: 150,
+        totalJobs: 150
+      });
+    }
+  };
+
+  const handleRejectQuote = (quoteId: string) => {
+    // API mock: PATCH /api/quotes/:id { status: 'rejected' }
+    setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'rejected' } : q));
+  };
+
+  const handleUndoQuote = (quoteId: string) => {
+    // API mock: PATCH /api/quotes/:id { status: 'pending' }
+    setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'pending' } : q));
+  };
+
+  const handleDeselectQuote = (quoteId: string) => {
+    // API mock: PATCH /api/quotes/:id { status: 'pending' }
+    setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'pending' } : q));
+    setAssignedMechanic(null);
+  };
   const [showCancel, setShowCancel] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(true);
@@ -525,7 +603,10 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                           )}
                         </div>
                         <div>
-                          <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b', marginBottom: '2px' }}>{safeName || '–'}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '2px' }}>
+                            <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b' }}>{safeName || '–'}</div>
+                            <svg style={{ cursor: 'pointer', color: '#3b82f6' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                          </div>
                           
                           {['Completed', 'PickUp'].includes(orderStatus) ? (
                             <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -536,13 +617,13 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                             </div>
                           ) : (
                             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                              Service Start OTP- <span style={{ color: '#3b82f6', fontWeight: 600 }}>{mechanicOtp}</span>
+                              {['Ongoing', 'DiagnosisAvailable'].includes(orderStatus) ? 'Service End OTP- ' : 'Service Start OTP- '}
+                              <span style={{ color: '#3b82f6', fontWeight: 600 }}>{mechanicOtp}</span>
                               <svg style={{ marginLeft: '4px', cursor: 'pointer', verticalAlign: 'text-bottom' }} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                             </div>
                           )}
                         </div>
                       </div>
-                      <svg style={{ cursor: 'pointer', color: '#3b82f6' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                     </div>
 
                     {['Completed', 'PickUp'].includes(orderStatus) ? (
@@ -642,14 +723,14 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               </div>
 
               {/* Supporting Media + Audio Note */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem' }}>
+              <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', width: '100%' }}>
 
                 {/* Supporting Media */}
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px' }}>
+                <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px', flex: '1 1 300px' }}>
                   <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '10px' }}>Supporting Media</div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
+                  <div style={{ display: 'flex', gap: '8px' }}>
                     {[0, 1, 2].map(i => (
-                      <div key={i} className="od-thumb" style={{ position: 'relative', aspectRatio: '1', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div key={i} className="od-thumb" style={{ position: 'relative', width: '80px', height: '80px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                         <img src="/item_image.svg" alt="Supporting Media" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
                         {/* expand icon top-left */}
                         <div style={{ position: 'absolute', top: '5px', left: '5px', background: 'rgba(255,255,255,0.82)', borderRadius: '4px', padding: '3px' }}>
@@ -664,9 +745,11 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                 </div>
 
                 {/* Audio Note */}
-                <div style={{ display: 'flex', alignItems: 'flex-start' }}>
-                  <img src="/recording.svg" alt="Audio Note" style={{ width: '100%', maxWidth: '100%', display: 'block' }} />
+                {/* 
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: '1.2 1 380px' }}>
+                  <img src="/recording.svg" alt="Audio Note" style={{ width: '100%', maxWidth: '440px', display: 'block' }} />
                 </div>
+                */}
 
               </div>
             </div>
@@ -728,7 +811,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
             )}
 
             {/* Content Switch: Empty state or Quotes List */}
-            {(!sentNotification && orderStatus === 'BidLive') ? (
+            {(!sentNotification && (orderStatus === 'BidLive' || orderStatus === 'BidEnded')) ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 2rem', gap: '1rem', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
                 <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1f2937' }}>No Quotes Received</span>
                 <button
@@ -761,7 +844,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                 </button>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+               <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.8125rem' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#f8fafc', color: '#374151', borderBottom: '1px solid #e5e7eb' }}>
@@ -774,47 +857,137 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      { name: 'Aditya Bhargav', id: 'MECH-2041', price: 30000, proximity: '5 km away', submitted: '10:30 PM, 21 Jan\' 26', available: '10:30 PM, 21 Jan\' 26' },
-                      { name: 'Sameer Pant', id: 'MECH-2042', price: 28500, proximity: '3 km away', submitted: '10:45 PM, 21 Jan\' 26', available: '10:45 PM, 21 Jan\' 26' },
-                      { name: 'Karan Malhotra', id: 'MECH-2043', price: 31000, proximity: '4 km away', submitted: '11:00 PM, 21 Jan\' 26', available: '11:00 PM, 21 Jan\' 26' }
-                    ]
+                    {quotes
                     .filter(item => item.name.toLowerCase().includes(searchQuoteQuery.toLowerCase()) || item.id.toLowerCase().includes(searchQuoteQuery.toLowerCase()))
-                    .map((row, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                        <td style={{ padding: '0.875rem 1rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#3b82f6', overflow: 'hidden' }}>
-                              <img src="/avatar-clean.svg" alt={row.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 600, color: '#111827' }}>{row.name}</div>
-                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', fontWeight: 500, color: '#2563eb', border: '1.5px dashed #93c5fd', borderRadius: '4px', padding: '1px 4px', cursor: 'pointer', marginTop: '2px' }}>
-                                {row.id}
-                                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                    .map((row, idx) => {
+                      const quoteStatus = row.status;
+                      
+                      return (
+                        <tr key={idx} style={{ 
+                          borderBottom: '1px solid #f3f4f6',
+                          backgroundColor: quoteStatus === 'accepted' ? '#ecfdf5' : quoteStatus === 'rejected' ? '#f3f4f6' : 'white',
+                          opacity: quoteStatus === 'rejected' ? 0.6 : 1
+                        }}>
+                          <td style={{ padding: '0.875rem 1rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                              <input
+                                type="radio"
+                                name="quote-selection"
+                                checked={quoteStatus === 'accepted'}
+                                onChange={() => handleAcceptQuote(row.id)}
+                                style={{ width: '16px', height: '16px', accentColor: '#10b981', cursor: 'pointer', margin: 0 }}
+                              />
+                              <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#3b82f6', overflow: 'hidden' }}>
+                                <img src="/avatar-clean.svg" alt={row.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              </div>
+                              <div>
+                                <div style={{ fontWeight: 600, color: '#111827' }}>{row.name}</div>
+                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.65rem', fontWeight: 500, color: '#2563eb', border: '1.5px dashed #93c5fd', borderRadius: '4px', padding: '1px 4px', cursor: 'pointer', marginTop: '2px' }}>
+                                  {row.id}
+                                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </td>
-                        <td style={{ padding: '0.875rem 1rem', fontWeight: 600, color: '#111827' }}>₹{row.price.toLocaleString('en-IN')}</td>
-                        <td style={{ padding: '0.875rem 1rem', fontWeight: 500, color: '#4b5563' }}>{row.proximity}</td>
-                        <td style={{ padding: '0.875rem 1rem', color: '#4b5563', fontWeight: 500 }}>{row.submitted}</td>
-                        <td style={{ padding: '0.875rem 1rem', color: '#4b5563', fontWeight: 500 }}>{row.available}</td>
-                        <td style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>
-                          <button
-                            onClick={() => {
-                              setAssignedMechanic({ name: row.name, id: 'm-selected', avatarColor: '#3b82f6', location: row.proximity, jobsCompleted: 150, totalJobs: 150 });
-                              setOrderStatus('MechanicSelected');
-                              setActiveTab('summary');
-                            }}
-                            style={{ padding: '6px 12px', backgroundColor: '#111827', color: 'white', border: 'none', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-                            className="od-hov"
-                          >
-                            Select Quote
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td style={{ padding: '0.875rem 1rem' }}>
+                            <div style={{
+                              display: 'inline-flex',
+                              padding: '0.25rem 0.75rem',
+                              backgroundColor: quoteStatus === 'accepted' ? '#d1fae5' : '#eff6ff',
+                              color: quoteStatus === 'accepted' ? '#10b981' : '#3b82f6',
+                              borderRadius: '9999px',
+                              fontWeight: 600,
+                              fontSize: '0.8125rem'
+                            }}>
+                              ₹{row.price.toLocaleString('en-IN')}
+                            </div>
+                          </td>
+                          <td style={{ padding: '0.875rem 1rem', fontWeight: 500, color: '#4b5563' }}>{row.proximity}</td>
+                          <td style={{ padding: '0.875rem 1rem', color: '#4b5563', fontWeight: 500 }}>{row.submitted}</td>
+                          <td style={{ padding: '0.875rem 1rem', color: '#4b5563', fontWeight: 500 }}>{row.available}</td>
+                          <td style={{ padding: '0.875rem 1rem', textAlign: 'center', position: 'relative' }}>
+                            <button
+                              onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenDropdownId(openDropdownId === row.id ? null : row.id);
+                              }}
+                              style={{
+                                width: '32px', height: '32px',
+                                borderRadius: '50%', border: 'none',
+                                backgroundColor: openDropdownId === row.id ? '#e5e7eb' : 'transparent',
+                                cursor: 'pointer', display: 'flex',
+                                alignItems: 'center', justifyContent: 'center',
+                                color: '#374151', margin: '0 auto'
+                              }}
+                              className="od-hov"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                            </button>
+
+                            {openDropdownId === row.id && (
+                              <div style={{
+                                position: 'absolute', right: '2rem', top: '2.5rem',
+                                backgroundColor: 'white', border: '1px solid #e5e7eb',
+                                borderRadius: '8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
+                                zIndex: 10, minWidth: '140px', padding: '0.5rem 0',
+                                textAlign: 'left'
+                              }}>
+                                {quoteStatus === 'rejected' ? (
+                                  <div 
+                                    onClick={() => {
+                                      handleUndoQuote(row.id);
+                                      setOpenDropdownId(null);
+                                    }}
+                                    style={{ padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.8125rem', color: '#374151' }}
+                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                                  >
+                                    Undo
+                                  </div>
+                                ) : quoteStatus === 'accepted' ? (
+                                  <div 
+                                    onClick={() => {
+                                      handleDeselectQuote(row.id);
+                                      setOpenDropdownId(null);
+                                    }}
+                                    style={{ padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.8125rem', color: '#374151' }}
+                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                                  >
+                                    Deselect Quote
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div 
+                                      onClick={() => {
+                                        handleAcceptQuote(row.id);
+                                        setOpenDropdownId(null);
+                                      }}
+                                      style={{ padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.8125rem', color: '#374151' }}
+                                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
+                                      Accept Quote
+                                    </div>
+                                    <div 
+                                      onClick={() => {
+                                        handleRejectQuote(row.id);
+                                        setOpenDropdownId(null);
+                                      }}
+                                      style={{ padding: '0.5rem 1rem', cursor: 'pointer', fontSize: '0.8125rem', color: '#374151' }}
+                                      onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                                      onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
+                                      Reject Quote
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
