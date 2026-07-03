@@ -2,12 +2,16 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
+
+
 type TabType = 'All' | 'Instant Smart Booking' | 'Invite Quote' | 'Video Call Assistance' | 'Assisted Booking';
 
 interface OrdersTableProps {
   activeTab: TabType;
   activeFilter: string;
+  onCounts?: (counts: Record<string, number>) => void;
 }
+
 
 const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
 
@@ -31,7 +35,7 @@ function mapBackendStatusToFrontend(backendStatus: string, bookingType: string):
   return backendStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 }
 
-export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProps) {
+export default function OrdersTable({ activeTab, activeFilter, onCounts }: OrdersTableProps) {
   const router = useRouter();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -39,6 +43,9 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
   const [expandedDetails, setExpandedDetails] = useState<Record<string, any>>({});
   const [loadingDetails, setLoadingDetails] = useState<Record<string, boolean>>({});
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
 
   // Fetch booking details on-demand when expanded
   const toggleRow = async (id: string, rawId: number) => {
@@ -69,13 +76,13 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
     }
   };
 
-  // Fetch Care Bookings
+  // Fetch ALL Care Bookings (large pageSize to get everything)
   const fetchBookings = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch('http://localhost:8000/api/v1/care/bookings', {
+      const res = await fetch('http://localhost:8000/api/v1/care/bookings?pageSize=1000', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -85,20 +92,35 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
         throw new Error(`API returned status ${res.status}`);
       }
       const data = await res.json();
-      // The API can return either an array directly or { success, data } wrapping an array
       const rawItems = Array.isArray(data) ? data : (data?.data ?? []);
       setBookings(rawItems);
+
+      // Compute per-type counts and pass up
+      if (onCounts) {
+        const counts: Record<string, number> = { All: rawItems.length };
+        rawItems.forEach((item: any) => {
+          const type = item.booking_type || 'Instant Smart Booking';
+          counts[type] = (counts[type] || 0) + 1;
+        });
+        onCounts(counts);
+      }
     } catch (err: any) {
       console.error('Error fetching care bookings:', err);
       setError(err.message || 'Failed to fetch bookings from the database.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [onCounts]);
 
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
+
+  // Reset to page 1 when tab/filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [activeTab, activeFilter]);
+
 
   // Map and filter care bookings for the table UI
   const getMappedData = () => {
@@ -115,11 +137,13 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
         createdOn: item.created_at ? new Date(item.created_at).toLocaleString('en-US', {
           hour: 'numeric', minute: 'numeric', hour12: true, day: 'numeric', month: 'short', year: 'numeric'
         }) : "10:30 PM, 21 Jan' 26",
-        mechanic: item.mechanic_id ? `Mechanic ${item.mechanic_id}` : '-',
+        mechanic: item.mechanic_name || (item.mechanic_id ? `Mechanic ${item.mechanic_id}` : '-'),
         status,
         bidEnds: idx % 2 === 0 ? '⏳ 24:15:10' : '⏳ 02:05:10',
         bidEndsDanger: idx % 2 !== 0,
-        quoteSelected: item.mechanic_id ? `Mechanic ${item.mechanic_id}` : ''
+        quoteSelected: item.mechanic_name || (item.mechanic_id ? `Mechanic ${item.mechanic_id}` : '')
+
+
       };
     });
 
@@ -157,7 +181,13 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
     });
   };
 
-  const data = getMappedData();
+  const allFilteredData = getMappedData();
+  const totalCount = allFilteredData.length;
+  const totalPages = Math.max(1, Math.ceil(totalCount / rowsPerPage));
+  const safePage = Math.min(page, totalPages);
+  const startIdx = (safePage - 1) * rowsPerPage;
+  const data = allFilteredData.slice(startIdx, startIdx + rowsPerPage);
+
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -408,12 +438,29 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
       {/* Pagination Footer */}
       <div style={{ padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e5e7eb', color: '#6b7280', fontSize: '0.875rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div>Rows per page: <select style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 600, color: '#374151', cursor: 'pointer' }}><option>10</option></select></div>
-          <div>1-10 of 165</div>
+          <div>Rows per page: <select
+            value={rowsPerPage}
+            onChange={e => { setRowsPerPage(Number(e.target.value)); setPage(1); }}
+            style={{ border: 'none', background: 'transparent', outline: 'none', fontWeight: 600, color: '#374151', cursor: 'pointer' }}
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
+          </select></div>
+          <div>{totalCount === 0 ? '0' : `${startIdx + 1}-${Math.min(startIdx + rowsPerPage, totalCount)}`} of {totalCount}</div>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#d1d5db' }}>❮</button>
-          <button style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#374151' }}>❯</button>
+          <button
+            onClick={() => setPage(p => Math.max(1, p - 1))}
+            disabled={safePage <= 1}
+            style={{ border: 'none', background: 'transparent', cursor: safePage <= 1 ? 'not-allowed' : 'pointer', color: safePage <= 1 ? '#d1d5db' : '#374151' }}
+          >❮</button>
+          <button
+            onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+            disabled={safePage >= totalPages}
+            style={{ border: 'none', background: 'transparent', cursor: safePage >= totalPages ? 'not-allowed' : 'pointer', color: safePage >= totalPages ? '#d1d5db' : '#374151' }}
+          >❯</button>
         </div>
       </div>
     </div>

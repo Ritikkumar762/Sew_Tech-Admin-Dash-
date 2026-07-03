@@ -8,8 +8,9 @@ interface FilterOption {
   count: number | null;
 }
 
-export default function VideoCallAssistance() {
+export default function VideoCallAssistance({ onCounts }: { onCounts?: (counts: Record<string, number>) => void }) {
   const [activeFilter, setActiveFilter] = useState('All');
+
 
   const filters: FilterOption[] = [
     { label: 'All', count: null },
@@ -58,7 +59,8 @@ export default function VideoCallAssistance() {
 
       {/* Table Container */}
       <div style={{ marginTop: '0', margin: '0 -1.5rem -1.5rem -1.5rem' }}>
-        <OrdersTable activeTab="Video Call Assistance" activeFilter={activeFilter} />
+        <OrdersTable activeTab="Video Call Assistance" activeFilter={activeFilter} onCounts={onCounts} />
+
       </div>
     </div>
   );

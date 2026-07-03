@@ -8,7 +8,11 @@ interface FilterOption {
   count: number | null;
 }
 
-export default function AllBookings() {
+interface AllBookingsProps {
+  onCounts?: (counts: Record<string, number>) => void;
+}
+
+export default function AllBookings({ onCounts }: AllBookingsProps) {
   const [activeFilter, setActiveFilter] = useState('All');
 
   const filters: FilterOption[] = [
@@ -58,7 +62,7 @@ export default function AllBookings() {
 
       {/* Table Container */}
       <div style={{ marginTop: '0', margin: '0 -1.5rem -1.5rem -1.5rem' }}>
-        <OrdersTable activeTab="All" activeFilter={activeFilter} />
+        <OrdersTable activeTab="All" activeFilter={activeFilter} onCounts={onCounts} />
       </div>
     </div>
   );

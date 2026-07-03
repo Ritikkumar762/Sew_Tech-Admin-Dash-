@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import OrdersSummaryCards from './OrdersSummaryCards';
 import OrdersToolbar from './OrdersToolbar';
 import AllBookings from './AllBookings';
@@ -13,13 +13,24 @@ type TabType = 'All' | 'Instant Smart Booking' | 'Invite Quote' | 'Video Call As
 
 export default function OrdersDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('All');
+  const [counts, setCounts] = useState<Record<string, number>>({
+    All: 0,
+    'Instant Smart Booking': 0,
+    'Invite Quote': 0,
+    'Video Call Assistance': 0,
+    'Assisted Booking': 0,
+  });
 
-  const tabs: { id: TabType, label: string, count: number, alert?: boolean }[] = [
-    { id: 'All', label: 'All', count: 1085 },
-    { id: 'Instant Smart Booking', label: 'Instant Smart Booking', count: 1085, alert: true },
-    { id: 'Invite Quote', label: 'Invite Quote', count: 1085, alert: true },
-    { id: 'Video Call Assistance', label: 'Video Call Assistance', count: 1085 },
-    { id: 'Assisted Booking', label: 'Assisted Booking', count: 1085, alert: true }
+  const handleCounts = useCallback((newCounts: Record<string, number>) => {
+    setCounts(prev => ({ ...prev, ...newCounts }));
+  }, []);
+
+  const tabs: { id: TabType; label: string; alert?: boolean }[] = [
+    { id: 'All', label: 'All' },
+    { id: 'Instant Smart Booking', label: 'Instant Smart Booking', alert: true },
+    { id: 'Invite Quote', label: 'Invite Quote', alert: true },
+    { id: 'Video Call Assistance', label: 'Video Call Assistance' },
+    { id: 'Assisted Booking', label: 'Assisted Booking', alert: true },
   ];
 
   return (
@@ -59,39 +70,42 @@ export default function OrdersDashboard() {
 
         {/* Primary Tabs */}
         <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid #e5e7eb', overflowX: 'auto', paddingBottom: '2px' }}>
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className="tab-btn"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem 0',
-                border: 'none',
-                background: 'none',
-                color: activeTab === tab.id ? '#1f2937' : '#6b7280',
-                fontWeight: activeTab === tab.id ? 600 : 500,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                borderBottom: activeTab === tab.id ? '2px solid #1f2937' : '2px solid transparent',
-                marginBottom: '-2px',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {tab.label} <span style={{ backgroundColor: '#f1f5f9', padding: '0.125rem 0.375rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 500 }}>({tab.count})</span>
-              {tab.alert && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', marginLeft: '0.25rem' }}></div>}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const count = counts[tab.id] ?? 0;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="tab-btn"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  padding: '0.75rem 0',
+                  border: 'none',
+                  background: 'none',
+                  color: activeTab === tab.id ? '#1f2937' : '#6b7280',
+                  fontWeight: activeTab === tab.id ? 600 : 500,
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  borderBottom: activeTab === tab.id ? '2px solid #1f2937' : '2px solid transparent',
+                  marginBottom: '-2px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {tab.label} <span style={{ backgroundColor: '#f1f5f9', padding: '0.125rem 0.375rem', borderRadius: '1rem', fontSize: '0.75rem', fontWeight: 500 }}>({count})</span>
+                {tab.alert && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', marginLeft: '0.25rem' }}></div>}
+              </button>
+            );
+          })}
         </div>
 
         {/* Tab Content */}
-        {activeTab === 'All' && <AllBookings />}
-        {activeTab === 'Instant Smart Booking' && <InstantSmartBooking />}
-        {activeTab === 'Invite Quote' && <InviteQuote />}
-        {activeTab === 'Video Call Assistance' && <VideoCallAssistance />}
-        {activeTab === 'Assisted Booking' && <AssistedBooking />}
+        {activeTab === 'All' && <AllBookings onCounts={handleCounts} />}
+        {activeTab === 'Instant Smart Booking' && <InstantSmartBooking onCounts={handleCounts} />}
+        {activeTab === 'Invite Quote' && <InviteQuote onCounts={handleCounts} />}
+        {activeTab === 'Video Call Assistance' && <VideoCallAssistance onCounts={handleCounts} />}
+        {activeTab === 'Assisted Booking' && <AssistedBooking onCounts={handleCounts} />}
 
       </div>
     </div>

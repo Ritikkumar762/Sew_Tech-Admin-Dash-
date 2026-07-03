@@ -8,8 +8,9 @@ interface FilterOption {
   count: number | null;
 }
 
-export default function InstantSmartBooking() {
-  const [activeFilter, setActiveFilter] = useState('Delayed');
+export default function InstantSmartBooking({ onCounts }: { onCounts?: (counts: Record<string, number>) => void }) {
+  const [activeFilter, setActiveFilter] = useState('All');
+
 
   const filters: FilterOption[] = [
     { label: 'All', count: null },
@@ -58,7 +59,8 @@ export default function InstantSmartBooking() {
 
       {/* Table Container */}
       <div style={{ marginTop: '0', margin: '0 -1.5rem -1.5rem -1.5rem' }}>
-        <OrdersTable activeTab="Instant Smart Booking" activeFilter={activeFilter} />
+        <OrdersTable activeTab="Instant Smart Booking" activeFilter={activeFilter} onCounts={onCounts} />
+
       </div>
     </div>
   );

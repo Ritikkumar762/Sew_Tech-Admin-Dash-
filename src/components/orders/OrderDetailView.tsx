@@ -140,7 +140,12 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(true);
   const [isPaymentExpanded, setIsPaymentExpanded] = useState(true);
 
+  const handleInvoiceClick = () => {
+    window.open(`https://project-sewtech-mart.onrender.com/api/v1/mart/orders/${orderId}/invoice`, '_blank');
+  };
+
   // Dynamic Fetch of Booking Detail from Database
+
   const fetchBookingDetail = React.useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -444,10 +449,15 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button className="od-hov" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: '1.5px solid #d1d5db', borderRadius: '8px', background: '#fff', color: '#374151', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
+            <button 
+              onClick={handleInvoiceClick}
+              className="od-hov" 
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: '1.5px solid #d1d5db', borderRadius: '8px', background: '#fff', color: '#374151', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+            >
               Invoice
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </button>
+
             <button
               className="od-hov"
               onClick={() => setShowCancel(true)}
@@ -1276,12 +1286,14 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <span style={{ fontSize: '1.0625rem', fontWeight: 700, color: '#111827' }}>Service Request Billing Details</span>
               <button
+                onClick={handleInvoiceClick}
                 className="od-hov"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: 'none', borderRadius: '6px', background: '#111827', color: '#fff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
               >
                 Invoice
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               </button>
+
             </div>
 
             {/* Billing & Payment Cards Row */}
@@ -1355,12 +1367,14 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                   <span style={{ fontSize: '1.0625rem', fontWeight: 700, color: '#111827' }}>After Diagnosis Billing Details</span>
                   <button
+                    onClick={handleInvoiceClick}
                     className="od-hov"
                     style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: 'none', borderRadius: '6px', background: '#111827', color: '#fff', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Invoice
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                   </button>
+
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>

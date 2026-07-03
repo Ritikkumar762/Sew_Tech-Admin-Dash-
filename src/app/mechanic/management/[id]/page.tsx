@@ -602,14 +602,15 @@ export default function MechanicDetailPage() {
       if (active) {
         if (data) {
           const resolved = {
+            ...defaultData,
             ...data,
-            name: data.display_name ?? data.name,
-            location: data.city ?? data.location,
-            aadharName: data.documents?.aadharName ?? data.aadharName,
-            aadharNumber: data.documents?.aadharNumber ?? data.aadharNumber,
-            panName: data.documents?.panName ?? data.panName,
-            panNumber: data.documents?.panNumber ?? data.panNumber,
-            panCardFile: data.documents?.panCardFileUrl ?? data.panCardFile,
+            name: data.display_name ?? data.name ?? defaultData.name,
+            location: data.city ?? data.location ?? defaultData.location,
+            aadharName: data.documents?.aadharName ?? data.aadharName ?? defaultData.aadharName,
+            aadharNumber: data.documents?.aadharNumber ?? data.aadharNumber ?? defaultData.aadharNumber,
+            panName: data.documents?.panName ?? data.panName ?? defaultData.panName,
+            panNumber: data.documents?.panNumber ?? data.panNumber ?? defaultData.panNumber,
+            panCardFile: data.documents?.panCardFileUrl ?? data.panCardFile ?? defaultData.panCardFile,
           };
           setMechanic(resolved);
           setEditForm(resolved);
@@ -709,14 +710,15 @@ export default function MechanicDetailPage() {
       const res = await updateMechanic(id, payload);
       if (res && res.success) {
         const resolved = {
+          ...mechanic,
           ...res.data,
-          name: res.data.display_name ?? res.data.name,
-          location: res.data.city ?? res.data.location,
-          aadharName: res.data.documents?.aadharName ?? res.data.aadharName,
-          aadharNumber: res.data.documents?.aadharNumber ?? res.data.aadharNumber,
-          panName: res.data.documents?.panName ?? res.data.panName,
-          panNumber: res.data.documents?.panNumber ?? res.data.panNumber,
-          panCardFile: res.data.documents?.panCardFileUrl ?? res.data.panCardFile,
+          name: res.data.display_name ?? res.data.name ?? mechanic.name,
+          location: res.data.city ?? res.data.location ?? mechanic.location,
+          aadharName: res.data.documents?.aadharName ?? res.data.aadharName ?? mechanic.aadharName,
+          aadharNumber: res.data.documents?.aadharNumber ?? res.data.aadharNumber ?? mechanic.aadharNumber,
+          panName: res.data.documents?.panName ?? res.data.panName ?? mechanic.panName,
+          panNumber: res.data.documents?.panNumber ?? res.data.panNumber ?? mechanic.panNumber,
+          panCardFile: res.data.documents?.panCardFileUrl ?? res.data.panCardFile ?? mechanic.panCardFile,
           status: latestStatus
         };
         setMechanic(resolved);
@@ -1133,7 +1135,7 @@ export default function MechanicDetailPage() {
               <div className="card-premium">
                 <h3 style={{ fontSize: '1rem', fontWeight: 700, color: '#111827', margin: 0, marginBottom: '1.25rem' }}>Active Services</h3>
                 <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-                  {mechanic.activeServices.map((service: string) => {
+                  {(mechanic.activeServices || []).map((service: string) => {
                     let pillClass = 'tag-pill-active';
                     let svgSrc = '/instant smart Booking.svg';
                     let statusDotColor = '#22c55e';
@@ -1281,7 +1283,7 @@ export default function MechanicDetailPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                       <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Skills:</span>
                       <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-                        {mechanic.skills.map((skill: string) => (
+                        {(mechanic.skills || []).map((skill: string) => (
                           <span key={skill} style={{ fontSize: '0.75rem', backgroundColor: 'white', color: '#4b5563', border: '1px solid #e5e7eb', padding: '0.25rem 0.625rem', borderRadius: '0.375rem', fontWeight: 600 }}>
                             {skill}
                           </span>
@@ -1291,7 +1293,7 @@ export default function MechanicDetailPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                       <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 500 }}>Machines/Brands familiar with:</span>
                       <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap' }}>
-                        {mechanic.machinesFamiliar.slice(0, 3).map((mach: string, idx: number) => (
+                        {(mechanic.machinesFamiliar || []).slice(0, 3).map((mach: string, idx: number) => (
                           <span key={idx} style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.375rem', backgroundColor: 'white', color: '#4b5563', border: '1px solid #e5e7eb', padding: '0.25rem 0.625rem', borderRadius: '0.375rem', fontWeight: 600 }}>
                             {mach}
                             <ExternalLink size={10} style={{ color: '#9ca3af' }} />

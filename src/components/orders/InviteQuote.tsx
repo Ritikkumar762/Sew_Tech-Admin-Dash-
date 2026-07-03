@@ -8,8 +8,9 @@ interface FilterOption {
   count: number | null;
 }
 
-export default function InviteQuote() {
+export default function InviteQuote({ onCounts }: { onCounts?: (counts: Record<string, number>) => void }) {
   const [activeFilter, setActiveFilter] = useState('All');
+
 
   const filters: FilterOption[] = [
     { label: 'All', count: null },
@@ -58,7 +59,8 @@ export default function InviteQuote() {
 
       {/* Table Container */}
       <div style={{ marginTop: '0', margin: '0 -1.5rem -1.5rem -1.5rem' }}>
-        <OrdersTable activeTab="Invite Quote" activeFilter={activeFilter} />
+        <OrdersTable activeTab="Invite Quote" activeFilter={activeFilter} onCounts={onCounts} />
+
       </div>
     </div>
   );
