@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 
 type TabType = 'All' | 'Instant Smart Booking' | 'Invite Quote' | 'Video Call Assistance' | 'Assisted Booking';
@@ -9,44 +9,139 @@ interface OrdersTableProps {
   activeFilter: string;
 }
 
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+
+function mapBackendStatusToFrontend(backendStatus: string, bookingType: string): string {
+  const s = backendStatus?.toUpperCase() || '';
+  if (s === 'PENDING') return 'Requested';
+  if (s === 'ASSIGNED') return 'Mechanic Assigned';
+  if (s === 'ONGOING') return 'Ongoing';
+  if (s === 'COMPLETED') return 'Completed';
+  if (s === 'CANCELLED') return 'Cancelled';
+  if (s === 'CONFIRMED') return 'Mechanic Allotted';
+  if (s === 'MATCHED') return 'Mechanic Selected';
+  
+  // Default fallbacks or map standard ones
+  if (s === 'STARTED' || s === 'IN_DIAGNOSIS' || s === 'IN_SERVICE') return 'Ongoing';
+  if (s === 'BID_LIVE' || s === 'LIVE') return 'Bid Live';
+  if (s === 'BID_ENDED' || s === 'ENDED') return 'Bid Ended';
+  if (s === 'DIAGNOSIS_AVAILABLE') return 'Diagnosis Available';
+  
+  // Return nicely capitalized
+  return backendStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
+}
+
 export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProps) {
   const router = useRouter();
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [expandedRows, setExpandedRows] = useState<Record<string, boolean>>({});
+  const [expandedDetails, setExpandedDetails] = useState<Record<string, any>>({});
+  const [loadingDetails, setLoadingDetails] = useState<Record<string, boolean>>({});
 
-  const toggleRow = (id: string) => {
-    setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
+  // Fetch booking details on-demand when expanded
+  const toggleRow = async (id: string, rawId: number) => {
+    const isNowExpanded = !expandedRows[id];
+    setExpandedRows(prev => ({ ...prev, [id]: isNowExpanded }));
+
+    if (isNowExpanded && !expandedDetails[id] && !loadingDetails[id]) {
+      setLoadingDetails(prev => ({ ...prev, [id]: true }));
+      try {
+        const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+        const res = await fetch(`http://localhost:8000/api/v1/care/bookings/${rawId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        if (res.ok) {
+          const json = await res.ok ? await res.json() : null;
+          if (json && json.success && json.data) {
+            setExpandedDetails(prev => ({ ...prev, [id]: json.data }));
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching booking details for', id, err);
+      } finally {
+        setLoadingDetails(prev => ({ ...prev, [id]: false }));
+      }
+    }
   };
 
-  // Mock data tailored for the different tabs
-  const getMockData = () => {
-    const allRows = Array(16).fill(null).map((_, i) => {
-      const status = getStatusForTab(activeTab, i);
-      const isNoMechanic = ['Cancelled', 'Requested', 'Booked', 'Bid Live', 'Bid Ended'].includes(status);
+  // Fetch Care Bookings
+  const fetchBookings = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch('http://localhost:8000/api/v1/care/bookings', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      if (!res.ok) {
+        throw new Error(`API returned status ${res.status}`);
+      }
+      const data = await res.json();
+      // The API can return either an array directly or { success, data } wrapping an array
+      const rawItems = Array.isArray(data) ? data : (data?.data ?? []);
+      setBookings(rawItems);
+    } catch (err: any) {
+      console.error('Error fetching care bookings:', err);
+      setError(err.message || 'Failed to fetch bookings from the database.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
+  // Map and filter care bookings for the table UI
+  const getMappedData = () => {
+    let items = bookings.map((item: any, idx: number) => {
+      const id = item.booking_reference || `REQ-${item.booking_id}`;
+      const status = mapBackendStatusToFrontend(item.status, item.booking_type);
       return {
-        id: `REQ-${i}`,
-        orderId: 'Aditya Bhargav',
-        reqIdText: 'Request ID',
-        serviceType: activeTab === 'All' ? ['Instant Smart Booking', 'Video Call Assistance', 'Assisted Booking', 'Invite Quote'][i % 4] : activeTab,
-        location: i % 2 === 0 ? 'Delhi' : 'Bangalore',
-        createdOn: "10:30 PM, 21 Jan' 26",
-        mechanic: isNoMechanic ? '-' : 'Abhishek Pal',
-        status: status,
-        bidEnds: i % 2 === 0 ? '⏳ 24:15:10' : '⏳ 02:05:10',
-        bidEndsDanger: i % 2 !== 0,
-        quoteSelected: 'Abhishek Pal'
+        id,
+        rawId: item.booking_id,
+        orderId: item.customer?.name || 'Unknown Customer',
+        reqIdText: id,
+        serviceType: item.booking_type || 'Instant Smart Booking',
+        location: item.location || 'Delhi',
+        createdOn: item.created_at ? new Date(item.created_at).toLocaleString('en-US', {
+          hour: 'numeric', minute: 'numeric', hour12: true, day: 'numeric', month: 'short', year: 'numeric'
+        }) : "10:30 PM, 21 Jan' 26",
+        mechanic: item.mechanic_id ? `Mechanic ${item.mechanic_id}` : '-',
+        status,
+        bidEnds: idx % 2 === 0 ? '⏳ 24:15:10' : '⏳ 02:05:10',
+        bidEndsDanger: idx % 2 !== 0,
+        quoteSelected: item.mechanic_id ? `Mechanic ${item.mechanic_id}` : ''
       };
     });
 
-    if (!activeFilter || activeFilter === 'All') {
-      return allRows;
+    // Tab filtering
+    if (activeTab !== 'All') {
+      items = items.filter(row => row.serviceType.toLowerCase() === activeTab.toLowerCase());
     }
 
-    return allRows.filter(row => {
+    // Filter pill logic
+    if (!activeFilter || activeFilter === 'All') {
+      return items;
+    }
+
+    return items.filter(row => {
       const status = row.status.toLowerCase();
       const filter = activeFilter.toLowerCase();
       
       if (filter === 'mechanic allotted') {
         return ['mechanic allotted', 'mechanic assigned', 'mechanic selected'].includes(status);
+      }
+      if (filter === 'ongoing') {
+        return ['ongoing', 'ongoing service'].includes(status);
       }
       if (filter === 'flagged') {
         return row.id.endsWith('1') || row.id.endsWith('3') || row.id.endsWith('5') || row.id.endsWith('7');
@@ -57,30 +152,12 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
       if (filter === 'support required') {
         return row.id.endsWith('2') || row.id.endsWith('5') || row.id.endsWith('8');
       }
-      if (filter === 'call requested') {
-        return row.id.endsWith('1') || row.id.endsWith('4') || row.id.endsWith('9');
-      }
-      if (filter === 'payment pending') {
-        return row.id.endsWith('0') || row.id.endsWith('3') || row.id.endsWith('7');
-      }
       
       return status === filter;
     });
   };
 
-  const getStatusForTab = (tab: TabType, idx: number) => {
-    if (tab === 'Instant Smart Booking' || tab === 'All') {
-      const statuses = ['Mechanic Assigned', 'Requested', 'Cancelled', 'Completed', 'Booked', 'Mechanic Allotted', 'Ongoing', 'Diagnosis Available'];
-      return statuses[idx % statuses.length];
-    }
-    if (tab === 'Invite Quote') {
-      const statuses = ['Bid Live', 'Bid Ended', 'Mechanic Selected', 'Ongoing', 'Completed', 'Diagnosis Available', 'Cancelled'];
-      return statuses[idx % statuses.length];
-    }
-    return ['Booked', 'Mechanic Allotted', 'Ongoing', 'Completed', 'Cancelled'][idx % 5];
-  };
-
-  const data = getMockData();
+  const data = getMappedData();
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -218,74 +295,113 @@ export default function OrdersTable({ activeTab, activeFilter }: OrdersTableProp
           </tr>
         </thead>
         <tbody>
-          {data.map((row, idx) => {
-            const isExpanded = expandedRows[row.id];
-            const statusColor = getStatusColor(row.status);
-            
-            return (
-              <React.Fragment key={row.id}>
-                <tr className="row-hover" style={{ borderBottom: isExpanded ? 'none' : '1px solid #f3f4f6', borderLeft: isExpanded ? '3px solid #2563eb' : '3px solid transparent' }}>
-                  <td style={{ padding: '1rem' }}><input type="checkbox" style={{ accentColor: '#111827' }} /></td>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#f3f4f6', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <img src="/avatar-clean.svg" alt={row.orderId} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {loading ? (
+            <tr>
+              <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
+                <div style={{ display: 'inline-block', width: '2rem', height: '2rem', border: '3px solid #f3f4f6', borderTop: '3px solid #3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '1rem' }} />
+                <div style={{ fontWeight: 500 }}>Fetching live care bookings from database...</div>
+              </td>
+            </tr>
+          ) : error ? (
+            <tr>
+              <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#ef4444' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>Unable to load bookings</div>
+                <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280' }}>{error}</p>
+              </td>
+            </tr>
+          ) : data.length === 0 ? (
+            <tr>
+              <td colSpan={8} style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>No bookings found</div>
+                <p style={{ margin: 0, fontSize: '0.875rem' }}>There are no bookings matching the "{activeTab}" type or "{activeFilter}" status.</p>
+              </td>
+            </tr>
+          ) : (
+            data.map((row, idx) => {
+              const isExpanded = expandedRows[row.id];
+              const statusColor = getStatusColor(row.status);
+              const details = expandedDetails[row.id];
+              const isDetailsLoading = loadingDetails[row.id];
+              
+              return (
+                <React.Fragment key={row.id}>
+                  <tr className="row-hover" style={{ borderBottom: isExpanded ? 'none' : '1px solid #f3f4f6', borderLeft: isExpanded ? '3px solid #2563eb' : '3px solid transparent' }}>
+                    <td style={{ padding: '1rem' }}><input type="checkbox" style={{ accentColor: '#111827' }} /></td>
+                    <td style={{ padding: '1rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#f3f4f6', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <img src="/avatar-clean.svg" alt={row.orderId} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#111827', cursor: 'pointer' }} onClick={() => toggleRow(row.id, row.rawId)}>{row.orderId}</div>
+                          <div 
+                            onClick={() => toggleRow(row.id, row.rawId)}
+                            style={{ fontSize: '0.75rem', color: '#3b82f6', border: '1px dashed #bfdbfe', borderRadius: '0.25rem', padding: '0.125rem 0.25rem', display: 'inline-block', marginTop: '0.25rem', cursor: 'pointer' }}
+                          >
+                            {row.reqIdText} <svg style={{ display: 'inline' }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <div style={{ fontWeight: 600, color: '#111827', cursor: 'pointer' }} onClick={() => toggleRow(row.id)}>{row.orderId}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#3b82f6', border: '1px dashed #bfdbfe', borderRadius: '0.25rem', padding: '0.125rem 0.25rem', display: 'inline-block', marginTop: '0.25rem', cursor: 'pointer' }}>{row.reqIdText} <svg style={{ display: 'inline' }} width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></div>
+                    </td>
+                    
+                    {renderCells(row)}
+                    
+                    <td style={{ padding: '1rem' }}>
+                      <span style={{ backgroundColor: statusColor.bg, color: statusColor.color, padding: '0.25rem 0.75rem', borderRadius: '1rem', fontWeight: 600, fontSize: '0.75rem', display: 'inline-block' }}>{row.status}</span>
+                    </td>
+                    <td style={{ padding: '1rem' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button className="btn-hover" onClick={() => router.push(`/mechanic/orders/${row.rawId}?serviceType=${encodeURIComponent(row.serviceType)}&status=${encodeURIComponent(row.status)}`)} style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          View <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        </button>
+                        <button className="btn-hover" style={{ width: '32px', height: '32px', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
+                        </button>
                       </div>
-                    </div>
-                  </td>
-                  
-                  {renderCells(row)}
-                  
-                  <td style={{ padding: '1rem' }}>
-                    <span style={{ backgroundColor: statusColor.bg, color: statusColor.color, padding: '0.25rem 0.75rem', borderRadius: '1rem', fontWeight: 600, fontSize: '0.75rem', display: 'inline-block' }}>{row.status}</span>
-                  </td>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ display: 'flex', gap: '0.5rem' }}>
-                      <button className="btn-hover" onClick={() => router.push(`/mechanic/orders/${row.id}?serviceType=${encodeURIComponent(row.serviceType)}&status=${encodeURIComponent(row.status)}`)} style={{ padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        View <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                      </button>
-                      <button className="btn-hover" style={{ width: '32px', height: '32px', borderRadius: '0.5rem', border: '1px solid #e5e7eb', backgroundColor: 'white', color: '#4b5563', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-                {/* Expanded Details Row */}
-                <tr>
-                  <td colSpan={8} style={{ padding: 0 }}>
-                    <div className="expand-anim" style={{ maxHeight: isExpanded ? '200px' : '0', opacity: isExpanded ? 1 : 0 }}>
-                      <div style={{ padding: '0 1rem 1.5rem 4.5rem', display: 'flex', gap: '1.5rem', borderLeft: '3px solid #2563eb', borderBottom: '1px solid #e5e7eb' }}>
-                        <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', flex: 1 }}>
-                          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem' }}>Machine Details:</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                            <div style={{ width: '40px', height: '40px', backgroundColor: '#e5e7eb', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
-                            </div>
-                            <div>
-                              <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                Juki Single Needle Lockstitch <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                    </td>
+                  </tr>
+                  {/* Expanded Details Row */}
+                  <tr>
+                    <td colSpan={8} style={{ padding: 0 }}>
+                      <div className="expand-anim" style={{ maxHeight: isExpanded ? '350px' : '0', opacity: isExpanded ? 1 : 0 }}>
+                        <div style={{ padding: '0 1rem 1.5rem 4.5rem', display: 'flex', gap: '1.5rem', borderLeft: '3px solid #2563eb', borderBottom: '1px solid #e5e7eb' }}>
+                          {isDetailsLoading ? (
+                            <div style={{ padding: '2rem', color: '#6b7280', fontSize: '0.875rem' }}>Loading machine and issue details...</div>
+                          ) : details ? (
+                            <>
+                              <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', flex: 1 }}>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem' }}>Machine Details:</div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                  <div style={{ width: '40px', height: '40px', backgroundColor: '#e5e7eb', borderRadius: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+                                  </div>
+                                  <div>
+                                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#3b82f6', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                      {details.machine?.brand} {details.machine?.model || 'Sewing Machine'}
+                                    </div>
+                                    <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>ID: {details.booking_reference}</div>
+                                  </div>
+                                </div>
                               </div>
-                              <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>HCS000</div>
-                            </div>
-                          </div>
-                        </div>
-                        <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', flex: 2 }}>
-                          <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem' }}>Issue Details:</div>
-                          <div style={{ fontSize: '0.875rem', color: '#4b5563', lineHeight: 1.5 }}>
-                            Machine fault description will come here, in more than 2 lines. Machine fault description will come here, in more than 2 lines. Machine fault description will come here, in more than 2 lines. Machine fault description will come here... <span style={{ color: '#3b82f6', cursor: 'pointer', fontWeight: 500 }}>Read More</span>
-                          </div>
+                              <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '0.5rem', flex: 2 }}>
+                                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#6b7280', marginBottom: '0.5rem' }}>Issue Details:</div>
+                                <div style={{ fontSize: '0.875rem', color: '#4b5563', lineHeight: 1.5 }}>
+                                  <strong>Issue:</strong> {details.machine?.issue || 'Not Specified'}<br />
+                                  <strong>Description:</strong> {details.machine?.description || 'No description provided.'}
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div style={{ padding: '1rem', color: '#6b7280', fontSize: '0.875rem' }}>No dynamic details found. Click to reload.</div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  </td>
-                </tr>
-              </React.Fragment>
-            );
-          })}
+                    </td>
+                  </tr>
+                </React.Fragment>
+              );
+            })
+          )}
         </tbody>
       </table>
       

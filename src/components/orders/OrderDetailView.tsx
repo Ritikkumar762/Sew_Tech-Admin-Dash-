@@ -50,78 +50,34 @@ export type OrderStatus =
   | 'Cancelled' 
   | 'PickUp';
 
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+
 export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const router = useRouter();
 
-  // Helper to get initial status based on orderId
-  const getInitialStatusAndFlow = (id: string): { status: OrderStatus; isDiag: boolean } => {
-    if (!id || !id.startsWith('REQ-')) {
-      return { status: 'Booked', isDiag: false };
-    }
-    const idx = parseInt(id.replace('REQ-', ''), 10);
-    if (isNaN(idx)) {
-      return { status: 'Booked', isDiag: false };
-    }
-    
-    // Cycle matching all table statuses:
-    const statusCycle = [
-      'MechanicAssigned',
-      'Requested',
-      'Cancelled',
-      'Completed',
-      'Booked',
-      'MechanicAlloted',
-      'Ongoing',
-      'DiagnosisAvailable'
-    ];
-    const statusStr = statusCycle[idx % statusCycle.length];
-    
-    const isDiag = (statusStr === 'DiagnosisAvailable' || idx === 11);
-    
-    let status: OrderStatus = 'Booked';
-    if (statusStr === 'MechanicAssigned') status = 'MechanicAssigned';
-    else if (statusStr === 'Requested') status = 'Requested';
-    else if (statusStr === 'Cancelled') status = 'Cancelled';
-    else if (statusStr === 'Completed') status = 'Completed';
-    else if (statusStr === 'Booked') status = 'Booked';
-    else if (statusStr === 'MechanicAlloted') status = 'MechanicAlloted';
-    else if (statusStr === 'Ongoing') status = 'Ongoing';
-    else if (statusStr === 'DiagnosisAvailable') status = 'DiagnosisAvailable';
-    
-    const finalStatus = idx === 11 ? 'Completed' : status;
-    return { status: finalStatus, isDiag };
-  };
-
-  const searchParams = useSearchParams();
-  const paramServiceType = searchParams?.get('serviceType');
-  const paramStatus = searchParams?.get('status');
-
   const getMappedStatus = (statusStr: string | null): OrderStatus => {
-    if (!statusStr) return 'BidLive';
-    switch (statusStr) {
-      case 'Bid Live': return 'BidLive';
-      case 'Bid Ended': return 'BidEnded';
-      case 'Mechanic Selected': return 'MechanicSelected';
-      case 'Ongoing': return 'Ongoing';
-      case 'Completed': return 'Completed';
-      case 'Diagnosis Available': return 'DiagnosisAvailable';
-      case 'Cancelled': return 'Cancelled';
-      default: return 'BidLive';
-    }
+    if (!statusStr) return 'Booked';
+    const s = statusStr.toUpperCase();
+    if (s === 'PENDING') return 'Requested';
+    if (s === 'ASSIGNED') return 'MechanicAssigned';
+    if (s === 'CONFIRMED') return 'MechanicAlloted';
+    if (s === 'MATCHED') return 'MechanicSelected';
+    if (s === 'ONGOING' || s === 'STARTED' || s === 'IN_DIAGNOSIS' || s === 'IN_SERVICE') return 'Ongoing';
+    if (s === 'COMPLETED') return 'Completed';
+    if (s === 'CANCELLED') return 'Cancelled';
+    if (s === 'DIAGNOSIS_AVAILABLE') return 'DiagnosisAvailable';
+    if (s === 'BID_LIVE') return 'BidLive';
+    if (s === 'BID_ENDED') return 'BidEnded';
+    if (s === 'PICKUP') return 'PickUp';
+    return 'Booked';
   };
 
-  const isInviteQuote = paramServiceType === 'Invite Quote';
+  const [bookingDetail, setBookingDetail] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const initialStatus = isInviteQuote 
-    ? getMappedStatus(paramStatus) 
-    : getInitialStatusAndFlow(orderId).status;
-
-  const initialIsDiag = isInviteQuote 
-    ? (paramStatus === 'Diagnosis Available') 
-    : getInitialStatusAndFlow(orderId).isDiag;
-
-  const [orderStatus, setOrderStatus] = useState<OrderStatus>(initialStatus);
-  const [isDiagnosisFlow, setIsDiagnosisFlow] = useState<boolean>(initialIsDiag);
+  const [orderStatus, setOrderStatus] = useState<OrderStatus>('Booked');
+  const [isDiagnosisFlow, setIsDiagnosisFlow] = useState<boolean>(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
   const getStatusLabel = (status: OrderStatus): string => {
@@ -168,105 +124,227 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const [sentNotification, setSentNotification] = useState(false);
   const [searchQuoteQuery, setSearchQuoteQuery] = useState('');
   const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('Push notification sent to nearby mechanics successfully!');
   const [isPlaying, setIsPlaying]   = useState(false);
   const [tlOffset, setTlOffset]     = useState(0);
   const [showAssign, setShowAssign] = useState(false);
+
   
   const [quotes, setQuotes] = useState<any[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   
   const { mechanics: apiMechanics, loading: loadingMechanics } = useMechanics();
-
-  // Backend Integration Note: Initialize mechanic data if already assigned based on status
   const [assignedMechanic, setAssignedMechanic] = useState<Mechanic | null>(null);
-
-  // Sync mechanic details if status is updated externally
-  React.useEffect(() => {
-    const mechanicStatuses = ['MechanicAlloted', 'MechanicAssigned', 'MechanicSelected', 'Ongoing', 'DiagnosisAvailable', 'Completed', 'PickUp'];
-    if (mechanicStatuses.includes(orderStatus) && !assignedMechanic) {
-      setAssignedMechanic({ name: 'Sameer Pant', id: 'm1', avatarColor: '#3b82f6', location: 'East Kailash', jobsCompleted: 300, totalJobs: 300 });
-    } else if (!mechanicStatuses.includes(orderStatus) && assignedMechanic) {
-      const hasAcceptedQuote = quotes.some(q => q.status === 'accepted');
-      if (!hasAcceptedQuote) {
-        setAssignedMechanic(null);
-      }
-    }
-    
-    // Sync cancellation state
-    setIsCancelled(orderStatus === 'Cancelled');
-  }, [orderStatus, quotes]);
-
-  // Seeding Quote Data from Mechanics API (Replace this with real quotes API call)
-  React.useEffect(() => {
-    if (!loadingMechanics && apiMechanics.length > 0) {
-      const formattedQuotes = apiMechanics.map((m, idx) => ({
-        id: `MECH-${2040 + idx}`,
-        name: m.name || 'Unknown Mechanic',
-        price: 25000 + (idx * 1500),
-        proximity: m.location ? `${m.location}` : '5 km away',
-        submitted: '10:30 PM, 21 Jan\' 26',
-        available: '10:30 PM, 21 Jan\' 26',
-        status: idx === 0 ? 'accepted' : 'pending' // default accept first quote
-      }));
-      setQuotes(formattedQuotes);
-      
-      setAssignedMechanic(prev => {
-        if (!prev) {
-          return {
-            name: apiMechanics[0].name || 'Aditya Bhargav',
-            id: 'm-selected',
-            avatarColor: '#3b82f6',
-            location: apiMechanics[0].location || '5 km away',
-            jobsCompleted: 150,
-            totalJobs: 150
-          };
-        }
-        return prev;
-      });
-    }
-  }, [apiMechanics, loadingMechanics]);
-
-  // ── Quotes State Handlers (Easy to integrate with your backend APIs) ──
-  const handleAcceptQuote = (quoteId: string) => {
-    // API mock: PATCH /api/quotes/:id { status: 'accepted' }
-    setQuotes(prev => prev.map(q => {
-      if (q.id === quoteId) return { ...q, status: 'accepted' };
-      if (q.status === 'accepted') return { ...q, status: 'pending' }; // deselect old accepted quote
-      return q;
-    }));
-    
-    const selected = quotes.find(q => q.id === quoteId);
-    if (selected) {
-      setAssignedMechanic({
-        name: selected.name,
-        id: 'm-selected',
-        avatarColor: '#3b82f6',
-        location: selected.proximity,
-        jobsCompleted: 150,
-        totalJobs: 150
-      });
-    }
-  };
-
-  const handleRejectQuote = (quoteId: string) => {
-    // API mock: PATCH /api/quotes/:id { status: 'rejected' }
-    setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'rejected' } : q));
-  };
-
-  const handleUndoQuote = (quoteId: string) => {
-    // API mock: PATCH /api/quotes/:id { status: 'pending' }
-    setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'pending' } : q));
-  };
-
-  const handleDeselectQuote = (quoteId: string) => {
-    // API mock: PATCH /api/quotes/:id { status: 'pending' }
-    setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'pending' } : q));
-    setAssignedMechanic(null);
-  };
   const [showCancel, setShowCancel] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState(true);
   const [isPaymentExpanded, setIsPaymentExpanded] = useState(true);
+
+  // Dynamic Fetch of Booking Detail from Database
+  const fetchBookingDetail = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/v1/care/bookings/${orderId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to load booking details (Status: ${res.status})`);
+      }
+      const json = await res.json();
+      if (json && json.success && json.data) {
+        const item = json.data;
+        setBookingDetail(item);
+        
+        // Sync order status
+        const statusMap = getMappedStatus(item.status);
+        setOrderStatus(statusMap);
+        setIsCancelled(item.status === 'CANCELLED');
+        setIsDiagnosisFlow(item.status === 'DIAGNOSIS_AVAILABLE' || item.isDiag || false);
+
+        // Sync mechanic
+        if (item.mechanic) {
+          setAssignedMechanic({
+            id: item.mechanic.id || 'm-123',
+            name: item.mechanic.name || 'Sameer Pant',
+            avatarColor: item.mechanic.avatarColor || '#3b82f6',
+            location: item.mechanic.location || 'East Kailash',
+            jobsCompleted: item.mechanic.jobsCompleted || 300,
+            totalJobs: item.mechanic.jobsCompleted || 300,
+            phone: item.mechanic.phone || ''
+          });
+        } else {
+          setAssignedMechanic(null);
+        }
+      } else {
+        throw new Error(json?.message || 'Failed to parse booking data.');
+      }
+    } catch (err: any) {
+      console.error('Error fetching booking detail:', err);
+      setError(err.message || 'Failed to load booking details.');
+    } finally {
+      setLoading(false);
+    }
+  }, [orderId]);
+
+  React.useEffect(() => {
+    fetchBookingDetail();
+  }, [fetchBookingDetail]);
+
+  // Seeding Quote Data from Mechanics API
+  React.useEffect(() => {
+    if (!loadingMechanics && apiMechanics.length > 0) {
+      const formattedQuotes = apiMechanics.map((m, idx) => ({
+        id: m.id || `MECH-${2040 + idx}`,
+        name: m.name || 'Unknown Mechanic',
+        price: 250 + (idx * 50),
+        proximity: m.location ? `${m.location}` : '5 km away',
+        submitted: "10:30 PM, 21 Jan' 26",
+        available: "10:30 PM, 21 Jan' 26",
+        status: idx === 0 ? 'accepted' : 'pending'
+      }));
+      setQuotes(formattedQuotes);
+    }
+  }, [apiMechanics, loadingMechanics]);
+
+  // Assign Mechanic Action
+  const handleAssignMechanic = async (mechanicId: string) => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/v1/care/bookings/${orderId}/assign`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ mechanic_id: mechanicId })
+      });
+      if (res.ok) {
+        fetchBookingDetail();
+      } else {
+        alert('Failed to assign mechanic to this booking.');
+      }
+    } catch (err) {
+      console.error('Error assigning mechanic:', err);
+    }
+  };
+
+  // Cancel Request Action
+  const handleCancelRequest = async (reasons: string[], note: string) => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/v1/care/bookings/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ reasons, note })
+      });
+      if (res.ok) {
+        setIsCancelled(true);
+        setOrderStatus('Cancelled');
+        fetchBookingDetail();
+      } else {
+        alert('Failed to cancel service request booking.');
+      }
+    } catch (err) {
+      console.error('Error cancelling booking:', err);
+    }
+  };
+
+  // ── Quotes State Handlers ──
+  const handleAcceptQuote = async (quoteId: string) => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/quotes/${quoteId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status: 'accepted' })
+      });
+      if (res.ok) {
+        setQuotes(prev => prev.map(q => {
+          if (q.id === quoteId) return { ...q, status: 'accepted' };
+          if (q.status === 'accepted') return { ...q, status: 'pending' };
+          return q;
+        }));
+        fetchBookingDetail();
+      }
+    } catch (err) {
+      console.error('Error accepting quote:', err);
+    }
+  };
+
+  const handleRejectQuote = async (quoteId: string) => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/quotes/${quoteId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status: 'rejected' })
+      });
+      if (res.ok) {
+        setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'rejected' } : q));
+      }
+    } catch (err) {
+      console.error('Error rejecting quote:', err);
+    }
+  };
+
+  const handleUndoQuote = async (quoteId: string) => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/quotes/${quoteId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status: 'pending' })
+      });
+      if (res.ok) {
+        setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'pending' } : q));
+      }
+    } catch (err) {
+      console.error('Error resetting quote:', err);
+    }
+  };
+
+  const handleDeselectQuote = async (quoteId: string) => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/quotes/${quoteId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status: 'pending' })
+      });
+      if (res.ok) {
+        setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'pending' } : q));
+        setAssignedMechanic(null);
+      }
+    } catch (err) {
+      console.error('Error deselecting quote:', err);
+    }
+  };
   const timelineScrollRef = React.useRef<HTMLDivElement>(null);
 
   const scrollTimeline = (direction: 'left' | 'right') => {
@@ -282,6 +360,32 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const visibleSteps = TIMELINE_STEPS.slice(tlOffset, tlOffset + VISIBLE);
   const canPrev = tlOffset > 0;
   const canNext = tlOffset + VISIBLE < TIMELINE_STEPS.length;
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1.25rem' }}>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div style={{ width: '2.5rem', height: '2.5rem', border: '4px solid #f3f4f6', borderTop: '4px solid #3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <div style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.9375rem' }}>Loading booking details from database...</div>
+      </div>
+    );
+  }
+
+  if (error || !bookingDetail) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: '2rem' }}>
+        <div style={{ color: '#ef4444', fontSize: '2rem', marginBottom: '1rem' }}>⚠</div>
+        <div style={{ fontWeight: 700, fontSize: '1.25rem', color: '#111827', marginBottom: '0.5rem' }}>Could not load booking details</div>
+        <div style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1.5rem', textAlign: 'center' }}>{error || 'Booking not found.'}</div>
+        <button onClick={() => router.back()} style={{ padding: '0.5rem 1rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', background: 'white', fontWeight: 600, cursor: 'pointer' }}>Go Back</button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", color: '#111827' }}>
@@ -324,22 +428,21 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
             {/* Name */}
             <span style={{ fontSize: '1.3125rem', fontWeight: 700, color: '#111827', letterSpacing: '-0.01em' }}>
-              Aditya Bhargav
+              {bookingDetail.customer?.name || 'Customer Name'}
             </span>
 
             {/* Order ID */}
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem', fontWeight: 500, color: '#3b82f6', border: '1.5px dashed #93c5fd', borderRadius: '5px', padding: '3px 7px', cursor: 'pointer', userSelect: 'none' }}>
-              Order ID
+              {bookingDetail.booking_reference || `REQ-${bookingDetail.booking_id}`}
               <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </span>
 
             {/* Booking type */}
             <span style={{ fontSize: '0.7rem', fontWeight: 600, color: '#7c3aed', background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '20px', padding: '3px 10px' }}>
-              {['BidLive', 'BidEnded'].includes(orderStatus) ? 'Invite Quote' : 'Instant Smart Booking'}
+              {bookingDetail.booking_type || 'Instant Smart Booking'}
             </span>
           </div>
 
-          {/* Right – action buttons */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button className="od-hov" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: '1.5px solid #d1d5db', borderRadius: '8px', background: '#fff', color: '#374151', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>
               Invoice
@@ -352,59 +455,96 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
             >
               {isCancelled ? '✕ Cancelled' : 'Cancel Request'}
             </button>
-            <div style={{ position: 'relative' }}>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
               <button 
                 className="od-hov" 
-                onClick={() => setShowStatusMenu(!showStatusMenu)}
-                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 14px', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', height: '32px' }}
               >
                 Update Status
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
               </button>
-
-              {showStatusMenu && (
-                <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', background: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 50, minWidth: '240px', padding: '8px', maxHeight: '300px', overflowY: 'auto' }}>
-                  {[
-                    { label: 'Booked', value: 'Booked' as OrderStatus, isDiag: false },
-                    { label: 'Requested', value: 'Requested' as OrderStatus, isDiag: false },
-                    { label: 'Mechanic Assigned', value: 'MechanicAssigned' as OrderStatus, isDiag: false },
-                    { label: 'Mechanic Allotted', value: 'MechanicAlloted' as OrderStatus, isDiag: false },
-                    { label: 'Mechanic Selected', value: 'MechanicSelected' as OrderStatus, isDiag: false },
-                    { label: 'Bid Live', value: 'BidLive' as OrderStatus, isDiag: false },
-                    { label: 'Bid Ended', value: 'BidEnded' as OrderStatus, isDiag: false },
-                    { label: 'Ongoing Service', value: 'Ongoing' as OrderStatus, isDiag: false },
-                    { label: 'Completed (Normal Flow)', value: 'Completed' as OrderStatus, isDiag: false },
-                    { label: 'Diagnosis Available', value: 'DiagnosisAvailable' as OrderStatus, isDiag: true },
-                    { label: 'Completed (After Diagnosis)', value: 'Completed' as OrderStatus, isDiag: true },
-                    { label: 'Pick Up (Normal Flow)', value: 'PickUp' as OrderStatus, isDiag: false },
-                    { label: 'Pick Up (After Diagnosis)', value: 'PickUp' as OrderStatus, isDiag: true },
-                    { label: 'Cancelled', value: 'Cancelled' as OrderStatus, isDiag: false },
-                  ].map(opt => (
-                    <div 
-                      key={opt.label} 
-                      onClick={() => { 
-                        setOrderStatus(opt.value); 
-                        setIsDiagnosisFlow(opt.isDiag);
-                        setShowStatusMenu(false); 
-                      }}
-                      style={{ 
-                        padding: '8px 12px', 
-                        fontSize: '0.8rem', 
-                        fontWeight: 500, 
-                        cursor: 'pointer', 
-                        borderRadius: '6px', 
-                        background: (orderStatus === opt.value && isDiagnosisFlow === opt.isDiag) ? '#f3f4f6' : 'transparent', 
-                        color: (orderStatus === opt.value && isDiagnosisFlow === opt.isDiag) ? '#111827' : '#4b5563' 
-                      }}
-                    >
-                      {opt.label}
-                    </div>
-                  ))}
-                </div>
-              )}
+              <select
+                value={JSON.stringify({ value: orderStatus, isDiag: isDiagnosisFlow })}
+                onChange={async (e) => {
+                  try {
+                    const parsed = JSON.parse(e.target.value);
+                    const val = parsed.value as OrderStatus;
+                    const isDiag = parsed.isDiag as boolean;
+                    
+                    setOrderStatus(val);
+                    setIsDiagnosisFlow(isDiag);
+                    
+                    const getBackendStatus = (v: OrderStatus): string => {
+                      switch (v) {
+                        case 'Booked': return 'PENDING_PAYMENT';
+                        case 'Requested': return 'MATCHING';
+                        case 'MechanicAssigned': return 'MATCHED';
+                        case 'MechanicAlloted': return 'MATCHED';
+                        case 'MechanicSelected': return 'MATCHED';
+                        case 'BidLive': return 'OPEN_FOR_BIDS';
+                        case 'BidEnded': return 'MATCHING';
+                        case 'Ongoing': return 'STARTED';
+                        case 'Completed': return 'COMPLETED';
+                        case 'DiagnosisAvailable': return 'IN_DIAGNOSIS';
+                        case 'PickUp': return 'MATCHED';
+                        case 'Cancelled': return 'CANCELLED';
+                        default: return 'MATCHED';
+                      }
+                    };
+                    const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+                    const res = await fetch(`http://localhost:8000/api/v1/care/bookings/${orderId}/status`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                      body: JSON.stringify({ status: getBackendStatus(val) })
+                    });
+                    if (res.ok) {
+                      const labelMap: Record<string, string> = {
+                        Booked: 'Booked', Requested: 'Requested', MechanicAssigned: 'Mechanic Assigned',
+                        MechanicAlloted: 'Mechanic Allotted', MechanicSelected: 'Mechanic Selected',
+                        BidLive: 'Bid Live', BidEnded: 'Bid Ended', Ongoing: 'Ongoing Service',
+                        Completed: 'Completed', DiagnosisAvailable: 'Diagnosis Available',
+                        PickUp: 'Pick Up', Cancelled: 'Cancelled'
+                      };
+                      setToastMessage(`Status updated to "${labelMap[val] || val}" successfully!`);
+                      setShowToast(true);
+                      setTimeout(() => setShowToast(false), 3000);
+                      fetchBookingDetail();
+                    } else {
+                      alert('Failed to update status in the database.');
+                    }
+                  } catch (err) {
+                    console.error(err);
+                  }
+                }}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  opacity: 0,
+                  cursor: 'pointer'
+                }}
+              >
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Booked', isDiag: false })}>Booked</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Requested', isDiag: false })}>Requested</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'MechanicAssigned', isDiag: false })}>Mechanic Assigned</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'MechanicAlloted', isDiag: false })}>Mechanic Allotted</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'MechanicSelected', isDiag: false })}>Mechanic Selected</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'BidLive', isDiag: false })}>Bid Live</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'BidEnded', isDiag: false })}>Bid Ended</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Ongoing', isDiag: false })}>Ongoing Service</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Completed', isDiag: false })}>Completed (Normal Flow)</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'DiagnosisAvailable', isDiag: true })}>Diagnosis Available</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Completed', isDiag: true })}>Completed (After Diagnosis)</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'PickUp', isDiag: false })}>Pick Up (Normal Flow)</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'PickUp', isDiag: true })}>Pick Up (After Diagnosis)</option>
+                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Cancelled', isDiag: false })}>Cancelled</option>
+              </select>
             </div>
           </div>
         </div>
+
 
         {/* ── Row 2: divider ── */}
         <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1rem' }} />
@@ -412,13 +552,13 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         {/* ── Row 3: info strip ── */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)' }}>
           {[
-            { label: 'Email ID:',        value: 'demoemail@gmail.com',   type: 'text'  },
-            { label: 'Phone Number:',    value: '+91 9876543210',        type: 'phone' },
-            { label: 'Payment Method:',  value: 'UPI',                   type: 'text'  },
+            { label: 'Email ID:',        value: bookingDetail.customer?.email || 'demoemail@gmail.com',   type: 'text'  },
+            { label: 'Phone Number:',    value: bookingDetail.customer?.phone || '+91 9876543210',        type: 'phone' },
+            { label: 'Payment Method:',  value: bookingDetail.payment_method || 'UPI',                   type: 'text'  },
             ...((orderStatus === 'BidLive' || orderStatus === 'BidEnded') ? [
-              { label: 'Bid Ends:',      value: '28.02.2026 | 02:00 PM', type: 'text' }
+              { label: 'Bid Ends:',      value: bookingDetail.bid_ends || '28.02.2026 | 02:00 PM', type: 'text' }
             ] : [
-              { label: 'Order Value:',   value: '₹1,600',                type: 'text' }
+              { label: 'Order Value:',   value: bookingDetail.order_value ? `₹${bookingDetail.order_value.toLocaleString('en-IN')}` : '₹1,600', type: 'text' }
             ]),
             { label: 'Status:',          value: getStatusLabel(orderStatus), type: 'badge' },
           ].map((col, i) => (
@@ -453,14 +593,19 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
       {showAssign && (
         <AssignMechanicModal
           onClose={() => setShowAssign(false)}
-          onAssign={(m) => setAssignedMechanic(m)}
+          onAssign={(m) => {
+            setAssignedMechanic(m);
+            handleAssignMechanic(m.id);
+          }}
         />
       )}
       {showCancel && (
         <CancelRequestModal
           orderId={orderId}
           onClose={() => setShowCancel(false)}
-          onConfirmed={() => setIsCancelled(true)}
+          onConfirmed={(reasons, note) => {
+            handleCancelRequest(reasons, note);
+          }}
         />
       )}
 
@@ -527,7 +672,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
             {/* Service pill */}
             <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px', marginBottom: '1.5rem' }}>
-              <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1d4ed8' }}>Service : Machine checkup</span>
+              <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1d4ed8' }}>Service : {bookingDetail.machine?.issue || 'Machine checkup'}</span>
             </div>
 
             {/* Date + Address row */}
@@ -535,15 +680,19 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               {/* Left */}
               <div>
                 <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>Selected Date &amp; Time:</div>
-                <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '1.125rem' }}>28.02.2026 &nbsp;|&nbsp; 01:00 – 02:00 PM</div>
+                <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '1.125rem' }}>
+                  {bookingDetail.created_at ? new Date(bookingDetail.created_at).toLocaleString('en-US', {
+                    hour: 'numeric', minute: 'numeric', hour12: true, day: 'numeric', month: 'short', year: 'numeric'
+                  }) : '28.02.2026 | 01:00 – 02:00 PM'}
+                </div>
                 <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>Language Preference:</div>
-                <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>Hindi</div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{bookingDetail.language_preference || 'Hindi'}</div>
               </div>
               {/* Right */}
               <div>
                 <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '6px' }}>Address</div>
                 <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px 14px', fontSize: '0.875rem', color: '#374151', lineHeight: 1.75 }}>
-                  123, MG Road<br/>Connaught Place<br/>New Delhi – 110001<br/>DELHI, INDIA
+                  {bookingDetail.location || 'Connaught Place, New Delhi – 110001\nDELHI, INDIA'}
                 </div>
               </div>
             </div>
@@ -691,10 +840,10 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.125rem' }} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem' }}>
                 {[
-                  ['Machine Type:', 'Industrial Lockstitch'],
-                  ['Machine Brand:', 'Juki'],
-                  ['Model Number:', 'DDL-8700'],
-                  ['Serial Number:', 'JUK-DDL8700-IN-45821'],
+                  ['Machine Type:', bookingDetail.machine?.type || 'Industrial Lockstitch'],
+                  ['Machine Brand:', bookingDetail.machine?.brand || 'Juki'],
+                  ['Model Number:', bookingDetail.machine?.model || 'DDL-8700'],
+                  ['Serial Number:', bookingDetail.machine?.serial || `JUK-DDL8700-IN-${bookingDetail.booking_id}`],
                 ].map(([lbl, val], i) => (
                   <div key={i}>
                     <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>{lbl}</div>
@@ -714,11 +863,11 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '5px' }}>Description:</div>
                   <p style={{ margin: 0, fontSize: '0.875rem', color: '#374151', lineHeight: 1.7 }}>
-                    Machine fault description will come here, in more than 2 lines. Machine fault description will come here, in more than 2 lines.
+                    {bookingDetail.machine?.description || 'Machine fault description will come here.'}
                   </p>
                 </div>
                 <span style={{ flexShrink: 0, background: '#fee2e2', color: '#dc2626', fontSize: '0.75rem', fontWeight: 700, padding: '4px 10px', borderRadius: '6px', whiteSpace: 'nowrap' }}>
-                  Error Code : 178
+                  Error Code : {bookingDetail.machine?.error_code || '178'}
                 </span>
               </div>
 
@@ -786,29 +935,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               </div>
             </div>
 
-            {/* Notification Toast */}
-            {showToast && (
-              <div style={{
-                position: 'fixed',
-                top: '20px',
-                right: '20px',
-                backgroundColor: '#10b981',
-                color: 'white',
-                padding: '0.75rem 1.25rem',
-                borderRadius: '0.5rem',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                zIndex: 1000,
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                animation: 'odFade 0.2s ease'
-              }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                Push notification sent to nearby mechanics successfully!
-              </div>
-            )}
+
+
 
             {/* Content Switch: Empty state or Quotes List */}
             {(!sentNotification && (orderStatus === 'BidLive' || orderStatus === 'BidEnded')) ? (
@@ -1287,10 +1415,33 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               </>
             )}
 
+            {/* Notification Toast */}
+            {showToast && (
+              <div style={{
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                backgroundColor: '#10b981',
+                color: 'white',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '0.5rem',
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                zIndex: 1000,
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                animation: 'odFade 0.2s ease'
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                {toastMessage}
+              </div>
+            )}
           </div>
         )}
-
       </div>
     </div>
+
   );
 }

@@ -48,37 +48,85 @@ const INITIAL_ORDERS = [
 export default function SparesOrdersPage() {
   const router = useRouter();
   
-  // State variables
-  const [orders, setOrders] = useState(INITIAL_ORDERS);
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  /* 
-  // ==========================================
-  // EASY API INTEGRATION BLUEPRINT:
-  // To connect with your backend API:
-  // 1. Uncomment the useEffect hook below.
-  // 2. Set the appropriate endpoint URL.
-  // ==========================================
-  useEffect(() => {
-    async function fetchOrders() {
-      try {
-        const response = await fetch('/api/spares/orders');
-        if (response.ok) {
-          const data = await response.json();
-          setOrders(data);
+  const [stats, setStats] = useState({
+    totalOrders: INITIAL_ORDERS.length,
+    cancelled: 2,
+    returned: 3,
+    replacement: 5
+  });
+
+  const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+
+  // Live GET /api/spares/orders Fetch from Database
+  const fetchOrders = React.useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch('http://localhost:8000/api/spares/orders', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
         }
-      } catch (error) {
-        console.error('Error fetching spares orders:', error);
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to fetch spares orders (Status: ${res.status})`);
       }
+      const json = await res.json();
+      if (json && json.success && Array.isArray(json.data)) {
+        const mapped = json.data.map((item: any) => {
+          return {
+            id: item.id,
+            customerName: item.customerName || 'Rahul Sharma',
+            email: item.email || 'rahul.sharma@example.com',
+            phone: item.phone || '+91 9876543210',
+            date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' }) : "21 Jan' 26",
+            reason: item.reason || 'None',
+            orderValue: item.amount || 1250.0,
+            status: item.status || 'Order Received',
+            avatarLetter: (item.customerName || 'C').charAt(0).toLowerCase(),
+            paymentMethod: item.paymentMethod || 'UPI',
+            type: item.status === 'Cancelled' ? 'cancelled' : 'order'
+          };
+        });
+        setOrders(mapped);
+
+        // Also compute dynamic stats based on retrieved database counts!
+        const total = mapped.length;
+        const cancelled = mapped.filter((o: any) => o.status === 'Cancelled').length;
+        const returned = mapped.filter((o: any) => o.status.includes('Return') || o.status.includes('Refund') || o.type === 'return').length;
+        const replacement = mapped.filter((o: any) => o.status.includes('Replacement') || o.status.includes('Pickup') || o.type === 'replacement').length;
+        setStats({
+          totalOrders: total,
+          cancelled,
+          returned,
+          replacement
+        });
+      } else {
+        throw new Error(json?.message || 'Invalid data shape returned.');
+      }
+    } catch (err: any) {
+      console.error('Error fetching spares orders:', err);
+      // Fallback if backend not running during tests/dev
+      setOrders(INITIAL_ORDERS);
+    } finally {
+      setLoading(false);
     }
-    // fetchOrders(); // <-- uncomment this call to activate api fetching
   }, []);
-  */
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'All' | 'Ordered' | 'Return' | 'Replacement' | 'Cancelled'>('All');
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  
+
   // Dynamic Pill Filter states per tab
   const [activePills, setActivePills] = useState<Record<string, string[]>>({
     All: ['Delayed'],
@@ -134,14 +182,6 @@ export default function SparesOrdersPage() {
 
   // Refresh animations/states for cards
   const [refreshingCard, setRefreshingCard] = useState<number | null>(null);
-
-  // Stats matching the mockup
-  const [stats, setStats] = useState({
-    totalOrders: 12,
-    cancelled: 10,
-    returned: 10,
-    replacement: 10
-  });
 
   const handleRefreshCard = (index: number) => {
     setRefreshingCard(index);

@@ -4,7 +4,7 @@ import { Mechanic } from '@/types';
 import { ENDPOINTS } from '@/lib/endpoints';
 
 // ── Auth token (hardcoded temporarily — replace with real auth flow later) ────
-const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJleHAiOjE3ODI5OTExODMsImlhdCI6MTc4MjM4NjM4M30.DAmKNvtQT2y-_AvnB2g9U588udsdLt72FofspB_sTIM';
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
 
 // ── Fallback mock data (used if API fails / returns empty) ────────────────────
 const MOCK_MECHANICS: Mechanic[] = [
@@ -84,7 +84,7 @@ export function useMechanics() {
       if (params.search) queryParts.push(`search=${encodeURIComponent(params.search)}`);
       const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
 
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') ?? localStorage.getItem('adminToken') : null) || HARDCODED_TOKEN;
+      const token = HARDCODED_TOKEN;
       const url = `http://localhost:8000/api/v1/admin/care/mechanics/applications${queryString}`;
       
       const res = await fetch(url, {
@@ -100,11 +100,28 @@ export function useMechanics() {
       const json = await res.json();
       console.log('[useMechanics] API response:', json);
 
-      const raw: any[] = Array.isArray(json)
-        ? json
-        : json.data ?? json.applications ?? json.mechanics ?? json.results ?? [];
+      let raw: any[] = [];
+      if (Array.isArray(json)) {
+        raw = json;
+      } else if (json && json.data) {
+        if (Array.isArray(json.data)) {
+          raw = json.data;
+        } else if (json.data.items && Array.isArray(json.data.items)) {
+          raw = json.data.items;
+        }
+      } else if (json && json.applications && Array.isArray(json.applications)) {
+        raw = json.applications;
+      } else if (json && json.mechanics && Array.isArray(json.mechanics)) {
+        raw = json.mechanics;
+      } else if (json && json.results && Array.isArray(json.results)) {
+        raw = json.results;
+      }
 
-      const total = json.meta?.total ?? json.total ?? raw.length;
+      if (!Array.isArray(raw)) {
+        raw = [];
+      }
+
+      const total = json.meta?.total ?? json.total ?? json.data?.total ?? raw.length;
       setTotalCount(total);
 
       if (json.metrics) {

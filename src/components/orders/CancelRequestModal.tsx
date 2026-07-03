@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 interface CancelRequestModalProps {
   orderId?: string;
   onClose: () => void;
-  onConfirmed: () => void;
+  onConfirmed: (reasons: string[], note: string) => void;
 }
 
 const REASONS = [
@@ -32,7 +32,7 @@ export default function CancelRequestModal({ orderId = 'STS0193', onClose, onCon
   };
 
   const handleReject = () => {
-    onConfirmed();
+    onConfirmed(Array.from(checked), note);
     onClose();
   };
 

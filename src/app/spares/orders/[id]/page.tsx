@@ -1,6 +1,7 @@
+
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { X } from 'lucide-react';
 import OrderDetailOrdered from './OrderDetailOrdered';
@@ -8,33 +9,9 @@ import OrderDetailReturn from './OrderDetailReturn';
 import OrderDetailReplacement from './OrderDetailReplacement';
 import OrderDetailCancelled from './OrderDetailCancelled';
 
-// Rich Mock Data for Detail Retrieval (to fetch corresponding order detail)
+// Rich Mock Data for Detail Retrieval (fallback)
 const MOCK_ORDER_DETAILS: Record<string, any> = {
-  'sth-rh-2045': { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Requested', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0001', type: 'replacement' },
-  'sth-rh-2046': { id: 'sth-rh-2046', customerName: 'Rohan Sharma', email: 'rohan.sharma@gmail.com', phone: '+919988776655', orderValue: 4320, status: 'Pickup Scheduled', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0002', type: 'replacement' },
-  'sth-rh-2047': { id: 'sth-rh-2047', customerName: 'Sneha Patil', email: 'sneha.patil@gmail.com', phone: '+919123456789', orderValue: 2150, status: 'Pickup Failed', paymentMethod: 'Card', txnId: 'TXN-DEL-20260203-0003', type: 'replacement' },
-  'sth-rh-2048': { id: 'sth-rh-2048', customerName: 'Rahul Verma', email: 'rahul.verma@gmail.com', phone: '+919876543211', orderValue: 3500, status: 'Return Requested', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0004', type: 'return' },
-  'sth-rh-2049': { id: 'sth-rh-2049', customerName: 'Priya Nair', email: 'priya.nair@gmail.com', phone: '+918877665544', orderValue: 1200, status: 'Replacement in Process', paymentMethod: 'COD', txnId: 'TXN-DEL-20260203-0005', type: 'replacement' },
-  'sth-rh-2050': { id: 'sth-rh-2050', customerName: 'Amit Gupta', email: 'amit.gupta@gmail.com', phone: '+917766554433', orderValue: 6700, status: 'Refund Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0006', type: 'return' },
-  'sth-rh-2051': { id: 'sth-rh-2051', customerName: 'Karan Malhotra', email: 'karan.m@gmail.com', phone: '+916655443322', orderValue: 5550, status: 'Pickup Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0007', type: 'replacement' },
-  'sth-rh-2052': { id: 'sth-rh-2052', customerName: 'Devendra Joshi', email: 'devendra.j@gmail.com', phone: '+915544332211', orderValue: 8900, status: 'Replacement Shipped', paymentMethod: 'Netbanking', txnId: 'TXN-DEL-20260203-0008', type: 'replacement' },
-  'sth-rh-2053': { id: 'sth-rh-2053', customerName: 'Ananya Sen', email: 'ananya.s@gmail.com', phone: '+914433221100', orderValue: 4500, status: 'Delivery Failed', paymentMethod: 'Card', txnId: 'TXN-DEL-20260203-0009', type: 'replacement' },
-  'sth-rh-2054': { id: 'sth-rh-2054', customerName: 'Rajesh Kumar', email: 'rajesh.k@gmail.com', phone: '+913322110099', orderValue: 3100, status: 'Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0010', type: 'replacement' },
-  'sth-rh-2055': { id: 'sth-rh-2055', customerName: 'Meera Nair', email: 'meera.n@gmail.com', phone: '+912211009988', orderValue: 2400, status: 'Refund Initiated', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0011', type: 'return' },
-  'sth-rh-2056': { id: 'sth-rh-2056', customerName: 'Vikram Singh', email: 'vikram.singh@gmail.com', phone: '+911100998877', orderValue: 5300, status: 'Pickup Scheduled', paymentMethod: 'Netbanking', txnId: 'TXN-DEL-20260203-0012', type: 'return' },
-  'sth-rh-2057': { id: 'sth-rh-2057', customerName: 'Neha Sharma', email: 'neha.s@gmail.com', phone: '+919900112233', orderValue: 6200, status: 'Pickup Completed', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0013', type: 'return' },
-  'sth-rh-2058': { id: 'sth-rh-2058', customerName: 'Arjun Kapoor', email: 'arjun.k@gmail.com', phone: '+919911223344', orderValue: 7500, status: 'Pickup Failed', paymentMethod: 'Card', txnId: 'TXN-DEL-20260203-0014', type: 'return' },
-  
-  // Ordered Tab matches (status is: 'Order Received', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered')
-  'sth-rh-2059': { id: 'sth-rh-2059', customerName: 'Gaurav Mehta', email: 'gaurav.mehta@gmail.com', phone: '+919922334455', orderValue: 6700, status: 'Shipped', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0015', type: 'order' },
-  'sth-rh-2060': { id: 'sth-rh-2060', customerName: 'Siddharth Rao', email: 'sid.rao@gmail.com', phone: '+919933445566', orderValue: 3450, status: 'Processing', paymentMethod: 'Card', txnId: 'TXN-DEL-20260203-0016', type: 'order' },
-  'sth-rh-2061': { id: 'sth-rh-2061', customerName: 'Ishaan Verma', email: 'ishaan.v@gmail.com', phone: '+919944556677', orderValue: 8900, status: 'Order Received', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0017', type: 'order' },
-  'sth-rh-2062': { id: 'sth-rh-2062', customerName: 'Rohan Deshmukh', email: 'rohan.d@gmail.com', phone: '+919955667788', orderValue: 4500, status: 'Out for Delivery', paymentMethod: 'COD', txnId: 'TXN-DEL-20260203-0018', type: 'order' },
-  'sth-rh-2063': { id: 'sth-rh-2063', customerName: 'Deepa Krishnan', email: 'deepa.k@gmail.com', phone: '+919966778899', orderValue: 5800, status: 'Delivered', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0019', type: 'order' },
-
-  // Cancelled Tab matches (status is: 'Cancelled')
-  'sth-rh-2064': { id: 'sth-rh-2064', customerName: 'Ishita Sen', email: 'ishita.s@gmail.com', phone: '+919977889900', orderValue: 3100, status: 'Cancelled', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0020', type: 'order' },
-  'sth-rh-2065': { id: 'sth-rh-2065', customerName: 'Kabir Bakshi', email: 'kabir.b@gmail.com', phone: '+919988990011', orderValue: 2400, status: 'Cancelled', paymentMethod: 'Card', txnId: 'TXN-DEL-20260203-0021', type: 'order' }
+  'sth-rh-2045': { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', orderValue: 5550, status: 'Requested', paymentMethod: 'UPI', txnId: 'TXN-DEL-20260203-0001', type: 'replacement', items: [{ productId: 'p1', name: 'Motor Brush Set', sku: 'SKU-101', qty: 2, price: 350.0, image: '/spares/motor-brush.png' }] },
 };
 
 interface OrderDetail {
@@ -47,19 +24,65 @@ interface OrderDetail {
   paymentMethod: string;
   txnId: string;
   type?: string;
+  items?: any[];
 }
+
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
 
 export default function OrderDetailPage() {
   const params = useParams();
-  const orderId = (params.id as string)?.toLowerCase();
+  const orderId = params.id as string;
+  const router = useRouter();
 
-  const initialOrder: OrderDetail = MOCK_ORDER_DETAILS[orderId] || MOCK_ORDER_DETAILS['sth-rh-2045'];
+  const [order, setOrder] = useState<OrderDetail | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [order, setOrder] = useState<OrderDetail>(initialOrder);
   const [copiedText, setCopiedText] = useState<string | null>(null);
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedReturnReasons, setSelectedReturnReasons] = useState<string[]>([]);
   const [isOtherReturnSelected, setIsOtherReturnSelected] = useState(true);
+
+  // Fetch Order Details from Database
+  const fetchOrderDetail = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/spares/orders/${orderId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to load order details (Status: ${res.status})`);
+      }
+      const json = await res.json();
+      if (json && json.success && json.data) {
+        setOrder(json.data);
+      } else {
+        throw new Error(json?.message || 'Failed to parse order details.');
+      }
+    } catch (err: any) {
+      console.error('Error fetching order details:', err);
+      // Fallback if local dev id or fallback needed
+      const fallback = MOCK_ORDER_DETAILS[orderId.toLowerCase()] || MOCK_ORDER_DETAILS['sth-rh-2045'];
+      if (fallback) {
+        setOrder(fallback);
+      } else {
+        setError(err.message || 'Failed to load spares order.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [orderId]);
+
+  useEffect(() => {
+    if (orderId) {
+      fetchOrderDetail();
+    }
+  }, [orderId, fetchOrderDetail]);
 
   const handleCopy = (text: string, type: string) => {
     navigator.clipboard.writeText(text);
@@ -67,20 +90,60 @@ export default function OrderDetailPage() {
     setTimeout(() => setCopiedText(null), 1500);
   };
 
-  const handleUpdateStatus = (newStatus: string) => {
-    setOrder((prev) => ({ ...prev, status: newStatus }));
+  // Live PATCH to Update Spares Order Status in DB
+  const handleUpdateStatus = async (newStatus: string) => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`http://localhost:8000/api/spares/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        setOrder((prev: any) => prev ? { ...prev, status: newStatus } : null);
+      } else {
+        alert('Failed to update spares order status in the database.');
+      }
+    } catch (err) {
+      console.error('Error updating status:', err);
+    }
   };
 
-  const handleCancelOrder = () => {
-    setOrder((prev) => ({ ...prev, status: 'Cancelled' }));
-    setShowCancelModal(false);
+  // Live POST to Cancel Spares Order in DB
+  const handleCancelOrder = async () => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const reasonsList = [...selectedReturnReasons, isOtherReturnSelected ? 'Other' : ''].filter(Boolean);
+      const res = await fetch(`http://localhost:8000/api/spares/orders/${orderId}/cancel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ reason: reasonsList.join(', ') || 'Customer cancelled the request' })
+      });
+      if (res.ok) {
+        setOrder((prev: any) => prev ? { ...prev, status: 'Cancelled' } : null);
+        setShowCancelModal(false);
+      } else {
+        alert('Failed to cancel spares order in the database.');
+      }
+    } catch (err) {
+      console.error('Error cancelling order:', err);
+    }
   };
 
   // Determine which layout component to render based on status/type
   const renderDetailContent = () => {
+    if (!order) return null;
     const status = order.status;
 
-    if (status === 'Completed') {
+    if (status === 'Completed' || status === 'Delivered') {
       return (
         <OrderDetailOrdered
           order={order}
@@ -181,6 +244,32 @@ export default function OrderDetailPage() {
       />
     );
   };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1.25rem' }}>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div style={{ width: '2.5rem', height: '2.5rem', border: '4px solid #f3f4f6', borderTop: '4px solid #3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+        <div style={{ fontWeight: 600, color: '#4b5563', fontSize: '0.975rem' }}>Loading spares order details...</div>
+      </div>
+    );
+  }
+
+  if (error || !order) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', padding: '2rem' }}>
+        <div style={{ color: '#ef4444', fontSize: '2rem', marginBottom: '1rem' }}>⚠</div>
+        <div style={{ fontWeight: 700, fontSize: '1.25rem', color: '#111827', marginBottom: '0.5rem' }}>Could not load order</div>
+        <div style={{ color: '#6b7280', fontSize: '0.875rem', marginBottom: '1.5rem', textAlign: 'center' }}>{error || 'Order not found.'}</div>
+        <button onClick={() => router.back()} style={{ padding: '0.5rem 1rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', background: 'white', fontWeight: 600, cursor: 'pointer' }}>Go Back</button>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeIn 0.4s ease-out' }}>

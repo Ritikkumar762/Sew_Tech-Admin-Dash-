@@ -58,7 +58,15 @@ function ratingColor(r: number) {
   return { bg: '#fee2e2', color: '#dc2626' };
 }
 
-const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJleHAiOjE3ODI5OTExODMsImlhdCI6MTc4MjM4NjM4M30.DAmKNvtQT2y-_AvnB2g9U588udsdLt72FofspB_sTIM';
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+
+const getToken = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('auth_token') || localStorage.getItem('adminToken') || HARDCODED_TOKEN;
+  }
+  return HARDCODED_TOKEN;
+};
+
 
 // ─── Mock fallback data ─────────────────────────────────────────────
 const MOCK_MECHANICS: Mechanic[] = [
@@ -96,11 +104,11 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(ENDPOINTS.mechanics.applications, {
+      const res = await fetch('http://localhost:8000/api/v1/admin/care/mechanics/applications', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
-          'Authorization': `Bearer ${HARDCODED_TOKEN}`,
+          'Authorization': `Bearer ${getToken()}`,
         },
       });
 
@@ -109,7 +117,7 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
       
       const raw: any[] = Array.isArray(json)
         ? json
-        : json.data ?? json.applications ?? json.mechanics ?? json.results ?? [];
+        : (json.data?.items ?? json.data ?? json.applications ?? json.mechanics ?? json.results ?? []);
 
       if (raw.length === 0) {
         throw new Error('Empty mechanics list returned');
@@ -119,9 +127,9 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
       const mapped = raw.map((app: any, idx: number) => {
         const name = app.display_name || [app.firstName, app.lastName].filter(Boolean).join(' ') || app.name || `Mechanic ${idx + 1}`;
         return {
-          id: String(app.application_id ?? app._id ?? app.id ?? `api-${idx}`),
+          id: String(app.mechanic_id ?? app.application_id ?? app._id ?? app.id ?? `api-${idx}`),
           name,
-          mechanicId: app.mechanicId ?? app.id ?? `MCH-00${idx + 1}`,
+          mechanicId: app.mechanic_id ?? app.mechanicId ?? app.id ?? `MCH-00${idx + 1}`,
           lastActivity: app.lastActivity ?? app.lastLogin ?? 'Yesterday, 4:32 PM',
           jobsCompleted: app.jobsCompleted ?? app.totalJobs ?? 12,
           rating: typeof app.rating === 'number' ? app.rating : 4,
@@ -136,7 +144,8 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
       const start = (page - 1) * PER_PAGE;
       setMechanics(filtered.slice(start, start + PER_PAGE));
       setTotal(filtered.length);
-    } catch {
+    } catch (err) {
+      console.error('Error fetching mechanics:', err);
       // Fallback to mock data when backend not available
       const filtered = debouncedSearch
         ? MOCK_MECHANICS.filter(m => m.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
@@ -144,6 +153,7 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
       const start = (page - 1) * PER_PAGE;
       setMechanics(filtered.slice(start, start + PER_PAGE));
       setTotal(filtered.length);
+
     } finally {
       setLoading(false);
     }
