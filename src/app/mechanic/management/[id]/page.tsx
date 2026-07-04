@@ -565,11 +565,11 @@ export default function MechanicDetailPage() {
   // Load API helper methods
   const { fetchMechanicDetails, updateMechanic, fetchMechanicJobs, fetchMechanicPerformance, updateMechanicStatus } = useMechanics();
 
-  // Initialize data, fallback to Nishant Kumar (m1)
-  const defaultData = MOCK_MECHANIC_DETAILS[id] || MOCK_MECHANIC_DETAILS['m1'];
+  // Empty default — all data comes from the API
+  const defaultData = {};
   
   // State variables
-  const [mechanic, setMechanic] = useState<any>(defaultData);
+  const [mechanic, setMechanic] = useState<any>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'details' | 'jobs' | 'performance'>('details');
   const [copiedText, setCopiedText] = useState<string | null>(null);
@@ -602,30 +602,60 @@ export default function MechanicDetailPage() {
       if (active) {
         if (data) {
           const resolved = {
-            ...defaultData,
             ...data,
-            name: data.display_name ?? data.name ?? defaultData.name,
-            location: data.city ?? data.location ?? defaultData.location,
-            aadharName: data.documents?.aadharName ?? data.aadharName ?? defaultData.aadharName,
-            aadharNumber: data.documents?.aadharNumber ?? data.aadharNumber ?? defaultData.aadharNumber,
-            panName: data.documents?.panName ?? data.panName ?? defaultData.panName,
-            panNumber: data.documents?.panNumber ?? data.panNumber ?? defaultData.panNumber,
-            panCardFile: data.documents?.panCardFileUrl ?? data.panCardFile ?? defaultData.panCardFile,
+            // Core identity
+            name:             data.display_name        ?? data.name             ?? '',
+            location:         data.city                ?? data.location          ?? '',
+            // Contact / basic details (all API spec field variants)
+            email:            data.email               ?? '',
+            phone:            data.phone               ?? data.mobile            ?? '',
+            dob:              (() => {
+              const raw = data.dob ?? data.date_of_birth ?? data.dateOfBirth ?? '';
+              if (!raw) return '';
+              try { return new Date(raw).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return raw; }
+            })(),
+            selectedLanguage: Array.isArray(data.languages)
+                                ? data.languages.join(', ')
+                                : (data.languages ?? data.selectedLanguage ?? data.language ?? ''),
+            joiningDate:      (() => {
+              const raw = data.joiningDate ?? data.joining_date ?? data.created_at ?? data.createdAt ?? '';
+              if (!raw) return '';
+              try { return new Date(raw).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); } catch { return raw; }
+            })(),
+            status:           data.status ?? '',
+            acceptanceRate:   data.acceptanceRate  !== undefined ? `${data.acceptanceRate}%`  : '',
+            completionRate:   data.completionRate  !== undefined ? `${data.completionRate}%`  : '',
+            // Profile fields
+            rating:           data.rating          ?? 0,
+            experience:       data.experience      ?? '',
+            bio:              data.bio             ?? '',
+            skills:           data.skills          ?? [],
+            machinesFamiliar: data.machinesFamiliar ?? [],
+            activeServices:   data.activeServices  ?? [],
+            // KYC documents
+            aadharName:       data.documents?.aadharName    ?? '',
+            aadharNumber:     data.documents?.aadharNumber  ?? '',
+            panName:          data.documents?.panName       ?? '',
+            panNumber:        data.documents?.panNumber     ?? '',
+            panCardFile:      data.documents?.panCardFileUrl ?? '',
+            // Media
+            audioPitchUrl:    data.media?.audioPitchUrl ?? '',
+            videoPitchUrl:    data.media?.videoPitchUrl ?? '',
           };
           setMechanic(resolved);
           setEditForm(resolved);
         } else {
-          setMechanic(defaultData);
-          setEditForm(defaultData);
+          setMechanic({});
+          setEditForm({});
         }
       }
     };
     loadDetails();
     return () => { active = false; };
-  }, [id, fetchMechanicDetails, defaultData]);
+  }, [id, fetchMechanicDetails]);
 
   // Form edit temporary states
-  const [editForm, setEditForm] = useState<any>(defaultData);
+  const [editForm, setEditForm] = useState<any>(null);
 
   // Subtabs & filters inside Jobs Tab
   const [jobsSubtab, setJobsSubtab] = useState<'All' | 'Instant Smart Booking' | 'Invite Quote' | 'Video Call Assistance' | 'Assisted Booking'>('All');
@@ -808,6 +838,15 @@ export default function MechanicDetailPage() {
     if (jobsFilter === 'All') return true;
     return job.status === jobsFilter;
   });
+
+  // Show loading while API fetches mechanic data
+  if (!mechanic) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4rem', color: '#6b7280', fontSize: '1rem' }}>
+        Loading mechanic details...
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeIn 0.4s ease-out' }}>
@@ -1097,8 +1136,18 @@ export default function MechanicDetailPage() {
                 fontWeight: 700, 
                 padding: '0.125rem 0.625rem',
                 borderRadius: '1rem',
-                backgroundColor: mechanic.status === 'Active' ? '#d1fae5' : '#fee2e2',
-                color: mechanic.status === 'Active' ? '#065f46' : '#991b1b'
+                backgroundColor:
+                  mechanic.status === 'Active'    ? '#d1fae5' :
+                  mechanic.status === 'Busy'      ? '#fef3c7' :
+                  mechanic.status === 'Pending'   ? '#dbeafe' :
+                  mechanic.status === 'Offline'   ? '#f3f4f6' :
+                  mechanic.status === 'Suspended' ? '#fee2e2' : '#f3f4f6',
+                color:
+                  mechanic.status === 'Active'    ? '#065f46' :
+                  mechanic.status === 'Busy'      ? '#92400e' :
+                  mechanic.status === 'Pending'   ? '#1e40af' :
+                  mechanic.status === 'Offline'   ? '#374151' :
+                  mechanic.status === 'Suspended' ? '#991b1b' : '#374151'
               }}>
                 {mechanic.status}
               </span>

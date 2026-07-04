@@ -153,6 +153,7 @@ export default function BannerDetailPage() {
       setExternalLink(mockData.externalLink || '');
     }
 
+    // For mock IDs skip API fetch — mock data is already populated above
     if (bannerIdParam.startsWith('banner-')) {
       return;
     }
@@ -160,7 +161,8 @@ export default function BannerDetailPage() {
     const loadBannerDetails = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get<{ success: boolean; data: any }>(ENDPOINTS.marketing.creativeById(bannerIdParam));
+        // Fetch from banners endpoint (not creatives)
+        const response = await apiClient.get<{ success: boolean; data: any }>(ENDPOINTS.marketing.bannerById(bannerIdParam));
         if (response && response.success && response.data) {
           const c = response.data;
           setAudience(c.targetAudience || 'Gold Members');
@@ -176,7 +178,7 @@ export default function BannerDetailPage() {
           setCreativeDetails(c);
         }
       } catch (err) {
-        console.error('Failed to fetch banner details from local API server:', err);
+        console.error('Failed to fetch banner details:', err);
       } finally {
         setLoading(false);
       }
@@ -185,35 +187,33 @@ export default function BannerDetailPage() {
     loadBannerDetails();
   }, [bannerIdParam]);
 
-  // Handle Publish/Update
+  // Handle Publish/Update — PUT /marketing/banners/{id}
   const handlePublish = async () => {
     setLoading(true);
     try {
-      const payload = {
-        ...creativeDetails,
-        targetAudience: audience,
-        startDate,
-        endDate,
-        carousel,
-        linkTo,
-        openType,
-        spareId: spareId || null,
-        categoryId: categoryId || null,
-        machineId: machineId || null,
-        externalLink: externalLink || null,
-        name: creativeDetails?.name || `ST Spares Banner 1 – ${new Date().toLocaleDateString('en-GB').replace(/\//g, '.')}`,
-        title: creativeDetails?.title || 'ST Spares Banner 1',
-        bannerType: creativeDetails?.bannerType || 'Hero Banner'
-      };
+      const isMockId = bannerIdParam.startsWith('banner-');
 
-      if (bannerIdParam && !bannerIdParam.startsWith('banner-')) {
-        await apiClient.put(ENDPOINTS.marketing.creativeById(bannerIdParam), payload);
-      } else {
-        await apiClient.post(ENDPOINTS.marketing.creatives, payload);
+      if (!isMockId) {
+        // Real DB banner — update scheduling/targeting fields
+        const payload = {
+          targetAudience: audience,
+          startDate,
+          endDate,
+          carousel,
+          linkTo,
+          openType,
+          spareId:      spareId      || null,
+          categoryId:   categoryId   || null,
+          machineId:    machineId    || null,
+          externalLink: externalLink || null,
+          status: 'Active',
+        };
+        await apiClient.put(ENDPOINTS.marketing.bannerById(bannerIdParam), payload);
       }
+      // For mock IDs: no API call needed, just navigate back
       router.push('/marketing');
     } catch (err) {
-      console.error('Error publishing banner to backend:', err);
+      console.error('Error updating banner:', err);
       router.push('/marketing');
     } finally {
       setLoading(false);

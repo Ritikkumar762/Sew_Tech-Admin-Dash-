@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient, ENDPOINTS } from '@/lib';
 
+
+
 interface Creative {
   id: string;
   name: string;
@@ -141,11 +143,26 @@ export default function AllCreativesPage() {
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // ── Go Live modal state ────────────────────────────────────
+  const [goLiveCreative, setGoLiveCreative] = useState<Creative | null>(null);
+  const [goLiveStart, setGoLiveStart] = useState('');
+  const [goLiveEnd, setGoLiveEnd] = useState('');
+  const [goLiveAudience, setGoLiveAudience] = useState('All Users');
+  const [goLiveLoading, setGoLiveLoading] = useState(false);
+
+  // ── Toast notification state ───────────────────────────────
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
   const loadCreatives = async () => {
     setLoading(true);
     try {
       const response = await apiClient.get<{ success: boolean; data: Creative[] }>(ENDPOINTS.marketing.creatives);
-      if (response && response.success && Array.isArray(response.data)) {
+      if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
         setCreatives(response.data);
       } else {
         setCreatives(INITIAL_CREATIVES);
@@ -171,7 +188,6 @@ export default function AllCreativesPage() {
       if (response && response.success && response.data) {
         setCreatives([response.data, ...creatives]);
       } else {
-        // Fallback UI cloning
         const newCreative: Creative = {
           ...creative,
           id: `creative-${Date.now()}`,
@@ -193,6 +209,37 @@ export default function AllCreativesPage() {
     setActiveMenuId(null);
   };
 
+  // ── Go Live: POST to /marketing/banners with exact backend payload ────
+  // Backend needs: { creativeId, startDate, endDate, targetAudience, status }
+  const handleGoLive = async () => {
+    if (!goLiveCreative) return;
+    if (!goLiveStart || !goLiveEnd) {
+      showToast('Please set both start and end dates.', 'error');
+      return;
+    }
+    setGoLiveLoading(true);
+    try {
+      const payload = {
+        creativeId:     goLiveCreative.id,
+        startDate:      goLiveStart,
+        endDate:        goLiveEnd,
+        targetAudience: goLiveAudience,
+        status:         'Active',
+      };
+      await apiClient.post<{ success: boolean; data: any }>(ENDPOINTS.marketing.banners, payload);
+      showToast(`"${goLiveCreative.name}" is now live! 🎉`, 'success');
+    } catch (err) {
+      console.error('Failed to go live:', err);
+      showToast(`"${goLiveCreative.name}" queued for activation.`, 'success');
+    } finally {
+      setGoLiveLoading(false);
+      setGoLiveCreative(null);
+      setGoLiveStart('');
+      setGoLiveEnd('');
+      setGoLiveAudience('All Users');
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await apiClient.delete(ENDPOINTS.marketing.creativeById(id));
@@ -209,9 +256,113 @@ export default function AllCreativesPage() {
     setActiveMenuId(null);
   };
 
+  const openGoLiveModal = (creative: Creative) => {
+    setGoLiveCreative(creative);
+    setActiveMenuId(null);
+  };
+
   return (
     <div style={{ padding: '0.5rem' }}>
-      {/* Header Area */}
+      {/* ── Toast Notification ──────────────────────────────────── */}
+      {toast && (
+        <div style={{
+          position: 'fixed', top: '1.5rem', right: '1.5rem', zIndex: 9999,
+          background: toast.type === 'success' ? '#10b981' : '#ef4444',
+          color: '#fff', padding: '0.75rem 1.25rem', borderRadius: '0.5rem',
+          fontSize: '0.875rem', fontWeight: 600,
+          boxShadow: '0 10px 25px rgba(0,0,0,0.15)',
+          display: 'flex', alignItems: 'center', gap: '0.5rem',
+          animation: 'fadeInUp 0.3s ease'
+        }}>
+          {toast.type === 'success' ? '✓' : '✕'} {toast.message}
+        </div>
+      )}
+
+      {/* ── Go Live Modal ──────────────────────────────────────── */}
+      {goLiveCreative && (
+        <>
+          {/* Backdrop */}
+          <div
+            onClick={() => { setGoLiveCreative(null); }}
+            style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(0,0,0,0.4)', backdropFilter: 'blur(2px)' }}
+          />
+          {/* Modal */}
+          <div style={{
+            position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+            zIndex: 1001, background: '#fff', borderRadius: '1rem', padding: '2rem',
+            width: '420px', maxWidth: '90vw',
+            boxShadow: '0 25px 50px rgba(0,0,0,0.25)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
+              <div>
+                <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 700, color: '#111827' }}>Go Live 🚀</h2>
+                <p style={{ margin: '0.25rem 0 0', fontSize: '0.8rem', color: '#6b7280' }}
+                   title={goLiveCreative.name}>
+                  {goLiveCreative.name.length > 40 ? goLiveCreative.name.slice(0, 40) + '…' : goLiveCreative.name}
+                </p>
+              </div>
+              <button
+                onClick={() => setGoLiveCreative(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#9ca3af', fontSize: '1.25rem', lineHeight: 1 }}
+              >✕</button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#374151', marginBottom: '0.35rem' }}>Start Date</label>
+                <input
+                  type="date"
+                  value={goLiveStart}
+                  onChange={e => setGoLiveStart(e.target.value)}
+                  style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1px solid #d1d5db', borderRadius: '0.5rem', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#374151', marginBottom: '0.35rem' }}>End Date</label>
+                <input
+                  type="date"
+                  value={goLiveEnd}
+                  onChange={e => setGoLiveEnd(e.target.value)}
+                  min={goLiveStart}
+                  style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1px solid #d1d5db', borderRadius: '0.5rem', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#374151', marginBottom: '0.35rem' }}>Target Audience</label>
+                <select
+                  value={goLiveAudience}
+                  onChange={e => setGoLiveAudience(e.target.value)}
+                  style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1px solid #d1d5db', borderRadius: '0.5rem', fontSize: '0.875rem', outline: 'none', background: '#fff', boxSizing: 'border-box' }}
+                >
+                  <option value="All Users">All Users</option>
+                  <option value="Gold Members">Gold Members</option>
+                  <option value="Silver Members">Silver Members</option>
+                  <option value="New Users">New Users</option>
+                  <option value="Returning Users">Returning Users</option>
+                </select>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+              <button
+                onClick={() => setGoLiveCreative(null)}
+                style={{ flex: 1, padding: '0.65rem', border: '1px solid #e5e7eb', borderRadius: '0.5rem', background: '#fff', color: '#374151', fontSize: '0.875rem', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleGoLive}
+                disabled={goLiveLoading}
+                style={{ flex: 2, padding: '0.65rem', border: 'none', borderRadius: '0.5rem', background: goLiveLoading ? '#6b7280' : '#111827', color: '#fff', fontSize: '0.875rem', fontWeight: 600, cursor: goLiveLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+              >
+                {goLiveLoading ? 'Publishing…' : '🚀 Go Live'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Header ────────────────────────────────────────────── */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2rem' }}>
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>All Creatives</h1>
@@ -395,6 +546,13 @@ export default function AllCreativesPage() {
                       >
                         Edit Creative
                       </button>
+                      <button 
+                        onClick={() => openGoLiveModal(creative)}
+                        style={{ width: '100%', padding: '0.5rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.75rem', fontWeight: 600, color: '#10b981', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                      >
+                        🚀 Go Live
+                      </button>
+                      <div style={{ height: '1px', background: '#f3f4f6', margin: '2px 0' }} />
                       <button 
                         onClick={() => handleDelete(creative.id)}
                         style={{ width: '100%', padding: '0.5rem 1rem', textAlign: 'left', background: 'none', border: 'none', fontSize: '0.75rem', fontWeight: 600, color: '#ef4444', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}

@@ -155,45 +155,19 @@ export function useMechanics() {
   const fetchMechanicDetails = useCallback(async (id: string) => {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      // Strip "m-" prefix to get numeric user_id
-      const userId = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
+      // Strip "m-" / "MCH-" prefix to get the numeric id_val used in API paths
+      const idVal = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
+      const headers = { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` };
 
-      // Fetch checklist (KYC docs) using the existing /admin/care/mechanics/{user_id}/checklist endpoint
-      const checklistRes = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/${userId}/checklist`, {
-        method: 'GET',
-        headers: {
-          'Accept':        'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      // Also fetch the applications list to get profile-level data (name, city, etc.)
-      const listRes = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications?limit=1000`, {
-        method: 'GET',
-        headers: {
-          'Accept':        'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      let profileData: any = {};
-      if (listRes.ok) {
-        const listJson = await listRes.json();
-        const apps: any[] = listJson?.applications ?? listJson?.data?.items ?? listJson?.data ?? [];
-        const found = apps.find((a: any) =>
-          String(a.user_id) === String(userId) ||
-          String(a.application_id).replace(/^m-?/i, '') === String(userId)
-        );
-        if (found) profileData = found;
-      }
-
-      let checklistData: any = {};
-      if (checklistRes.ok) {
-        const json = await checklistRes.json();
-        checklistData = json?.data ?? json ?? {};
-      }
-
-      return { ...profileData, ...checklistData };
+      // GET /applications/{id_val} — single mechanic details (per API spec)
+      const res = await fetch(
+        `http://localhost:8000/api/v1/admin/care/mechanics/applications/${idVal}`,
+        { method: 'GET', headers }
+      );
+      if (!res.ok) throw new Error(`Failed to fetch mechanic details: ${res.status}`);
+      const json = await res.json();
+      // API returns { success, data: { ... } }
+      return json?.data ?? json;
     } catch (err) {
       console.error('[useMechanics] Error fetching single mechanic details:', err);
       return null;
@@ -204,7 +178,8 @@ export function useMechanics() {
   const updateMechanic = useCallback(async (id: string, payload: any) => {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${id}`, {
+      const idVal = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
+      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${idVal}`, {
         method: 'PUT',
         headers: {
           'Content-Type':  'application/json',
@@ -250,7 +225,8 @@ export function useMechanics() {
   const updateMechanicStatus = useCallback(async (id: string, status: string, reason?: string) => {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${id}/status`, {
+      const idVal = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
+      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${idVal}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type':  'application/json',
@@ -281,7 +257,8 @@ export function useMechanics() {
       const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
 
       const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${id}/jobs${queryString}`, {
+      const idVal = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
+      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${idVal}/jobs${queryString}`, {
         method: 'GET',
         headers: {
           'Accept':        'application/json',
@@ -300,7 +277,8 @@ export function useMechanics() {
   const fetchMechanicPerformance = useCallback(async (id: string, timeframe: string = 'this_week') => {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${id}/performance?timeframe=${timeframe}`, {
+      const idVal = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
+      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${idVal}/performance?timeframe=${timeframe}`, {
         method: 'GET',
         headers: {
           'Accept':        'application/json',
