@@ -25,6 +25,7 @@ export default function MechanicPage() {
   const router = useRouter();
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [statusModalConfig, setStatusModalConfig] = useState<{
     isOpen: boolean;
     mechanicId: string;
@@ -48,6 +49,11 @@ export default function MechanicPage() {
     type: 'success'
   });
 
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToastConfig({ show: true, message, type });
+    setTimeout(() => setToastConfig(prev => ({ ...prev, show: false })), 3500);
+  };
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = () => setOpenDropdownId(null);
@@ -55,10 +61,14 @@ export default function MechanicPage() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, []);
 
-  // Fetch data when filters/search changes
+  // Fetch data when filters/search changes (debounced via useEffect)
   useEffect(() => {
-    refetch({ search, status: statusFilter });
+    const timer = setTimeout(() => {
+      refetch({ search, status: statusFilter });
+    }, search ? 400 : 0);
+    return () => clearTimeout(timer);
   }, [search, statusFilter, refetch]);
+
 
   const displayMechanics = mechanics;
 
@@ -354,6 +364,14 @@ export default function MechanicPage() {
           @keyframes slideUpFade {
             from { opacity: 0; transform: translateY(16px); }
             to { opacity: 1; transform: translateY(0); }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
           }
           .animate-fade-in {
             animation: slideUpFade 0.5s ease-out forwards;
@@ -906,26 +924,25 @@ export default function MechanicPage() {
               </button>
               <button 
                 onClick={async () => {
+                  if (isUpdating) return;
+                  setIsUpdating(true);
                   try {
-                    await updateMechanicStatus(statusModalConfig.mechanicId, statusModalConfig.targetStatus, statusModalConfig.reason);
+                    const { mechanicId, mechanicName, targetStatus, reason } = statusModalConfig;
+                    const res = await updateMechanicStatus(mechanicId, targetStatus, reason);
                     setStatusModalConfig(prev => ({ ...prev, isOpen: false }));
-                    setToastConfig({
-                      show: true,
-                      message: `Status updated to ${statusModalConfig.targetStatus} successfully!`,
-                      type: 'success'
-                    });
-                    setTimeout(() => setToastConfig(prev => ({ ...prev, show: false })), 3000);
-                    refetch({ search, status: statusFilter });
+                    if (res && res.success) {
+                      showToast(`✓ ${mechanicName}'s status updated to ${targetStatus}!`, 'success');
+                    } else {
+                      showToast(res?.error || 'Failed to update status. Please try again.', 'error');
+                    }
                   } catch (err: any) {
-                    setToastConfig({
-                      show: true,
-                      message: err.message || 'Failed to update status',
-                      type: 'error'
-                    });
-                    setTimeout(() => setToastConfig(prev => ({ ...prev, show: false })), 3000);
+                    setStatusModalConfig(prev => ({ ...prev, isOpen: false }));
+                    showToast(err?.message || 'Failed to update status. Please try again.', 'error');
+                  } finally {
+                    setIsUpdating(false);
                   }
                 }}
-                disabled={!statusModalConfig.reason.trim()}
+                disabled={!statusModalConfig.reason.trim() || isUpdating}
                 style={{
                   padding: '0.5rem 1.25rem',
                   borderRadius: '0.375rem',
@@ -934,11 +951,23 @@ export default function MechanicPage() {
                   color: 'white',
                   fontSize: '0.875rem',
                   fontWeight: 600,
-                  cursor: statusModalConfig.reason.trim() ? 'pointer' : 'not-allowed',
-                  opacity: statusModalConfig.reason.trim() ? 1 : 0.6
+                  cursor: (statusModalConfig.reason.trim() && !isUpdating) ? 'pointer' : 'not-allowed',
+                  opacity: (statusModalConfig.reason.trim() && !isUpdating) ? 1 : 0.6,
+                  minWidth: '120px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem'
                 }}
               >
-                Update Status
+                {isUpdating ? (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ animation: 'spin 1s linear infinite' }}>
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
+                    Updating...
+                  </>
+                ) : 'Update Status'}
               </button>
             </div>
           </div>

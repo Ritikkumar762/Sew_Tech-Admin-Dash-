@@ -3,300 +3,418 @@ import { useState, useEffect, useCallback } from 'react';
 import { Mechanic } from '@/types';
 import { ENDPOINTS } from '@/lib/endpoints';
 
-// ── Auth token (hardcoded temporarily — replace with real auth flow later) ────
+// ── Shorthand for the mechanic applications base URL ─────────────────────────
+const API = ENDPOINTS.mechanics.applications;
+
+// ── Auth token ────────────────────────────────────────────────────────────────
 const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
 
-// ── Fallback mock data (used if API fails / returns empty) ────────────────────
-const MOCK_MECHANICS: Mechanic[] = [
-  { id: 'm1', name: 'Nishant Kumar', phone: '9876543210', location: 'Delhi',     expertise: 'Instant Smart Booking',  status: 'Available', rating: 4.5, totalJobs: 30 },
-  { id: 'm2', name: 'Suresh Yadav',  phone: '9765432109', location: 'Mumbai',    expertise: 'Video Call Assistance',   status: 'Available', rating: 4.5, totalJobs: 30 },
-  { id: 'm3', name: 'Ajay Nair',     phone: '9654321098', location: 'Bangalore', expertise: 'Invite Quote',            status: 'Available', rating: 4.5, totalJobs: 30 },
-  { id: 'm4', name: 'Vijay Pandey',  phone: '9543210987', location: 'Pune',      expertise: 'Instant Smart Booking',   status: 'Available', rating: 4.5, totalJobs: 30 },
-  { id: 'm5', name: 'Ramesh Sharma', phone: '9432109876', location: 'Delhi',     expertise: 'Video Call Assistance',   status: 'Available', rating: 4.5, totalJobs: 30 },
-];
+function getToken() {
+  if (typeof window === 'undefined') return HARDCODED_TOKEN;
+  return (
+    localStorage.getItem('adminToken') ??
+    localStorage.getItem('auth_token') ??
+    HARDCODED_TOKEN
+  );
+}
 
-/** Map a raw API application object → internal Mechanic shape */
-function mapApplication(app: any, index: number): Mechanic {
-  // API fields: display_name, application_id, status (APPROVED/PENDING/REJECTED), submitted_at, user_id, profile_id
-  const fullName =
-    app.display_name ||
-    [app.firstName, app.lastName].filter(Boolean).join(' ') ||
-    app.name ||
-    `Mechanic ${index + 1}`;
-
-  // Preserve actual API status casing and values
-  let status: Mechanic['status'] = 'Active';
-  if (app.status) {
-    const s = String(app.status).toUpperCase();
-    if (s === 'ACTIVE' || s === 'AVAILABLE' || s === 'APPROVED') status = 'Active';
-    else if (s === 'BUSY') status = 'Busy';
-    else if (s === 'PENDING') status = 'Pending';
-    else if (s === 'SUSPENDED') status = 'Suspended';
-    else if (s === 'OFFLINE') status = 'Offline';
-    else if (s === 'REJECTED') status = 'Rejected';
-    else status = (app.status.charAt(0).toUpperCase() + app.status.slice(1).toLowerCase()) as any;
-  } else {
-    status = 'Active';
-  }
-
+function authHeaders(extra: Record<string, string> = {}) {
   return {
-    id:        String(app.application_id ?? app._id ?? app.id ?? `api-${index}`),
-    name:      fullName,
-    phone:     app.phone ?? app.mobile ?? '',
-    location:  app.city  ?? app.location ?? app.address?.city ?? '',
-    expertise: app.serviceType ?? app.expertise ?? app.specialization ?? 'Sewing Machine',
-    status,
-    rating:    typeof app.rating === 'number' ? app.rating : 4.5,
-    totalJobs: app.totalJobs ?? app.jobsCompleted ?? 0,
-    userId:    app.user_id ?? app.userId ?? '',
-    aadharName: app.aadharName ?? app.aadhaarName ?? '',
-    aadharNumber: app.aadharNumber ?? app.aadhaarNumber ?? '',
-    panName:   app.panName ?? '',
-    panNumber: app.panNumber ?? '',
-    panCardFile: app.panCardFile ?? app.panCard ?? '',
-    availability: app.availability ?? '',
+    Accept: 'application/json',
+    Authorization: `Bearer ${getToken()}`,
+    ...extra,
   };
 }
 
+// ── Extract numeric id — "m-120" → "120", "MCH-5" → "5", "120" → "120" ──────
+function numericId(id: string): string {
+  return String(id)
+    .replace(/^m-?/i, '')
+    .replace(/^MCH-?/i, '')
+    .trim();
+}
+
+/** Returns true when `id` is one of the local mock records (m1, m2 …) */
+function isMockId(id: string): boolean {
+  return ['m1', 'm2', 'm3', 'm4', 'm5'].includes(String(id).toLowerCase());
+}
+
+// ── Map frontend status label → backend enum value ────────────────────────────
+function toApiStatus(status: string): string {
+  const s = status.toUpperCase();
+  if (s === 'ACTIVE' || s === 'APPROVED') return 'APPROVED';
+  if (s === 'BUSY')      return 'BUSY';
+  if (s === 'PENDING')   return 'PENDING';
+  if (s === 'OFFLINE')   return 'OFFLINE';
+  if (s === 'SUSPENDED') return 'SUSPENDED';
+  if (s === 'REJECTED')  return 'REJECTED';
+  return s;
+}
+
+// ── Map backend status → frontend label ───────────────────────────────────────
+function fromApiStatus(raw: string): Mechanic['status'] {
+  const s = String(raw ?? '').toUpperCase();
+  if (s === 'ACTIVE' || s === 'APPROVED' || s === 'AVAILABLE') return 'Active';
+  if (s === 'BUSY')      return 'Busy';
+  if (s === 'PENDING')   return 'Pending';
+  if (s === 'SUSPENDED') return 'Suspended';
+  if (s === 'REJECTED')  return 'Rejected';
+  if (s === 'OFFLINE')   return 'Offline';
+  return 'Active'; // safe default
+}
+
+// ── Local Status Cache helpers to persist status updates when list API misses status ──
+function getSavedStatus(id: string): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const data = localStorage.getItem('mechanic_status_updates');
+    if (data) {
+      const parsed = JSON.parse(data);
+      return parsed[id] || null;
+    }
+  } catch (e) {
+    console.error('Failed to parse saved status updates', e);
+  }
+  return null;
+}
+
+function saveStatusUpdate(id: string, status: string) {
+  if (typeof window === 'undefined') return;
+  try {
+    const data = localStorage.getItem('mechanic_status_updates');
+    const parsed = data ? JSON.parse(data) : {};
+    parsed[id] = status;
+    localStorage.setItem('mechanic_status_updates', JSON.stringify(parsed));
+  } catch (e) {
+    console.error('Failed to save status update', e);
+  }
+}
+
+// ── Fallback mock data ────────────────────────────────────────────────────────
+const MOCK_MECHANICS: Mechanic[] = [
+  { id: 'm1', name: 'Nishant Kumar', phone: '9876543210', location: 'Delhi',     expertise: 'Instant Smart Booking', status: 'Active',    rating: 4.5, totalJobs: 30 },
+  { id: 'm2', name: 'Suresh Yadav',  phone: '9765432109', location: 'Mumbai',    expertise: 'Video Call Assistance',  status: 'Active',    rating: 4.5, totalJobs: 30 },
+  { id: 'm3', name: 'Ajay Nair',     phone: '9654321098', location: 'Bangalore', expertise: 'Invite Quote',           status: 'Pending',   rating: 4.2, totalJobs: 12 },
+  { id: 'm4', name: 'Vijay Pandey',  phone: '9543210987', location: 'Pune',      expertise: 'Instant Smart Booking',  status: 'Active',    rating: 4.8, totalJobs: 55 },
+  { id: 'm5', name: 'Ramesh Sharma', phone: '9432109876', location: 'Delhi',     expertise: 'Video Call Assistance',  status: 'Suspended', rating: 3.8, totalJobs: 20 },
+];
+
+// ── Map a raw API application item to our Mechanic type ───────────────────────
+function mapApplication(app: any): Mechanic {
+  const name = app.display_name || app.name || `Mechanic ${app.application_id}`;
+  const appId = String(app.application_id ?? app._id ?? app.id ?? '');
+  
+  // Use saved status from localStorage if present; otherwise check app.status, defaulting to 'Active'
+  const savedStatus = getSavedStatus(appId);
+  const status = savedStatus ? fromApiStatus(savedStatus) : fromApiStatus(app.status ?? '');
+
+  return {
+    id:           appId,
+    name,
+    phone:        app.phone    ?? app.mobile   ?? '',
+    location:     app.city     ?? app.location ?? '',
+    expertise:    app.serviceType ?? app.expertise ?? 'Sewing Machine',
+    status,
+    rating:       typeof app.rating === 'number' ? app.rating : 4.5,
+    totalJobs:    app.jobsCompleted ?? app.totalJobs ?? 0,
+    userId:       String(app.user_id ?? app.userId ?? ''),
+    aadharName:   app.aadharName   ?? app.aadhaarName   ?? '',
+    aadharNumber: app.aadharNumber ?? app.aadhaarNumber ?? '',
+    panName:      app.panName   ?? '',
+    panNumber:    app.panNumber ?? '',
+    panCardFile:  app.panCardFile ?? app.panCard ?? '',
+    availability: app.lastActivity ?? app.availability ?? '',
+  };
+}
+
+// ── Compute KPI metrics from a list of mechanics ──────────────────────────────
+function computeMetrics(mapped: Mechanic[], total: number, rawItems: any[]) {
+  const active     = mapped.filter(m => m.status === 'Active').length;
+  const avgRating  = mapped.length
+    ? mapped.reduce((s, m) => s + (m.rating ?? 0), 0) / mapped.length
+    : 0;
+  const flagged    = rawItems.filter(i => i.flags).length;
+  return {
+    totalMechanics:  total,
+    activeMechanics: active,
+    averageRating:   Math.round(avgRating * 10) / 10,
+    flags:           flagged,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 export function useMechanics() {
-  const [mechanics, setMechanics]         = useState<Mechanic[]>([]);
-  const [loading, setLoading]             = useState(true);
-  const [error, setError]                 = useState<string | null>(null);
+  const [mechanics,     setMechanics]     = useState<Mechanic[]>([]);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState<string | null>(null);
   const [usingFallback, setUsingFallback] = useState(false);
-  const [totalCount, setTotalCount]       = useState(0);
-  const [metrics, setMetrics]             = useState({
-    totalMechanics: 1500,
-    activeMechanics: 1000,
-    averageRating: 4.5,
-    flags: 100
+  const [totalCount,    setTotalCount]    = useState(0);
+  const [metrics,       setMetrics]       = useState({
+    totalMechanics:  0,
+    activeMechanics: 0,
+    averageRating:   0,
+    flags:           0,
   });
 
-  const fetchMechanics = useCallback(async (params: { page?: number; limit?: number; status?: string; search?: string } = {}) => {
+  // ── Fetch list ──────────────────────────────────────────────────────────────
+  const fetchMechanics = useCallback(async (
+    params: { page?: number; limit?: number; status?: string; search?: string } = {}
+  ) => {
     setLoading(true);
     setError(null);
     setUsingFallback(false);
 
     try {
-      const queryParts = [];
-      if (params.page) queryParts.push(`page=${params.page}`);
-      if (params.limit) queryParts.push(`limit=${params.limit}`);
-      if (params.status) queryParts.push(`status=${params.status}`);
-      if (params.search) queryParts.push(`search=${encodeURIComponent(params.search)}`);
-      const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+      const q: string[] = [];
+      if (params.page)   q.push(`page=${params.page}`);
+      if (params.limit)  q.push(`limit=${params.limit ?? 20}`);
+      if (params.status) q.push(`status=${encodeURIComponent(toApiStatus(params.status))}`);
+      if (params.search) q.push(`search=${encodeURIComponent(params.search)}`);
+      const url = `${API}${q.length ? '?' + q.join('&') : ''}`;
 
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const url = `http://localhost:8000/api/v1/admin/care/mechanics/applications${queryString}`;
-      
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Accept':        'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-
-      if (!res.ok) throw new Error(`API error ${res.status}: ${res.statusText}`);
+      const res = await fetch(url, { method: 'GET', headers: authHeaders() });
+      if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
 
       const json = await res.json();
-      console.log('[useMechanics] API response:', json);
+      // Shape: { success, data: { items: [...], total: N } }  OR  { data: [...] }
+      const items: any[] = json?.data?.items ?? json?.data ?? json?.items ?? [];
+      const total: number = json?.data?.total ?? json?.total ?? items.length;
 
-      let raw: any[] = [];
-      if (Array.isArray(json)) {
-        raw = json;
-      } else if (json && json.data) {
-        if (Array.isArray(json.data)) {
-          raw = json.data;
-        } else if (json.data.items && Array.isArray(json.data.items)) {
-          raw = json.data.items;
-        }
-      } else if (json && json.applications && Array.isArray(json.applications)) {
-        raw = json.applications;
-      } else if (json && json.mechanics && Array.isArray(json.mechanics)) {
-        raw = json.mechanics;
-      } else if (json && json.results && Array.isArray(json.results)) {
-        raw = json.results;
-      }
-
-      if (!Array.isArray(raw)) {
-        raw = [];
-      }
-
-      const total = json.meta?.total ?? json.total ?? json.data?.total ?? raw.length;
-      setTotalCount(total);
-
-      if (json.metrics) {
-        setMetrics({
-          totalMechanics: json.metrics.totalMechanics ?? 1500,
-          activeMechanics: json.metrics.activeMechanics ?? 1000,
-          averageRating: json.metrics.averageRating ?? 4.5,
-          flags: json.metrics.flags ?? 100
-        });
-      }
-
-      if (raw.length === 0) {
-        console.warn('[useMechanics] API returned empty array — using fallback mock data');
+      if (!Array.isArray(items) || items.length === 0) {
         setMechanics(MOCK_MECHANICS);
         setTotalCount(MOCK_MECHANICS.length);
         setUsingFallback(true);
+        setMetrics(computeMetrics(MOCK_MECHANICS, MOCK_MECHANICS.length, []));
       } else {
-        setMechanics(raw.map(mapApplication));
+        const mapped = items.map(mapApplication);
+        setMechanics(mapped);
+        setTotalCount(total);
+        setUsingFallback(false);
+        setMetrics(computeMetrics(mapped, total, items));
       }
     } catch (err: any) {
-      console.warn('[useMechanics] API call failed — using fallback mock data:', err);
+      console.warn('[useMechanics] fetch failed, using mock:', err?.message);
       setMechanics(MOCK_MECHANICS);
       setTotalCount(MOCK_MECHANICS.length);
       setUsingFallback(true);
-      setError(err?.message || 'Failed to fetch mechanics');
+      setMetrics(computeMetrics(MOCK_MECHANICS, MOCK_MECHANICS.length, []));
+      setError(err?.message ?? 'Failed to fetch mechanics');
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // ── Fetch single mechanic details ───────────────────────────────────────────
   const fetchMechanicDetails = useCallback(async (id: string) => {
-    try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      // Strip "m-" / "MCH-" prefix to get the numeric id_val used in API paths
-      const idVal = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
-      const headers = { 'Accept': 'application/json', 'Authorization': `Bearer ${token}` };
+    // Mock IDs → return null (caller will use local mock map)
+    if (isMockId(id)) return null;
 
-      // GET /applications/{id_val} — single mechanic details (per API spec)
-      const res = await fetch(
-        `http://localhost:8000/api/v1/admin/care/mechanics/applications/${idVal}`,
-        { method: 'GET', headers }
-      );
-      if (!res.ok) throw new Error(`Failed to fetch mechanic details: ${res.status}`);
+    try {
+      const nid = numericId(id);
+      const res  = await fetch(`${API}/${nid}`, { method: 'GET', headers: authHeaders() });
+      if (!res.ok) throw new Error(`${res.status}`);
       const json = await res.json();
-      // API returns { success, data: { ... } }
-      return json?.data ?? json;
+      const data = json?.data ?? json;
+      if (data && (data.application_id || data.id || data.display_name)) {
+        if (data.status) {
+          saveStatusUpdate(id, data.status);
+        }
+        return data;
+      }
+      throw new Error('Detail data empty');
     } catch (err) {
-      console.error('[useMechanics] Error fetching single mechanic details:', err);
+      console.warn('[useMechanics] fetchMechanicDetails single failed, trying list fallback:', err);
+      // Fallback: fetch list and find the matching mechanic
+      try {
+        const res = await fetch(API, { method: 'GET', headers: authHeaders() });
+        if (!res.ok) return null;
+        const json = await res.json();
+        const items: any[] = json?.data?.items ?? json?.data ?? json?.items ?? [];
+        if (!Array.isArray(items)) return null;
+
+        const nid = numericId(id);
+        const match = items.find((item: any) => {
+          const itemAppId = String(item.application_id ?? item._id ?? item.id ?? '');
+          const itemMechId = String(item.mechanicId ?? '');
+          return (
+            itemAppId === id ||
+            numericId(itemAppId) === nid ||
+            itemMechId === id ||
+            numericId(itemMechId) === nid
+          );
+        });
+        if (!match) return null;
+
+        const name = match.display_name || match.name || 'Mechanic';
+        const savedStatus = getSavedStatus(id) || match.status || 'Active';
+
+        return {
+          application_id:  match.application_id || id,
+          user_id:         nid,
+          display_name:    name,
+          phone:           match.phone  || match.mobile   || '',
+          email:           match.email  || `${name.toLowerCase().replace(/\s+/g, '.')}@sewtech.in`,
+          city:            match.city   || match.location || 'Delhi NCR',
+          dob:             match.dob    || '',
+          languages:       match.languages        || ['Hindi', 'English'],
+          selectedLanguage:match.selectedLanguage  || ['Hindi', 'English'],
+          joiningDate:     match.joiningDate       || match.created_at || new Date().toISOString(),
+          status:          savedStatus,
+          rating:          typeof match.rating === 'number' ? match.rating : 4.5,
+          acceptanceRate:  match.acceptanceRate    ?? 90,
+          completionRate:  match.completionRate    ?? 85,
+          experience:      match.experience        ?? 0,
+          experienceYears: match.experienceYears   ?? 0,
+          availability:    match.availability      || ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+          bio:             match.bio               || 'Certified technician specializing in sewing machine maintenance.',
+          skills:          match.skills            || [],
+          machinesFamiliar:match.machinesFamiliar  || [],
+          activeServices:  match.activeServices    || ['Instant Smart Booking', 'Video Call Assistance', 'Invite Quote'],
+          documents: {
+            aadharName:      match.aadharName    || name,
+            aadharNumber:    match.aadharNumber  || '',
+            panName:         match.panName       || name,
+            panNumber:       match.panNumber     || '',
+            panCardFileUrl:  match.panCardFile   || match.panCardFileUrl || null,
+          },
+          media: {
+            audioPitchUrl: match.audioPitchUrl || null,
+            videoPitchUrl: match.videoPitchUrl || null,
+          },
+        };
+      } catch (fallbackErr) {
+        console.error('[useMechanics] list fallback also failed:', fallbackErr);
+      }
       return null;
     }
   }, []);
 
-
+  // ── Update mechanic fields (PUT) ────────────────────────────────────────────
   const updateMechanic = useCallback(async (id: string, payload: any) => {
+    if (isMockId(id)) {
+      // Local-only update for mock data — simulate success
+      return { success: true, data: payload, message: 'Updated locally (mock)' };
+    }
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const idVal = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
-      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${idVal}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type':  'application/json',
-          'Accept':        'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload)
+      const nid = numericId(id);
+      const res = await fetch(`${API}/${nid}`, {
+        method:  'PUT',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body:    JSON.stringify(payload),
       });
-      if (res.status === 404) {
-        return {
-          success: true,
-          data: {
-            ...payload,
-            name: payload.display_name,
-            location: payload.city,
-            documents: {
-              aadharNumber: payload.documents?.aadharNumber,
-              panNumber: payload.documents?.panNumber
-            }
-          }
-        };
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = json?.message || json?.error || `API error ${res.status}: ${res.statusText}`;
+        return { success: false, error: msg };
       }
-      if (!res.ok) throw new Error(`Failed to update mechanic: ${res.status}`);
-      const json = await res.json();
-      return json;
-    } catch (err) {
-      console.warn('[useMechanics] API update failed, falling back to local success:', err);
-      return {
-        success: true,
-        data: {
-          ...payload,
-          name: payload.display_name,
-          location: payload.city,
-          documents: {
-            aadharNumber: payload.documents?.aadharNumber,
-            panNumber: payload.documents?.panNumber
-          }
-        }
-      };
+      // If backend returns updated data, merge it; otherwise echo payload
+      return { success: true, data: json?.data ?? payload, message: json?.message ?? 'Updated successfully' };
+    } catch (err: any) {
+      console.error('[useMechanics] updateMechanic failed:', err);
+      return { success: false, error: err?.message || 'Failed to update mechanic' };
     }
   }, []);
 
-  const updateMechanicStatus = useCallback(async (id: string, status: string, reason?: string) => {
-    try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const idVal = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
-      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${idVal}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type':  'application/json',
-          'Accept':        'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ status, reason })
-      });
-      if (res.status === 404) {
-        return { success: true, message: `Status updated to ${status}` };
-      }
-      if (!res.ok) throw new Error(`Failed to update status: ${res.status}`);
-      const json = await res.json();
-      return json;
-    } catch (err) {
-      console.warn('[useMechanics] API status update failed, falling back to local success:', err);
-      return { success: true, message: `Status updated to ${status}` };
+  // ── Update mechanic status (PATCH /applications/{id}/status) ───────────────
+  const updateMechanicStatus = useCallback(async (
+    id: string,
+    status: string,
+    reason?: string
+  ) => {
+    const apiStatus = toApiStatus(status);
+
+    // Save status update to localStorage cache
+    saveStatusUpdate(id, apiStatus);
+
+    // Optimistic local state update
+    setMechanics(prev =>
+      prev.map(m =>
+        m.id === id ? { ...m, status: fromApiStatus(apiStatus) } : m
+      )
+    );
+
+    if (isMockId(id)) {
+      return { success: true, data: { id, status: fromApiStatus(apiStatus) } };
     }
-  }, []);
 
-  const fetchMechanicJobs = useCallback(async (id: string, params: { tab?: string; status?: string; page?: number; limit?: number } = {}) => {
     try {
-      const queryParts = [];
-      if (params.tab) queryParts.push(`tab=${params.tab}`);
-      if (params.status) queryParts.push(`status=${params.status}`);
-      if (params.page) queryParts.push(`page=${params.page}`);
-      if (params.limit) queryParts.push(`limit=${params.limit}`);
-      const queryString = queryParts.length > 0 ? `?${queryParts.join('&')}` : '';
+      const nid = numericId(id);
+      const body: any = { status: apiStatus };
+      if (reason) body.reason = reason;
 
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const idVal = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
-      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${idVal}/jobs${queryString}`, {
-        method: 'GET',
-        headers: {
-          'Accept':        'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+      const res = await fetch(`${API}/${nid}/status`, {
+        method:  'PATCH',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body:    JSON.stringify(body),
       });
-      if (!res.ok) throw new Error(`Failed to fetch jobs: ${res.status}`);
+
+      const json = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        // Revert optimistic update on failure
+        setMechanics(prev =>
+          prev.map(m =>
+            m.id === id ? { ...m, status: fromApiStatus((json?.data?.status) ?? status) } : m
+          )
+        );
+        const msg = json?.message || json?.error || `API error ${res.status}: ${res.statusText}`;
+        return { success: false, error: msg };
+      }
+
+      // Refresh full list to sync with server
+      await fetchMechanics();
+      return { success: true, data: json?.data ?? { id, status: apiStatus }, message: json?.message ?? 'Status updated' };
+    } catch (err: any) {
+      console.error('[useMechanics] updateMechanicStatus failed:', err);
+      // Revert optimistic update
+      await fetchMechanics();
+      return { success: false, error: err?.message || 'Failed to update status' };
+    }
+  }, [fetchMechanics]);
+
+  // ── Fetch mechanic jobs ─────────────────────────────────────────────────────
+  const fetchMechanicJobs = useCallback(async (
+    id: string,
+    params: { tab?: string; status?: string; page?: number; limit?: number } = {}
+  ) => {
+    if (isMockId(id)) return { success: false, data: [] };
+    try {
+      const nid = numericId(id);
+      const q: string[] = [];
+      if (params.tab)    q.push(`tab=${encodeURIComponent(params.tab)}`);
+      if (params.status) q.push(`status=${encodeURIComponent(params.status)}`);
+      if (params.page)   q.push(`page=${params.page}`);
+      if (params.limit)  q.push(`limit=${params.limit}`);
+      const url = `${API}/${nid}/jobs${q.length ? '?' + q.join('&') : ''}`;
+      const res = await fetch(url, { method: 'GET', headers: authHeaders() });
+      if (!res.ok) throw new Error(`${res.status}`);
       const json = await res.json();
-      return json;
+      return { success: true, data: json?.data?.items ?? json?.data ?? json?.items ?? [] };
     } catch (err) {
-      console.error('[useMechanics] Error fetching jobs:', err);
+      console.warn('[useMechanics] fetchMechanicJobs failed:', err);
       return { success: false, data: [] };
     }
   }, []);
 
-  const fetchMechanicPerformance = useCallback(async (id: string, timeframe: string = 'this_week') => {
+  // ── Fetch mechanic performance ──────────────────────────────────────────────
+  const fetchMechanicPerformance = useCallback(async (id: string, timeframe = 'this_week') => {
+    if (isMockId(id)) return { success: false, data: null };
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const idVal = String(id).replace(/^m-?/i, '').replace(/^MCH-?/i, '').trim();
-      const res = await fetch(`http://localhost:8000/api/v1/admin/care/mechanics/applications/${idVal}/performance?timeframe=${timeframe}`, {
-        method: 'GET',
-        headers: {
-          'Accept':        'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+      const nid = numericId(id);
+      const res = await fetch(`${API}/${nid}/performance?timeframe=${encodeURIComponent(timeframe)}`, {
+        method: 'GET', headers: authHeaders(),
       });
-      if (!res.ok) throw new Error(`Failed to fetch performance: ${res.status}`);
+      if (!res.ok) throw new Error(`${res.status}`);
       const json = await res.json();
-      return json;
+      return { success: true, data: json?.data ?? json };
     } catch (err) {
-      console.error('[useMechanics] Error fetching performance:', err);
+      console.warn('[useMechanics] fetchMechanicPerformance failed:', err);
       return { success: false, data: null };
     }
   }, []);
 
-  useEffect(() => {
-    fetchMechanics();
-  }, [fetchMechanics]);
+  // ── Initial load ────────────────────────────────────────────────────────────
+  useEffect(() => { fetchMechanics(); }, [fetchMechanics]);
 
   return {
     mechanics,
@@ -305,11 +423,12 @@ export function useMechanics() {
     usingFallback,
     totalCount,
     metrics,
-    refetch: fetchMechanics,
+    refetch:               fetchMechanics,
     fetchMechanicDetails,
     updateMechanic,
     updateMechanicStatus,
     fetchMechanicJobs,
-    fetchMechanicPerformance
+    fetchMechanicPerformance,
+    isMockId,
   };
 }
