@@ -21,6 +21,13 @@ import {
 export default function MechanicPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
   const { mechanics, loading, error, refetch, updateMechanicStatus, metrics } = useMechanics();
   const router = useRouter();
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
@@ -71,6 +78,8 @@ export default function MechanicPage() {
 
 
   const displayMechanics = mechanics;
+  const totalPages = Math.ceil(displayMechanics.length / rowsPerPage);
+  const displayedMechanics = displayMechanics.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
   const columns: Column<any>[] = [
     {
@@ -637,14 +646,49 @@ export default function MechanicPage() {
       </div>
 
       <div className="card animate-fade-in stagger-5" style={{ transition: 'box-shadow 0.3s ease' }} onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.05)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}>
-        {loading && <p className="text-muted">Loading mechanics...</p>}
-        {error && <p style={{ color: '#ef4444' }}>{error}</p>}
+        {loading && <p className="text-muted" style={{ padding: '2rem', textAlign: 'center' }}>Loading mechanics...</p>}
+        {error && <p style={{ color: '#ef4444', padding: '2rem', textAlign: 'center' }}>{error}</p>}
         {!loading && (
-          <DataTable 
-            columns={columns} 
-            data={displayMechanics} 
-            onRowClick={(r) => router.push(`/mechanic/management/${r.id}`)} 
-          />
+          <>
+            <DataTable 
+              columns={columns} 
+              data={displayedMechanics} 
+              onRowClick={(r) => router.push(`/mechanic/management/${r.id}`)} 
+            />
+
+            {/* Pagination controls */}
+            <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '2rem', marginTop: '1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', padding: '0 1.5rem', flexWrap: 'wrap', borderTop: '1px solid #f3f4f6', paddingTop: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>Rows per page:</span>
+                <select 
+                  value={rowsPerPage} 
+                  onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+                  style={{ border: 'none', background: 'none', outline: 'none', fontWeight: 700, color: '#111827', cursor: 'pointer' }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span>{displayMechanics.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}–{Math.min(currentPage * rowsPerPage, displayMechanics.length)} of {displayMechanics.length}</span>
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  style={{ border: 'none', background: 'none', cursor: currentPage === 1 ? 'default' : 'pointer', fontWeight: 700, color: currentPage === 1 ? '#9ca3af' : '#111827' }}
+                >
+                  &lt;
+                </button>
+                <button 
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  style={{ border: 'none', background: 'none', cursor: currentPage >= totalPages ? 'default' : 'pointer', fontWeight: 700, color: currentPage >= totalPages ? '#9ca3af' : '#111827' }}
+                >
+                  &gt;
+                </button>
+              </div>
+            </div>
+          </>
         )}
       </div>
 

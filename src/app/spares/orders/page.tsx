@@ -124,6 +124,13 @@ export default function SparesOrdersPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'All' | 'Ordered' | 'Return' | 'Replacement' | 'Cancelled'>('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchQuery]);
+
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -243,9 +250,39 @@ export default function SparesOrdersPage() {
       order.status === 'Completed'
     );
     if (activeTab === 'Cancelled') return matchesSearch && (order.status === 'Cancelled');
-    
     return matchesSearch;
   });
+
+  const totalPages = Math.ceil(filteredOrders.length / rowsPerPage);
+  const displayedOrders = filteredOrders.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+
+  const getTabCount = (tabId: 'All' | 'Ordered' | 'Return' | 'Replacement' | 'Cancelled') => {
+    return orders.filter(order => {
+      if (tabId === 'All') return true;
+      if (tabId === 'Ordered') return (
+        order.status === 'Order Received' || 
+        order.status === 'Processing' || 
+        order.status === 'Shipped' || 
+        order.status === 'Out for Delivery' || 
+        order.status === 'Delivered'
+      );
+      if (tabId === 'Return') return (
+        order.type === 'return' ||
+        order.status === 'Return Requested' || 
+        order.status.includes('Refund')
+      );
+      if (tabId === 'Replacement') return (
+        order.type === 'replacement' ||
+        order.status === 'Requested' || 
+        order.status.includes('Pickup') || 
+        order.status.includes('Replacement') || 
+        order.status.includes('Delivery') || 
+        order.status === 'Completed'
+      );
+      if (tabId === 'Cancelled') return order.status === 'Cancelled';
+      return true;
+    }).length;
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.4s ease-out' }}>
@@ -620,11 +657,11 @@ export default function SparesOrdersPage() {
         {/* Primary Tabs */}
         <div style={{ display: 'flex', gap: '1rem', borderBottom: '1px solid #e5e7eb', overflowX: 'auto', marginBottom: '1rem' }}>
           {[
-            { id: 'All', count: 2345 },
-            { id: 'Ordered', count: 1085 },
-            { id: 'Return', count: 1983 },
-            { id: 'Replacement', count: 1534 },
-            { id: 'Cancelled', count: 374 },
+            { id: 'All', count: getTabCount('All') },
+            { id: 'Ordered', count: getTabCount('Ordered') },
+            { id: 'Return', count: getTabCount('Return') },
+            { id: 'Replacement', count: getTabCount('Replacement') },
+            { id: 'Cancelled', count: getTabCount('Cancelled') },
           ].map(tab => (
             <button
               key={tab.id}
@@ -707,8 +744,8 @@ export default function SparesOrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order, idx) => (
+              {displayedOrders.length > 0 ? (
+                displayedOrders.map((order, idx) => (
                   <tr key={order.id} className="order-row" style={{ cursor: 'pointer' }} onClick={() => router.push(`/spares/orders/${order.id}`)}>
                     <td style={{ padding: '1.25rem 1.5rem' }} onClick={(e) => e.stopPropagation()}>
                       <input type="checkbox" style={{ accentColor: '#111827', width: '16px', height: '16px', cursor: 'pointer' }} />
@@ -805,6 +842,39 @@ export default function SparesOrdersPage() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination controls */}
+        <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '2rem', marginTop: '1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', padding: '0 1.5rem', flexWrap: 'wrap', borderTop: '1px solid #f3f4f6', paddingTop: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>Rows per page:</span>
+            <select 
+              value={rowsPerPage} 
+              onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }}
+              style={{ border: 'none', background: 'none', outline: 'none', fontWeight: 700, color: '#111827', cursor: 'pointer' }}
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>{filteredOrders.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0}–{Math.min(currentPage * rowsPerPage, filteredOrders.length)} of {filteredOrders.length}</span>
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              style={{ border: 'none', background: 'none', cursor: currentPage === 1 ? 'default' : 'pointer', fontWeight: 700, color: currentPage === 1 ? '#9ca3af' : '#111827' }}
+            >
+              &lt;
+            </button>
+            <button 
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              style={{ border: 'none', background: 'none', cursor: currentPage >= totalPages ? 'default' : 'pointer', fontWeight: 700, color: currentPage >= totalPages ? '#9ca3af' : '#111827' }}
+            >
+              &gt;
+            </button>
+          </div>
         </div>
 
       </div>
