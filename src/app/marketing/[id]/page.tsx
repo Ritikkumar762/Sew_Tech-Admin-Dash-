@@ -668,73 +668,53 @@ export default function BannerDetailPage() {
               {/* Dynamic Banner Overlay */}
               <div style={{
                 position: 'absolute',
-                left: '6.5%',
-                top: '17.9%',
-                width: '87%',
-                height: '17.2%',
+                left: '5.5%',
+                top: '17.6%',
+                width: '89%',
+                height: '17.8%',
                 background: uploadedImage ? `url(${uploadedImage}) center/cover no-repeat` : 'linear-gradient(135deg, #ec4899, #ef4444)',
                 borderRadius: '0.5rem',
-                padding: uploadedImage ? '0' : '0.5rem',
+                padding: uploadedImage ? '0' : '0.5rem 0.75rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 color: '#fff',
                 boxSizing: 'border-box',
-                overflow: 'hidden'
+                overflow: 'visible'
               }}>
                 {!uploadedImage && (
                   <>
                     {/* Left Content */}
-                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, overflow: 'hidden' }}>
-                      <span style={{ fontSize: '0.5rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, overflow: 'hidden', paddingRight: '50%' }}>
+                      <span style={{ fontSize: '0.625rem', fontWeight: 500, opacity: 0.9, color: '#fff', fontFamily: 'var(--font-sans)', display: 'block' }}>
                         {previewData.sub}
                       </span>
-                      <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: '2px 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      <h4 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '1px 0', color: '#fff', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)', lineHeight: 1.15 }}>
                         {previewData.title}
                       </h4>
-                      <span style={{ fontSize: '0.45rem', opacity: 0.85, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                      <span style={{ fontSize: '0.55rem', fontWeight: 500, opacity: 0.9, color: '#fff', fontFamily: 'var(--font-sans)', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                         {previewData.footer}
                       </span>
                     </div>
 
-                    {/* Right Image */}
+                    {/* Right Image (floating overlapping UI style matching Figma: 141.29px x 141.29px) */}
                     <div style={{
-                      position: 'relative',
-                      height: '140%',
-                      width: '55%',
-                      flexShrink: 0,
-                      marginRight: '-5%'
+                      position: 'absolute',
+                      right: '40px',
+                      top: '-8px',
+                      width: '141.29px',
+                      height: '141.29px',
+                      zIndex: 2,
+                      pointerEvents: 'none'
                     }}>
-                      {/* Simulated shadow for images with white backgrounds */}
-                      <img 
-                        src={creativeDetails?.imageUrl || "/rotary-hook.png"} 
-                        alt="" 
-                        style={{ 
-                          position: 'absolute',
-                          right: 0,
-                          top: '12px',
-                          height: '100%',
-                          width: '100%',
-                          objectFit: 'contain',
-                          objectPosition: 'right center',
-                          mixBlendMode: 'multiply',
-                          filter: 'blur(15px) contrast(1.2)',
-                          opacity: 0.6
-                        }} 
-                      />
                       <img 
                         src={creativeDetails?.imageUrl || "/rotary-hook.png"} 
                         alt="Spare Part" 
                         style={{ 
-                          position: 'absolute',
-                          right: 0,
-                          top: 0,
-                          height: '100%',
                           width: '100%',
+                          height: '100%',
                           objectFit: 'contain',
-                          objectPosition: 'right center',
-                          mixBlendMode: 'multiply',
-                          filter: 'contrast(1.05)'
+                          objectPosition: 'center bottom'
                         }} 
                       />
                     </div>
