@@ -330,13 +330,12 @@ function AddCreativeContent() {
               Next <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           ) : (
-            <button 
-              onClick={handleSaveCreative} 
-              disabled={loading}
-              style={{ background: '#111827', color: '#fff', border: 'none', padding: '0.5rem 1.5rem', borderRadius: '0.5rem', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: loading ? 0.7 : 1 }}
-            >
-              {loading ? 'Saving...' : 'Save Creative'} <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </button>
+            <img 
+              src="/save_creative button.svg" 
+              alt={loading ? "Saving..." : "Save Creative"} 
+              onClick={loading ? undefined : handleSaveCreative}
+              style={{ height: '38px', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, display: 'block' }}
+            />
           )}
         </div>
       </div>

@@ -94,12 +94,26 @@ export default function MarketingPage() {
 
       <div className="card" style={{ display: 'flex', justifyContent: 'space-between', padding: '1.5rem', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem', background: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
         {stats.map((stat, i) => (
-          <div key={i} className="animate-stat-card" style={{ flex: 1, minWidth: '150px', borderRight: i < stats.length - 1 ? '1px solid #e5e7eb' : 'none', padding: '1rem', borderRadius: '0.375rem', border: '1px solid transparent' }}>
+          <div key={i} className="animate-stat-card" style={{ flex: 1, minWidth: '150px', borderRight: i < stats.length - 1 ? '1px solid #e5e7eb' : 'none', padding: '1.5rem', borderRadius: '0.375rem', border: '1px solid transparent' }}>
             <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>{stat.value}</div>
             <div style={{ color: '#6b7280', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', fontWeight: 500 }}>
               {stat.label}
-              {stat.trend && <span style={{ color: stat.color, fontWeight: 600, fontSize: '0.75rem' }}>{stat.trend}</span>}
-              {stat.trendLabel && <span style={{ color: '#9ca3af', fontSize: '0.75rem' }}>{stat.trendLabel}</span>}
+              {stat.trend && (
+                <span style={{ 
+                  fontSize: '0.7rem', 
+                  fontWeight: 700, 
+                  padding: '2px 8px', 
+                  borderRadius: '12px', 
+                  background: '#d1fae5', 
+                  color: '#065f46', 
+                  whiteSpace: 'nowrap',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '2px'
+                }}>
+                  {stat.trend} <span style={{ color: '#065f46', fontWeight: 500, opacity: 0.8 }}>{stat.trendLabel}</span>
+                </span>
+              )}
             </div>
           </div>
         ))}
@@ -201,22 +215,21 @@ export default function MarketingPage() {
                     </td>
                     <td style={{ padding: '1rem', textAlign: 'center', fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{campaign.currentCTR}</td>
                     <td style={{ padding: '1rem', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                        <button 
-                          onClick={() => router.push(`/marketing/${campaign.id}`)}
+                      <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+                        <img 
+                          src="/update _button.svg" 
+                          alt="Update" 
                           className="animate-button"
-                          style={{ border: '1px solid #e5e7eb', background: '#fff', color: '#111827', padding: '6px 12px', borderRadius: '24px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
-                        >
-                          Update
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
-                        </button>
-                        <button 
+                          style={{ width: '80px', height: '26px', cursor: 'pointer', display: 'block' }} 
+                          onClick={() => router.push(`/marketing/${campaign.id}`)}
+                        />
+                        <img 
+                          src="/View_button.svg" 
+                          alt="View" 
+                          className="animate-button"
+                          style={{ width: '66px', height: '26px', cursor: 'pointer', display: 'block' }} 
                           onClick={() => router.push(`/marketing/view/${campaign.id}`)}
-                          style={{ border: 'none', background: '#111827', color: '#fff', padding: '6px 12px', borderRadius: '24px', fontSize: '0.75rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}
-                        >
-                          View
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-                        </button>
+                        />
                       </div>
                     </td>
                   </tr>
