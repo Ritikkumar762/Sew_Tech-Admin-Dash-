@@ -874,46 +874,60 @@ export default function MechanicDetailPage() {
   };
 
   // Mock charts data for performance tab
-  const revenueTrendData = performance?.ratingTrend 
-    ? performance.ratingTrend.map((r: any) => ({ name: r.date, Revenue: Math.round(r.rating * 1000) }))
-    : [
-        { name: '1 Feb', Revenue: 4000 },
-        { name: '2 Feb', Revenue: 8000 },
-        { name: '3 Feb', Revenue: 6000 },
-        { name: '4 Feb', Revenue: 10000 },
-        { name: '5 Feb', Revenue: 9000 },
-        { name: '6 Feb', Revenue: 7500 },
-        { name: '7 Feb', Revenue: 9500 },
-      ];
+  const revenueTrendData = performance?.revenueTrend 
+    ? performance.revenueTrend.map((r: any) => ({ name: r.date, Revenue: r.revenue }))
+    : performance?.ratingTrend 
+      ? performance.ratingTrend.map((r: any) => ({ name: r.date, Revenue: Math.round(r.rating * 1000) }))
+      : [
+          { name: '1 Feb', Revenue: 4000 },
+          { name: '2 Feb', Revenue: 8000 },
+          { name: '3 Feb', Revenue: 6000 },
+          { name: '4 Feb', Revenue: 10000 },
+          { name: '5 Feb', Revenue: 9000 },
+          { name: '6 Feb', Revenue: 7500 },
+          { name: '7 Feb', Revenue: 9500 },
+        ];
 
-  const completedJobsCount = apiJobs.filter(j => j.status === 'Completed').length;
-  const cancelledJobsCount = apiJobs.filter(j => j.status === 'Cancelled').length;
+  const completedJobsCount = performance?.completionBreakdown?.find((c: any) => c.status === 'Completed')?.count ?? 
+                             apiJobs.filter(j => j.status === 'Completed').length;
+  const cancelledJobsCount = performance?.completionBreakdown?.find((c: any) => c.status === 'Cancelled')?.count ?? 
+                             apiJobs.filter(j => j.status === 'Cancelled').length;
 
   const performanceBreakdownData = [
     { name: 'Completed', value: completedJobsCount || 80 },
     { name: 'Cancelled', value: cancelledJobsCount || 20 },
   ];
 
-  const typeBreakdownData = performance?.earnings?.categoryWise
-    ? performance.earnings.categoryWise.map((c: any) => ({ name: c.category, value: c.earnings }))
-    : [
-        { name: 'Invite Quote', value: 30 },
-        { name: 'Instant Smart Booking', value: 20 },
-        { name: 'Video Call Assistance', value: 10 },
-        { name: 'Assisted Booking', value: 40 },
-      ];
+  const typeBreakdownData = performance?.serviceTypeBreakdown
+    ? performance.serviceTypeBreakdown.map((s: any) => ({ name: s.type, value: s.count }))
+    : performance?.earnings?.categoryWise
+      ? performance.earnings.categoryWise.map((c: any) => ({ name: c.category, value: c.earnings }))
+      : [
+          { name: 'Invite Quote', value: 30 },
+          { name: 'Instant Smart Booking', value: 20 },
+          { name: 'Video Call Assistance', value: 10 },
+          { name: 'Assisted Booking', value: 40 },
+        ];
 
-  const jobTrendData = performance?.jobsTrend
-    ? performance.jobsTrend.map((j: any) => ({ name: j.day, 'Total Orders': j.jobs, Return: 0, Replacement: 0, Cancellation: 0 }))
-    : [
-        { name: '1 Feb', 'Total Orders': 100, Return: 25, Replacement: 10, Cancellation: 5 },
-        { name: '2 Feb', 'Total Orders': 120, Return: 30, Replacement: 15, Cancellation: 8 },
-        { name: '3 Feb', 'Total Orders': 90, Return: 20, Replacement: 12, Cancellation: 4 },
-        { name: '4 Feb', 'Total Orders': 140, Return: 35, Replacement: 20, Cancellation: 10 },
-        { name: '5 Feb', 'Total Orders': 110, Return: 28, Replacement: 14, Cancellation: 6 },
-        { name: '6 Feb', 'Total Orders': 130, Return: 32, Replacement: 18, Cancellation: 7 },
-        { name: '7 Feb', 'Total Orders': 150, Return: 38, Replacement: 22, Cancellation: 9 },
-      ];
+  const jobTrendData = performance?.jobTrend
+    ? performance.jobTrend.map((j: any) => ({ name: j.day, 'Total Orders': j.jobs, Return: 0, Replacement: 0, Cancellation: 0 }))
+    : performance?.jobsTrend
+      ? performance.jobsTrend.map((j: any) => ({ name: j.day, 'Total Orders': j.jobs, Return: 0, Replacement: 0, Cancellation: 0 }))
+      : [
+          { name: '1 Feb', 'Total Orders': 100, Return: 25, Replacement: 10, Cancellation: 5 },
+          { name: '2 Feb', 'Total Orders': 120, Return: 30, Replacement: 15, Cancellation: 8 },
+          { name: '3 Feb', 'Total Orders': 90, Return: 20, Replacement: 12, Cancellation: 4 },
+          { name: '4 Feb', 'Total Orders': 140, Return: 35, Replacement: 20, Cancellation: 10 },
+          { name: '5 Feb', 'Total Orders': 110, Return: 28, Replacement: 14, Cancellation: 6 },
+          { name: '6 Feb', 'Total Orders': 130, Return: 32, Replacement: 18, Cancellation: 7 },
+          { name: '7 Feb', 'Total Orders': 150, Return: 38, Replacement: 22, Cancellation: 9 },
+        ];
+
+  const displayTotalJobs = mechanic?.totalJobs || mechanic?.jobsCompleted || (completedJobsCount + cancelledJobsCount) || 0;
+  const typeTotal = typeBreakdownData.reduce((acc: number, curr: any) => acc + curr.value, 0);
+  const displayRevenue = performance?.earnings?.totalRevenue !== undefined ? performance.earnings.totalRevenue : 15000;
+  const displayPayoutPending = performance?.earnings?.totalRevenue !== undefined ? Math.round(performance.earnings.totalRevenue * 0.1) : 15.00;
+  const displayChartTotal = completedJobsCount + cancelledJobsCount;
 
   // Mock jobs list data
   const MOCK_JOBS = [
@@ -925,15 +939,15 @@ export default function MechanicDetailPage() {
     { id: 'JOB-2046', customerName: 'Priya Patel', type: 'Invite Quote', location: 'Mumbai', date: "04:30 PM, 19 Jan' 26", status: 'Ongoing', feedback: '' }
   ];
 
-  const displayJobs = apiJobs.length > 0 ? apiJobs.map(j => ({
-    id: j.job_id ?? j.jobId,
+  const displayJobs = apiJobs.map(j => ({
+    id: j.job_id ?? j.jobId ?? j.id,
     customerName: j.customerName,
     type: j.service ?? j.serviceType,
     location: j.location,
     date: j.date ? new Date(j.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: '2-digit' }) : '-',
     status: j.status,
     feedback: j.feedbackRating ? `${j.feedbackRating} ★` : j.feedbackText || ''
-  })) : MOCK_JOBS;
+  }));
 
   const filteredJobs = displayJobs.filter(job => {
     // Subtab filter
@@ -1842,10 +1856,10 @@ export default function MechanicDetailPage() {
                     </div>
                     <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Total Jobs</span>
                   </div>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>{mechanic?.totalJobs ?? 0}</span>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>{displayTotalJobs}</span>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', width: 'fit-content', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', backgroundColor: '#eff6ff', color: '#2563eb', fontSize: '0.6875rem', fontWeight: 600 }}>
                     <Briefcase size={10} />
-                    {mechanic?.totalJobs ?? 0}
+                    {displayTotalJobs}
                   </div>
                 </div>
 
@@ -1857,10 +1871,10 @@ export default function MechanicDetailPage() {
                     </div>
                     <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Revenue</span>
                   </div>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>₹ 15,000</span>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>₹{displayRevenue.toLocaleString('en-IN')}</span>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', width: 'fit-content', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', backgroundColor: '#fffbeb', color: '#d97706', fontSize: '0.6875rem', fontWeight: 600 }}>
                     <IndianRupee size={10} />
-                    ₹ 15,000
+                    ₹{displayRevenue.toLocaleString('en-IN')}
                   </div>
                 </div>
 
@@ -1872,10 +1886,10 @@ export default function MechanicDetailPage() {
                     </div>
                     <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Payout Pending</span>
                   </div>
-                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>₹ 15.00</span>
+                  <span style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.25rem' }}>₹{displayPayoutPending.toLocaleString('en-IN')}</span>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', width: 'fit-content', padding: '0.125rem 0.375rem', borderRadius: '0.25rem', backgroundColor: '#fffbeb', color: '#d97706', fontSize: '0.6875rem', fontWeight: 600 }}>
                     <Clock size={10} />
-                    ₹ 15.00
+                    ₹{displayPayoutPending.toLocaleString('en-IN')}
                   </div>
                 </div>
 
@@ -1915,18 +1929,22 @@ export default function MechanicDetailPage() {
                 {/* Doughnut 1: Job Performance Breakdown */}
                 <div className="card-premium">
                   <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: '1.25rem' }}>Job Performance Breakdown</h3>
-                  <div style={{ height: '220px', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {isMounted ? (
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1rem', width: '100%', minHeight: '200px', flexWrap: 'wrap' }}>
+                    {/* Donut Chart */}
+                    <div style={{ position: 'relative', width: '200px', height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      {isMounted ? (
+                        <PieChart width={200} height={200}>
                           <Pie
                             data={performanceBreakdownData}
                             cx="50%"
                             cy="50%"
-                            innerRadius={60}
-                            outerRadius={80}
-                            paddingAngle={5}
+                            innerRadius={50}
+                            outerRadius={70}
+                            paddingAngle={3}
                             dataKey="value"
+                            label={renderCustomizedLabel}
+                            labelLine={false}
+                            stroke="none"
                           >
                             {performanceBreakdownData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
@@ -1934,24 +1952,25 @@ export default function MechanicDetailPage() {
                           </Pie>
                           <Tooltip />
                         </PieChart>
-                      </ResponsiveContainer>
-                    ) : (
-                      <div style={{ width: '100%', height: '100%', backgroundColor: '#f8fafc' }} />
-                    )}
-                    <div style={{ position: 'absolute', textAlign: 'center' }}>
-                      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>{mechanic?.totalJobs ?? 0}</div>
-                      <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>Accepted</div>
+                      ) : (
+                        <div style={{ width: '200px', height: '200px', backgroundColor: '#f8fafc' }} />
+                      )}
+                      <div style={{ position: 'absolute', textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#111827' }}>{displayChartTotal}</div>
+                        <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600 }}>Accepted</div>
+                      </div>
                     </div>
-                  </div>
-                  {/* Legend */}
-                  <div style={{ display: 'flex', justifyContent: 'space-around', marginTop: '1rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981' }} />
-                      Completed
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                      <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
-                      Cancelled
+
+                    {/* Side Legend */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
+                        <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                        Completed
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: '#4b5563', fontWeight: 600 }}>
+                        <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+                        Cancelled
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1988,52 +2007,54 @@ export default function MechanicDetailPage() {
                 {/* Doughnut 2: Job Type Breakdown */}
                 <div className="card-premium">
                   <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: '1.25rem' }}>Job Type Breakdown</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', height: '220px' }}>
-                    <div style={{ width: '60%', height: '100%', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', width: '100%', minHeight: '200px', flexWrap: 'wrap' }}>
+                    {/* Donut Chart */}
+                    <div style={{ position: 'relative', width: '200px', height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       {isMounted ? (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={typeBreakdownData}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={55}
-                              outerRadius={75}
-                              paddingAngle={3}
-                              dataKey="value"
-                            >
-                              {typeBreakdownData.map((entry: any, index: number) => (
-                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                              ))}
-                            </Pie>
-                            <Tooltip />
-                          </PieChart>
-                        </ResponsiveContainer>
+                        <PieChart width={200} height={200}>
+                          <Pie
+                            data={typeBreakdownData}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={50}
+                            outerRadius={70}
+                            paddingAngle={3}
+                            dataKey="value"
+                            label={renderCustomizedLabel}
+                            labelLine={false}
+                            stroke="none"
+                          >
+                            {typeBreakdownData.map((entry: any, index: number) => (
+                              <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                        </PieChart>
                       ) : (
-                        <div style={{ width: '100%', height: '100%', backgroundColor: '#f8fafc' }} />
+                        <div style={{ width: '200px', height: '200px', backgroundColor: '#f8fafc' }} />
                       )}
                       <div style={{ position: 'absolute', textAlign: 'center' }}>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>400</div>
+                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827' }}>{typeTotal}</div>
                         <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 600 }}>Total Jobs</div>
                       </div>
                     </div>
                     
-                    {/* Custom Legend */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', width: '40%' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981' }} />
+                    {/* Side Legend */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '0.8rem', fontWeight: 600, color: '#4b5563' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#10b981' }} />
                         Invite Quote
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
                         Smart Booking
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3b82f6' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#3b82f6' }} />
                         Video Call
                       </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
                         Assisted Booking
                       </div>
                     </div>

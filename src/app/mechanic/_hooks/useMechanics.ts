@@ -28,10 +28,7 @@ function authHeaders(extra: Record<string, string> = {}) {
 
 // ── Extract numeric id — "m-120" → "120", "MCH-5" → "5", "120" → "120" ──────
 function numericId(id: string): string {
-  return String(id)
-    .replace(/^m-?/i, '')
-    .replace(/^MCH-?/i, '')
-    .trim();
+  return String(id).replace(/^[a-zA-Z]+-?/, '').trim();
 }
 
 /** Returns true when `id` is one of the local mock records (m1, m2 …) */
