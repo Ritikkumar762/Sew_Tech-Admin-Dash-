@@ -56,7 +56,7 @@ export default function OrdersTable({ activeTab, activeFilter, onCounts }: Order
       setLoadingDetails(prev => ({ ...prev, [id]: true }));
       try {
         const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-        const res = await fetch(`http://localhost:8000/api/v1/care/bookings/${rawId}`, {
+        const res = await fetch(`/api/v1/care/bookings/${rawId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -82,7 +82,7 @@ export default function OrdersTable({ activeTab, activeFilter, onCounts }: Order
     setError(null);
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch('http://localhost:8000/api/v1/care/bookings?pageSize=1000', {
+      const res = await fetch('/api/v1/care/bookings?pageSize=1000', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'

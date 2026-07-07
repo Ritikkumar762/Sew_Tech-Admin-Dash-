@@ -54,6 +54,7 @@ const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLC
 
 export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const router = useRouter();
+  const cleanOrderId = orderId.replace(/^[a-zA-Z]+/, '');
 
   const getMappedStatus = (statusStr: string | null): OrderStatus => {
     if (!statusStr) return 'Booked';
@@ -151,7 +152,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     setError(null);
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/v1/care/bookings/${orderId}`, {
+      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -220,7 +221,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const handleAssignMechanic = async (mechanicId: string) => {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/v1/care/bookings/${orderId}/assign`, {
+      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/assign`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -243,7 +244,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const handleCancelRequest = async (reasons: string[], note: string) => {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/v1/care/bookings/${orderId}/cancel`, {
+      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -267,8 +268,9 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   // ── Quotes State Handlers ──
   const handleAcceptQuote = async (quoteId: string) => {
     try {
+      const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/quotes/${quoteId}`, {
+      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -292,8 +294,9 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
   const handleRejectQuote = async (quoteId: string) => {
     try {
+      const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/quotes/${quoteId}`, {
+      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -312,8 +315,9 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
   const handleUndoQuote = async (quoteId: string) => {
     try {
+      const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/quotes/${quoteId}`, {
+      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -332,8 +336,9 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
   const handleDeselectQuote = async (quoteId: string) => {
     try {
+      const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`http://localhost:8000/api/quotes/${quoteId}`, {
+      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -502,7 +507,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                       }
                     };
                     const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-                    const res = await fetch(`http://localhost:8000/api/v1/care/bookings/${orderId}/status`, {
+                    const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/status`, {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                       body: JSON.stringify({ status: getBackendStatus(val) })

@@ -104,7 +104,7 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('https://project-sewtech-mart.onrender.com/api/v1/admin/care/mechanics/applications', {
+      const res = await fetch('/api/v1/admin/care/mechanics/applications', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',

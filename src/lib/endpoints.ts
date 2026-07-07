@@ -68,11 +68,11 @@ export const ENDPOINTS = {
     update:       (id: string) => `${BASE_URL}/mechanics/${id}`,
     assignJob:    (id: string) => `${BASE_URL}/mechanics/${id}/assign`,
     // Real API — mechanic applications (care module)
-    applications:    `${MARKETING_BASE_URL}/api/v1/admin/care/mechanics/applications`,
-    applicationById: (id: string) => `${MARKETING_BASE_URL}/api/v1/admin/care/mechanics/applications/${id}`,
-    applicationStatus: (id: string) => `${MARKETING_BASE_URL}/api/v1/admin/care/mechanics/applications/${id}/status`,
-    applicationJobs:   (id: string) => `${MARKETING_BASE_URL}/api/v1/admin/care/mechanics/applications/${id}/jobs`,
-    applicationPerf:   (id: string) => `${MARKETING_BASE_URL}/api/v1/admin/care/mechanics/applications/${id}/performance`,
+    applications:    `${BASE_URL}/v1/admin/care/mechanics/applications`,
+    applicationById: (id: string) => `${BASE_URL}/v1/admin/care/mechanics/applications/${id}`,
+    applicationStatus: (id: string) => `${BASE_URL}/v1/admin/care/mechanics/applications/${id}/status`,
+    applicationJobs:   (id: string) => `${BASE_URL}/v1/admin/care/mechanics/applications/${id}/jobs`,
+    applicationPerf:   (id: string) => `${BASE_URL}/v1/admin/care/mechanics/applications/${id}/performance`,
   },
 
   // ── Support ──────────────────────────────────────────────────
