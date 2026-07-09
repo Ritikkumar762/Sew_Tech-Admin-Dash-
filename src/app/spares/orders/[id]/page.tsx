@@ -49,7 +49,7 @@ export default function OrderDetailPage() {
     setError(null);
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/spares/orders/${orderId}`, {
+      const res = await fetch(`/api/v1/admin/spares/orders/${orderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -94,7 +94,7 @@ export default function OrderDetailPage() {
   const handleUpdateStatus = async (newStatus: string) => {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/spares/orders/${orderId}/status`, {
+      const res = await fetch(`/api/v1/admin/spares/orders/${orderId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ export default function OrderDetailPage() {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
       const reasonsList = [...selectedReturnReasons, isOtherReturnSelected ? 'Other' : ''].filter(Boolean);
-      const res = await fetch(`/api/v1/spares/orders/${orderId}/cancel`, {
+      const res = await fetch(`/api/v1/admin/spares/orders/${orderId}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

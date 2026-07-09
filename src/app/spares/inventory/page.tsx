@@ -33,7 +33,14 @@ export default function InventoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
   const PAGE_SIZE = 10;
+  const [toastConfig, setToastConfig] = useState<{show: boolean, message: string, type: 'success' | 'error'}>({ show: false, message: '', type: 'success' });
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToastConfig({ show: true, message, type });
+    setTimeout(() => setToastConfig(prev => ({ ...prev, show: false })), 3500);
+  };
 
   const getToken = () => {
     if (typeof window === 'undefined') return '';
@@ -132,8 +139,10 @@ export default function InventoryPage() {
       setIsEditMode(false);
       setExpandedRows(new Set());
       await fetchProducts();
+      showToast('Changes saved successfully!', 'success');
     } catch (error) {
       console.error('Failed to save changes:', error);
+      showToast('Failed to save changes. Please try again.', 'error');
       setIsLoading(false);
     }
   };
@@ -147,6 +156,24 @@ export default function InventoryPage() {
       } else {
         next.add(productId);
       }
+      return next;
+    });
+  };
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked && products.length > 0) {
+      setSelectedProducts(new Set(products.map(p => p.id)));
+    } else {
+      setSelectedProducts(new Set());
+    }
+  };
+
+  const toggleSelectProduct = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedProducts(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -459,14 +486,79 @@ export default function InventoryPage() {
 
             <select 
               className={styles.selectBox} 
-              defaultValue=""
-              onChange={(e) => {
-                if (e.target.value === 'bulk-edit') {
+              value=""
+              onChange={async (e) => {
+                const val = e.target.value;
+                if (!val) return;
+                
+                if (val === 'bulk-edit') {
                   window.location.href = '/spares/bulk-edit';
+                } else if (val === 'mark-out-of-stock') {
+                  if (selectedProducts.size === 0) {
+                    showToast('Please select products to mark out of stock.', 'error');
+                    return;
+                  }
+                  setIsLoading(true);
+                  try {
+                    const updatePromises: Promise<any>[] = [];
+                    products.filter(p => selectedProducts.has(p.id)).forEach(prod => {
+                      if (prod.variants && prod.variants.length > 0) {
+                        prod.variants.forEach(variant => {
+                          const updateUrl = ENDPOINTS.spares.updateVariant(prod.id, variant.id);
+                          updatePromises.push(fetch(updateUrl, {
+                            method: 'PATCH',
+                            headers: { 
+                              'Content-Type': 'application/json',
+                              'Authorization': `Bearer ${getToken()}`,
+                              'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ stock_quantity: 0 })
+                          }));
+                        });
+                      } else {
+                        const updateUrl = `${ENDPOINTS.spares.inventory}/${prod.id}`;
+                        updatePromises.push(fetch(updateUrl, {
+                          method: 'PATCH',
+                          headers: { 
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${getToken()}`,
+                            'Accept': 'application/json'
+                          },
+                          body: JSON.stringify({ stock_quantity: 0 })
+                        }));
+                      }
+                    });
+                    await Promise.all(updatePromises);
+                    await fetchProducts(currentPage);
+                    setSelectedProducts(new Set());
+                    showToast('Selected products marked out of stock!', 'success');
+                  } catch (err) {
+                    console.error('Failed to mark out of stock', err);
+                    showToast('Failed to mark out of stock. Please try again.', 'error');
+                  } finally {
+                    setIsLoading(false);
+                  }
+                } else if (val === 'export') {
+                  if (selectedProducts.size === 0) {
+                    showToast('Please select products to export.', 'error');
+                    return;
+                  }
+                  const selectedData = products.filter(p => selectedProducts.has(p.id));
+                  const csv = ['ID,Name,SKU,Stock,Price'];
+                  selectedData.forEach(p => csv.push(`${p.id},"${p.name}","${p.sku}",${getProductStock(p)},${p.price}`));
+                  const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+                  const url = window.URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'inventory_export.csv';
+                  a.click();
+                  window.URL.revokeObjectURL(url);
                 }
               }}
             >
               <option value="" disabled>Bulk Actions</option>
+              <option value="export">Export Details</option>
+              <option value="mark-out-of-stock">Mark Out of Stock</option>
               <option value="bulk-edit">Bulk Edit Spares</option>
             </select>
           </div>
@@ -484,7 +576,12 @@ export default function InventoryPage() {
           {/* Table Headers */}
           <div className={styles.tableHeaderRow}>
             <div className={styles.tableHeaderCell}>
-              <input type="checkbox" className={styles.checkbox} />
+              <input 
+                type="checkbox" 
+                className={styles.checkbox} 
+                checked={products.length > 0 && selectedProducts.size === products.length}
+                onChange={handleSelectAll}
+              />
             </div>
             <div className={styles.tableHeaderCell}>Spare Name <span style={{fontSize: '0.65rem', color: '#9ca3af'}}>↑↓</span></div>
             <div className={styles.tableHeaderCell}>Stock <span style={{fontSize: '0.65rem', color: '#9ca3af'}}>↑↓</span></div>
@@ -512,7 +609,9 @@ export default function InventoryPage() {
                     <input 
                       type="checkbox" 
                       className={styles.checkbox} 
-                      onClick={(e) => e.stopPropagation()} 
+                      checked={selectedProducts.has(product.id)}
+                      onChange={() => {}} 
+                      onClick={(e) => toggleSelectProduct(product.id, e)} 
                     />
                   </div>
                   
@@ -652,6 +751,34 @@ export default function InventoryPage() {
           </button>
         </div>
       </div>
+
+      {/* Floating Toast Notification */}
+      {toastConfig.show && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          backgroundColor: toastConfig.type === 'success' ? '#10b981' : '#ef4444',
+          color: 'white',
+          padding: '0.75rem 1.25rem',
+          borderRadius: '0.5rem',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          zIndex: 1100,
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          {toastConfig.type === 'success' ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+          )}
+          {toastConfig.message}
+        </div>
+      )}
     </div>
   );
 }

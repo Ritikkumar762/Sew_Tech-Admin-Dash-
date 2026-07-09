@@ -67,7 +67,7 @@ export default function SparesOrdersPage() {
     setError(null);
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch('/api/v1/spares/orders', {
+      const res = await fetch('/api/v1/admin/spares/orders', {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'

@@ -152,7 +152,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     setError(null);
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}`, {
+      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -221,7 +221,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const handleAssignMechanic = async (mechanicId: string) => {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/assign`, {
+      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/assign`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -244,7 +244,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const handleCancelRequest = async (reasons: string[], note: string) => {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/cancel`, {
+      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -270,7 +270,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     try {
       const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
+      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -296,7 +296,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     try {
       const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
+      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -317,7 +317,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     try {
       const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
+      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -338,7 +338,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     try {
       const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
+      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -507,7 +507,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                       }
                     };
                     const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-                    const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/status`, {
+                    const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/status`, {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                       body: JSON.stringify({ status: getBackendStatus(val) })
