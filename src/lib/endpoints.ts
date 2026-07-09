@@ -40,7 +40,8 @@ export const ENDPOINTS = {
     orders:     `${BASE_URL}/spares/orders`,
     orderById:  (id: string) => `${BASE_URL}/spares/orders/${id}`,
     requests:   `${BASE_URL}/spares/requests`,
-    inventory:  `${BASE_URL}/spares/inventory`,
+    inventory:  `${BASE_URL}/admin/products`,
+    updateVariant: (productId: string, variantId: string) => `${BASE_URL}/admin/products/${productId}/variants/${variantId}`,
   },
 
   // ── Users ────────────────────────────────────────────────────

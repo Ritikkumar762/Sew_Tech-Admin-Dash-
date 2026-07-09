@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './Inventory.module.css';
+import { ENDPOINTS } from '../../../lib/endpoints';
 
 interface Variant {
   id: string;
@@ -21,64 +22,68 @@ interface Product {
   variants: Variant[];
 }
 
-const INITIAL_PRODUCTS: Product[] = [
-  {
-    id: 'p-1',
-    name: 'Industrial Sewing Needle',
-    sku: 'HC3000',
-    thumbnailColor: '#fbe5d6',
-    thumbnailLetter: 'N',
-    price: 1850,
-    variants: [
-      { id: 'v-1-1', name: '5 mm', sku: 'Variant 1', stock: 10, price: 1850 },
-      { id: 'v-1-2', name: '10 mm', sku: 'Variant 2', stock: 10, price: 1850 },
-    ],
-  },
-  {
-    id: 'p-2',
-    name: 'High-Speed Rotary Hook Assembly',
-    sku: 'STH-RH-2045',
-    thumbnailColor: '#fef3c7',
-    thumbnailLetter: 'R',
-    price: 2400,
-    variants: [
-      { id: 'v-2-1', name: 'Standard Type', sku: 'Variant 1', stock: 25, price: 2400 },
-      { id: 'v-2-2', name: 'Premium Grade', sku: 'Variant 2', stock: 20, price: 2400 },
-    ],
-  },
-  {
-    id: 'p-3',
-    name: 'Needle Bar Thread Guide',
-    sku: 'NBTG-90',
-    thumbnailColor: '#e0f2fe',
-    thumbnailLetter: 'G',
-    price: 450,
-    variants: [
-      { id: 'v-3-1', name: '1.2 mm', sku: 'Variant 1', stock: 15, price: 450 },
-      { id: 'v-3-2', name: '1.5 mm', sku: 'Variant 2', stock: 15, price: 450 },
-    ],
-  },
-  {
-    id: 'p-4',
-    name: 'Thread Take-up Lever Assembly',
-    sku: 'TTLA-20',
-    thumbnailColor: '#dcfce7',
-    thumbnailLetter: 'L',
-    price: 1200,
-    variants: [
-      { id: 'v-4-1', name: 'Standard Lever', sku: 'Variant 1', stock: 8, price: 1200 },
-      { id: 'v-4-2', name: 'Heavy Duty Lever', sku: 'Variant 2', stock: 7, price: 1500 },
-    ],
-  },
-];
 
 export default function InventoryPage() {
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
   const [backupProducts, setBackupProducts] = useState<Product[]>([]);
   const [isEditMode, setIsEditMode] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredStat, setHoveredStat] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const PAGE_SIZE = 10;
+
+  const getToken = () => {
+    if (typeof window === 'undefined') return '';
+    return localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+  };
+
+  const fetchProducts = async (page = currentPage) => {
+    setIsLoading(true);
+    try {
+      const skip = (page - 1) * PAGE_SIZE;
+      const res = await fetch(`${ENDPOINTS.spares.inventory}?skip=${skip}&limit=${PAGE_SIZE}`, {
+        headers: {
+          'Authorization': `Bearer ${getToken()}`,
+          'Accept': 'application/json'
+        }
+      });
+      if (!res.ok) throw new Error('Failed to fetch products');
+      const data = await res.json();
+      
+      const colors = ['#fbe5d6', '#fef3c7', '#e0f2fe', '#dcfce7', '#fce7f3'];
+      const mappedProducts = (data.items || []).map((item: any, index: number) => {
+        return {
+          id: String(item.product_id),
+          name: item.name,
+          sku: item.sku,
+          stock: Number(item.stock_quantity || 0),
+          thumbnailColor: colors[index % colors.length],
+          thumbnailLetter: item.name ? item.name.charAt(0).toUpperCase() : 'U',
+          price: Number(item.price || 0),
+          variants: (item.variants || []).map((v: any) => ({
+            id: String(v.variant_id),
+            name: Object.values(v.attributes || {}).join(', ') || 'Standard',
+            sku: v.sku,
+            stock: Number(v.stock_quantity || 0),
+            price: Number(v.effective_price || item.price || 0)
+          }))
+        };
+      });
+      setProducts(mappedProducts);
+      setTotalPages(Math.max(1, Math.ceil((data.total || 0) / PAGE_SIZE)));
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts(currentPage);
+  }, [currentPage]);
 
   // Toggle Edit Mode
   const handleStartEdit = () => {
@@ -94,9 +99,43 @@ export default function InventoryPage() {
     setExpandedRows(new Set());
   };
 
-  const handleSaveChanges = () => {
-    setIsEditMode(false);
-    setExpandedRows(new Set());
+  const handleSaveChanges = async () => {
+    setIsLoading(true);
+    try {
+      const updatePromises: Promise<any>[] = [];
+      products.forEach((prod) => {
+        const backupProd = backupProducts.find((b) => b.id === prod.id);
+        if (!backupProd) return;
+
+        prod.variants.forEach((variant) => {
+          const backupVar = backupProd.variants.find((b) => b.id === variant.id);
+          if (backupVar && (backupVar.stock !== variant.stock || backupVar.price !== variant.price)) {
+            const updateUrl = ENDPOINTS.spares.updateVariant(prod.id, variant.id);
+            const promise = fetch(updateUrl, {
+              method: 'PATCH',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${getToken()}`,
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                stock_quantity: variant.stock,
+                price_override: variant.price
+              })
+            });
+            updatePromises.push(promise);
+          }
+        });
+      });
+
+      await Promise.all(updatePromises);
+      setIsEditMode(false);
+      setExpandedRows(new Set());
+      await fetchProducts();
+    } catch (error) {
+      console.error('Failed to save changes:', error);
+      setIsLoading(false);
+    }
   };
 
   // Toggle Row Expansion
@@ -155,10 +194,12 @@ export default function InventoryPage() {
 
   // Helper calculations for parents
   const getProductStock = (product: Product) => {
+    if (product.variants.length === 0) return product.stock;
     return product.variants.reduce((sum, v) => sum + v.stock, 0);
   };
 
   const getProductTotalAmount = (product: Product) => {
+    if (product.variants.length === 0) return product.stock * product.price;
     return product.variants.reduce((sum, v) => sum + v.stock * v.price, 0);
   };
 
@@ -244,9 +285,15 @@ export default function InventoryPage() {
           </div>
           <div className={styles.headerActions}>
             {!isEditMode ? (
-              <button className={styles.btnDark} onClick={handleStartEdit}>
-                Update Inventory 
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+              <button 
+                onClick={handleStartEdit} 
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}
+              >
+                <img 
+                  src="/Update%20Inventory_button.svg" 
+                  alt="Update Inventory" 
+                  style={{ height: '40px', display: 'block' }} 
+                />
               </button>
             ) : (
               <>
@@ -269,6 +316,7 @@ export default function InventoryPage() {
           <div className={styles.statCard}>
             <div className={styles.statHeader}>
               <div className={styles.statTitleWrapper}>
+                <img src="/total order.svg" alt="Stock Value" width={24} height={24} />
                 <span className={styles.statTitle}>Stock Value</span>
                 <span 
                   className={styles.infoIcon}
@@ -296,6 +344,7 @@ export default function InventoryPage() {
           <div className={styles.statCard}>
             <div className={styles.statHeader}>
               <div className={styles.statTitleWrapper}>
+                <img src="/out of stock_red.svg" alt="Out of Stock" width={24} height={24} />
                 <span className={styles.statTitle}>Out of Stock</span>
                 <span 
                   className={styles.infoIcon}
@@ -328,6 +377,7 @@ export default function InventoryPage() {
           <div className={styles.statCard}>
             <div className={styles.statHeader}>
               <div className={styles.statTitleWrapper}>
+                <img src="/alert-02.svg" alt="Low Stock Items" width={24} height={24} />
                 <span className={styles.statTitle}>Low Stock Items</span>
                 <span 
                   className={styles.infoIcon}
@@ -360,6 +410,7 @@ export default function InventoryPage() {
           <div className={styles.statCard}>
             <div className={styles.statHeader}>
               <div className={styles.statTitleWrapper}>
+                <img src="/dead_stock.svg" alt="Dead Stock" width={24} height={24} />
                 <span className={styles.statTitle}>Dead Stock</span>
                 <span 
                   className={styles.infoIcon}
@@ -578,6 +629,27 @@ export default function InventoryPage() {
               </div>
             );
           })}
+        </div>
+        
+        {/* Pagination Controls */}
+        <div className={styles.paginationContainer}>
+          <button 
+            className={styles.pageBtn} 
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          >
+            Previous
+          </button>
+          <span className={styles.pageInfo}>
+            Page {currentPage} of {totalPages}
+          </span>
+          <button 
+            className={styles.pageBtn} 
+            disabled={currentPage >= totalPages}
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          >
+            Next
+          </button>
         </div>
       </div>
     </div>
