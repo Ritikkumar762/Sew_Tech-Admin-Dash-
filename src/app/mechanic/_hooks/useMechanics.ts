@@ -36,28 +36,21 @@ function isMockId(id: string): boolean {
   return ['m1', 'm2', 'm3', 'm4', 'm5'].includes(String(id).toLowerCase());
 }
 
-// ── Map frontend status label → backend enum value ────────────────────────────
 function toApiStatus(status: string): string {
-  const s = status.toUpperCase();
-  if (s === 'ACTIVE' || s === 'APPROVED') return 'APPROVED';
-  if (s === 'BUSY')      return 'BUSY';
-  if (s === 'PENDING')   return 'PENDING';
-  if (s === 'OFFLINE')   return 'OFFLINE';
-  if (s === 'SUSPENDED') return 'SUSPENDED';
-  if (s === 'REJECTED')  return 'REJECTED';
-  return s;
+  const s = String(status ?? '').toUpperCase();
+  if (s === 'SUSPENDED') return 'suspended';
+  if (s === 'UNDER REVIEW' || s === 'UNDER_REVIEW' || s === 'PENDING') return 'under_review';
+  if (s === 'SERVICES PAUSED' || s === 'SERVICES_PAUSED' || s === 'OFFLINE') return 'services_paused';
+  if (s === 'ACTIVE') return 'active';
+  return 'bid_live';
 }
-
-// ── Map backend status → frontend label ───────────────────────────────────────
-function fromApiStatus(raw: string): Mechanic['status'] {
-  const s = String(raw ?? '').toUpperCase();
-  if (s === 'ACTIVE' || s === 'APPROVED' || s === 'AVAILABLE') return 'Active';
-  if (s === 'BUSY')      return 'Busy';
-  if (s === 'PENDING')   return 'Pending';
+function fromApiStatus(status: string): Mechanic['status'] {
+  const s = String(status ?? '').toUpperCase();
   if (s === 'SUSPENDED') return 'Suspended';
-  if (s === 'REJECTED')  return 'Rejected';
-  if (s === 'OFFLINE')   return 'Offline';
-  return 'Active'; // safe default
+  if (s === 'UNDER REVIEW' || s === 'UNDER_REVIEW' || s === 'PENDING') return 'Under Review';
+  if (s === 'SERVICES PAUSED' || s === 'SERVICES_PAUSED' || s === 'OFFLINE') return 'Services Paused';
+  if (s === 'ACTIVE') return 'Active';
+  return 'Bid Live';
 }
 
 // ── Local Status Cache helpers to persist status updates when list API misses status ──
@@ -89,11 +82,11 @@ function saveStatusUpdate(id: string, status: string) {
 
 // ── Fallback mock data ────────────────────────────────────────────────────────
 const MOCK_MECHANICS: Mechanic[] = [
-  { id: 'm1', name: 'Nishant Kumar', phone: '9876543210', location: 'Delhi',     expertise: 'Instant Smart Booking', status: 'Active',    rating: 4.5, totalJobs: 30 },
-  { id: 'm2', name: 'Suresh Yadav',  phone: '9765432109', location: 'Mumbai',    expertise: 'Video Call Assistance',  status: 'Active',    rating: 4.5, totalJobs: 30 },
-  { id: 'm3', name: 'Ajay Nair',     phone: '9654321098', location: 'Bangalore', expertise: 'Invite Quote',           status: 'Pending',   rating: 4.2, totalJobs: 12 },
-  { id: 'm4', name: 'Vijay Pandey',  phone: '9543210987', location: 'Pune',      expertise: 'Instant Smart Booking',  status: 'Active',    rating: 4.8, totalJobs: 55 },
-  { id: 'm5', name: 'Ramesh Sharma', phone: '9432109876', location: 'Delhi',     expertise: 'Video Call Assistance',  status: 'Suspended', rating: 3.8, totalJobs: 20 },
+  { id: 'm1', name: 'Nishant Kumar', phone: '9876543210', location: 'Delhi',     expertise: 'Instant Smart Booking', status: 'Bid Live',  rating: 4.5, totalJobs: 30 },
+  { id: 'm2', name: 'Suresh Yadav',  phone: '9765432109', location: 'Mumbai',    expertise: 'Video Call Assistance',  status: 'Bid Live',  rating: 4.5, totalJobs: 30 },
+  { id: 'm3', name: 'Ajay Nair',     phone: '9654321098', location: 'Bangalore', expertise: 'Invite Quote',           status: 'Suspended',rating: 4.2, totalJobs: 12 },
+  { id: 'm4', name: 'Vijay Pandey',  phone: '9543210987', location: 'Pune',      expertise: 'Instant Smart Booking',  status: 'Bid Live',  rating: 4.8, totalJobs: 55 },
+  { id: 'm5', name: 'Ramesh Sharma', phone: '9432109876', location: 'Delhi',     expertise: 'Video Call Assistance',  status: 'Suspended',rating: 3.8, totalJobs: 20 },
 ];
 
 // ── Map a raw API application item to our Mechanic type ───────────────────────
@@ -101,9 +94,7 @@ function mapApplication(app: any): Mechanic {
   const name = app.display_name || app.name || `Mechanic ${app.application_id}`;
   const appId = String(app.application_id ?? app._id ?? app.id ?? '');
   
-  // Use saved status from localStorage if present; otherwise check app.status, defaulting to 'Active'
-  const savedStatus = getSavedStatus(appId);
-  const status = savedStatus ? fromApiStatus(savedStatus) : fromApiStatus(app.status ?? '');
+  const status = fromApiStatus(app.status ?? '');
 
   return {
     id:           appId,
@@ -126,7 +117,7 @@ function mapApplication(app: any): Mechanic {
 
 // ── Compute KPI metrics from a list of mechanics ──────────────────────────────
 function computeMetrics(mapped: Mechanic[], total: number, rawItems: any[]) {
-  const active     = mapped.filter(m => m.status === 'Active').length;
+  const active     = mapped.filter(m => m.status === 'Bid Live' || m.status === 'Active').length;
   const avgRating  = mapped.length
     ? mapped.reduce((s, m) => s + (m.rating ?? 0), 0) / mapped.length
     : 0;

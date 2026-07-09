@@ -639,7 +639,7 @@ export default function MechanicDetailPage() {
           ...data,
           // Core identity
           name:             data.display_name        ?? data.name             ?? '',
-          location:         data.city                ?? data.location          ?? '',
+          location:         data.city || data.location || 'Delhi NCR',
           // Contact / basic details (all API spec field variants)
           email:            data.email               ?? '',
           phone:            data.phone               ?? data.mobile            ?? '',
@@ -1256,17 +1256,13 @@ export default function MechanicDetailPage() {
                 padding: '0.125rem 0.625rem',
                 borderRadius: '1rem',
                 backgroundColor:
-                  mechanic.status === 'Active'    ? '#d1fae5' :
-                  mechanic.status === 'Busy'      ? '#fef3c7' :
-                  mechanic.status === 'Pending'   ? '#dbeafe' :
-                  mechanic.status === 'Offline'   ? '#f3f4f6' :
-                  mechanic.status === 'Suspended' ? '#fee2e2' : '#f3f4f6',
+                  mechanic.status === 'Bid Live' ? '#d1fae5' :
+                  mechanic.status === 'Under Review' ? '#fffbeb' :
+                  mechanic.status === 'Services Paused' ? '#f3f4f6' : '#fef2f2',
                 color:
-                  mechanic.status === 'Active'    ? '#065f46' :
-                  mechanic.status === 'Busy'      ? '#92400e' :
-                  mechanic.status === 'Pending'   ? '#1e40af' :
-                  mechanic.status === 'Offline'   ? '#374151' :
-                  mechanic.status === 'Suspended' ? '#991b1b' : '#374151'
+                  mechanic.status === 'Bid Live' ? '#065f46' :
+                  mechanic.status === 'Under Review' ? '#d97706' :
+                  mechanic.status === 'Services Paused' ? '#4b5563' : '#991b1b'
               }}>
                 {mechanic.status}
               </span>
@@ -1368,7 +1364,7 @@ export default function MechanicDetailPage() {
                                 setOpenServiceMenu(null);
                               }}
                             >
-                              Suspend Mechanic from This Service
+                              Suspend Mechanic From This Service
                             </div>
                           </div>
                         )}
@@ -2232,10 +2228,9 @@ export default function MechanicDetailPage() {
                   }}
                 >
                   <option value="Active">Active</option>
-                  <option value="Busy">Busy</option>
-                  <option value="Pending">Pending</option>
+                  <option value="Under Review">Under Review</option>
+                  <option value="Services Paused">Services Paused</option>
                   <option value="Suspended">Suspended</option>
-                  <option value="Offline">Offline</option>
                 </select>
                 <ChevronDown size={14} style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: '#2563eb', pointerEvents: 'none' }} />
               </div>
@@ -2398,36 +2393,12 @@ export default function MechanicDetailPage() {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <label style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Location Preference <span style={{ color: '#ef4444' }}>*</span></label>
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.375rem 0.875rem',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '0.5rem',
-                    backgroundColor: 'white',
-                    minHeight: '38px',
-                    cursor: 'pointer'
-                  }}>
-                    <div style={{ display: 'flex', gap: '0.375rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                      <span style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '0.25rem',
-                        backgroundColor: '#eff6ff',
-                        color: '#2563eb',
-                        border: '1px solid #bfdbfe',
-                        borderRadius: '0.25rem',
-                        padding: '0.125rem 0.5rem',
-                        fontSize: '0.75rem',
-                        fontWeight: 600
-                      }}>
-                        Delhi NCR
-                        <span style={{ marginLeft: '0.25rem', color: '#2563eb', fontWeight: 'bold' }}>×</span>
-                      </span>
-                    </div>
-                    <ChevronDown size={14} style={{ color: '#64748b' }} />
-                  </div>
+                  <input 
+                    type="text" 
+                    value={editForm.location || ""} 
+                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                    className="form-input-prem"
+                  />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                   <label style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Skills <span style={{ color: '#ef4444' }}>*</span></label>

@@ -134,7 +134,6 @@ export default function MechanicPage() {
       )
     },
     { key: 'location', label: 'City Coverage' },
-    { key: 'totalJobs', label: 'Jobs Completed' },
     { 
       key: 'availability', 
       label: 'Availability',
@@ -162,31 +161,29 @@ export default function MechanicPage() {
       key: 'rating', 
       label: 'Rating', 
       render: (r) => (
-        <span style={{ fontWeight: 600, color: '#f59e0b', display: 'inline-flex', alignItems: 'center', gap: '0.125rem' }}>
-          {r.rating ?? '--'}
-          <Star size={12} fill="#f59e0b" stroke="none" />
-        </span>
+        <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 60, height: 26 }}>
+          <img src="/Rating_button.svg" alt="Rating" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }} />
+          <span style={{ position: 'relative', fontSize: '0.75rem', fontWeight: 700, color: '#111827', marginRight: '14px' }}>
+            {r.rating ?? '4.5'}
+          </span>
+        </div>
       )
     },
     { 
       key: 'status', 
       label: 'Status', 
       render: (r) => {
-        const s = (r.status ?? '').toUpperCase();
-        const cfg =
-          s === 'APPROVED' || s === 'AVAILABLE' || s === 'ACTIVE'
-            ? { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0', label: 'Active' }
-          : s === 'BUSY'
-            ? { bg: '#eff6ff', color: '#2563eb', border: '#bfdbfe', label: 'Busy' }
-          : s === 'PENDING'
-            ? { bg: '#fffbeb', color: '#d97706', border: '#fde68a', label: 'Pending' }
-          : s === 'SUSPENDED'
-            ? { bg: '#fef2f2', color: '#ef4444', border: '#fecaca', label: 'Suspended' }
-          : s === 'OFFLINE'
-            ? { bg: '#f3f4f6', color: '#4b5563', border: '#d1d5db', label: 'Offline' }
-          : s === 'REJECTED'
-            ? { bg: '#fef2f2', color: '#ef4444', border: '#fecaca', label: 'Rejected' }
-          : { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0', label: r.status ?? 'Active' };
+        const s = (r.status ?? '').toLowerCase().replace(/_/g, ' ');
+        let cfg = { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0', label: 'Bid Live' };
+        if (s === 'active') {
+          cfg = { bg: '#ecfdf5', color: '#059669', border: '#a7f3d0', label: 'Active' };
+        } else if (s === 'under review') {
+          cfg = { bg: '#fffbeb', color: '#d97706', border: '#fde68a', label: 'Under Review' };
+        } else if (s === 'services paused') {
+          cfg = { bg: '#f3f4f6', color: '#4b5563', border: '#e5e7eb', label: 'Services Paused' };
+        } else if (s === 'suspended') {
+          cfg = { bg: '#fef2f2', color: '#ef4444', border: '#fecaca', label: 'Suspended' };
+        }
         return (
           <span style={{
             display: 'inline-flex',
@@ -275,86 +272,81 @@ export default function MechanicPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div 
-                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#059669', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#10b981', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#ecfdf5'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={() => {
-                  setStatusModalConfig({
-                    isOpen: true,
-                    mechanicId: r.id,
-                    mechanicName: r.name,
-                    targetStatus: 'Active',
-                    reason: 'Account activated by administrator.'
-                  });
+                onClick={async () => {
                   setOpenDropdownId(null);
+                  try {
+                    const res = await updateMechanicStatus(r.id, 'Active', 'Account activated.');
+                    if (res && res.success) {
+                      showToast(`✓ ${r.name}'s status updated to Active!`, 'success');
+                    } else {
+                      showToast(res?.error || 'Failed to update status.', 'error');
+                    }
+                  } catch (err: any) {
+                    showToast(err?.message || 'Failed to update status.', 'error');
+                  }
                 }}
               >
-                Activate Account
+                Active
               </div>
               <div 
-                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#2563eb', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#eff6ff'}
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#374151', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={() => {
-                  setStatusModalConfig({
-                    isOpen: true,
-                    mechanicId: r.id,
-                    mechanicName: r.name,
-                    targetStatus: 'Busy',
-                    reason: 'Admin paused services temporarily.'
-                  });
+                onClick={async () => {
                   setOpenDropdownId(null);
-                }}
-              >
-                Pause Services
-              </div>
-              <div 
-                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#d97706', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fffbeb'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={() => {
-                  setStatusModalConfig({
-                    isOpen: true,
-                    mechanicId: r.id,
-                    mechanicName: r.name,
-                    targetStatus: 'Pending',
-                    reason: 'Under review for compliance.'
-                  });
-                  setOpenDropdownId(null);
+                  try {
+                    const res = await updateMechanicStatus(r.id, 'Under Review', 'Marked under review.');
+                    if (res && res.success) {
+                      showToast(`✓ ${r.name}'s status updated to Under Review!`, 'success');
+                    } else {
+                      showToast(res?.error || 'Failed to update status.', 'error');
+                    }
+                  } catch (err: any) {
+                    showToast(err?.message || 'Failed to update status.', 'error');
+                  }
                 }}
               >
                 Mark Under Review
               </div>
               <div 
-                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#4b5563', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#374151', fontWeight: 600, cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9fafb'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={() => {
-                  setStatusModalConfig({
-                    isOpen: true,
-                    mechanicId: r.id,
-                    mechanicName: r.name,
-                    targetStatus: 'Offline',
-                    reason: 'Marked offline due to inactivity.'
-                  });
+                onClick={async () => {
                   setOpenDropdownId(null);
+                  try {
+                    const res = await updateMechanicStatus(r.id, 'Services Paused', 'Services paused.');
+                    if (res && res.success) {
+                      showToast(`✓ ${r.name}'s status updated to Services Paused!`, 'success');
+                    } else {
+                      showToast(res?.error || 'Failed to update status.', 'error');
+                    }
+                  } catch (err: any) {
+                    showToast(err?.message || 'Failed to update status.', 'error');
+                  }
                 }}
               >
-                Mark Offline
+                Pause Services
               </div>
               <div 
                 style={{ padding: '0.625rem 1rem', fontSize: '0.75rem', color: '#ef4444', fontWeight: 600, cursor: 'pointer' }}
                 onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fef2f2'}
                 onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
-                onClick={() => {
-                  setStatusModalConfig({
-                    isOpen: true,
-                    mechanicId: r.id,
-                    mechanicName: r.name,
-                    targetStatus: 'Suspended',
-                    reason: 'Repeatedly rejected bookings without valid reason.'
-                  });
+                onClick={async () => {
                   setOpenDropdownId(null);
+                  try {
+                    const res = await updateMechanicStatus(r.id, 'Suspended', 'Account suspended.');
+                    if (res && res.success) {
+                      showToast(`✓ ${r.name}'s status updated to Suspended!`, 'success');
+                    } else {
+                      showToast(res?.error || 'Failed to update status.', 'error');
+                    }
+                  } catch (err: any) {
+                    showToast(err?.message || 'Failed to update status.', 'error');
+                  }
                 }}
               >
                 Suspend Account
@@ -817,7 +809,7 @@ export default function MechanicPage() {
                   <ChevronDown size={14} color="#6b7280" />
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {['Active', 'Busy', 'Pending', 'Suspended', 'Offline'].map(status => (
+                  {['Bid Live', 'Under Review', 'Services Paused', 'Suspended'].map(status => (
                     <label key={status} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8125rem', color: '#4b5563', cursor: 'pointer', padding: '0.25rem 0.5rem', border: '1px solid #e5e7eb', borderRadius: '0.375rem', backgroundColor: statusFilter === status ? '#eff6ff' : 'white' }}>
                       <input 
                         type="radio" 
@@ -893,10 +885,7 @@ export default function MechanicPage() {
                       const newStatus = e.target.value;
                       let defaultReason = '';
                       if (newStatus === 'Active') defaultReason = 'Account activated by administrator.';
-                      if (newStatus === 'Busy') defaultReason = 'Admin paused services temporarily.';
-                      if (newStatus === 'Pending') defaultReason = 'Under review for compliance.';
-                      if (newStatus === 'Offline') defaultReason = 'Marked offline due to inactivity.';
-                      if (newStatus === 'Suspended') defaultReason = 'Repeatedly rejected bookings without valid reason.';
+                      if (newStatus === 'Suspended') defaultReason = 'Admin suspended the account.';
                       setStatusModalConfig(prev => ({ ...prev, targetStatus: newStatus, reason: defaultReason }));
                     }}
                     style={{
@@ -914,9 +903,6 @@ export default function MechanicPage() {
                     }}
                   >
                     <option value="Active">Active</option>
-                    <option value="Busy">Busy</option>
-                    <option value="Pending">Pending</option>
-                    <option value="Offline">Offline</option>
                     <option value="Suspended">Suspended</option>
                   </select>
                   <span style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#6b7280', pointerEvents: 'none', display: 'flex' }}>
