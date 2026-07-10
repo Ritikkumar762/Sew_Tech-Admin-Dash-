@@ -151,7 +151,7 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
         </div>
 
         <div className={styles.trendChart}>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height={250}>
             <AreaChart data={newRepeat} margin={{ top: 20, right: 10, left: 35, bottom: 10 }}>
               <defs>
                 <linearGradient id="newGrad" x1="0" y1="0" x2="0" y2="1">

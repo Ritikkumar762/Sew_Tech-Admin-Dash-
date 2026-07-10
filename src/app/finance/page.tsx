@@ -235,7 +235,7 @@ export default function FinanceOverviewPage() {
                 </span>
               </div>
               <div className={styles.chartContainer}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
                   <AreaChart data={REVENUE_TREND_DATA} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -262,7 +262,7 @@ export default function FinanceOverviewPage() {
                 <h3 className={styles.chartTitle}>Profit Breakup</h3>
               </div>
               <div className={styles.chartContainer} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={PROFIT_BREAKUP_DATA}
@@ -319,7 +319,7 @@ export default function FinanceOverviewPage() {
                 <h3 className={styles.chartTitle}>Net Revenue</h3>
               </div>
               <div className={styles.chartContainer}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
                   <BarChart data={NET_REVENUE_DATA} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 9, fill: '#64748b' }} />
@@ -347,7 +347,7 @@ export default function FinanceOverviewPage() {
                 <h3 className={styles.chartTitle}>Transaction Insights</h3>
               </div>
               <div className={styles.chartContainer} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={TRANSACTION_INSIGHTS_DATA}

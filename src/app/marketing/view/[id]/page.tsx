@@ -294,7 +294,7 @@ export default function ViewBannerPage() {
 
         <div style={{ height: '300px', width: '100%', position: 'relative' }}>
           {/* Using AreaChart to mimic the dotted lines with fills */}
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorImp" x1="0" y1="0" x2="0" y2="1">

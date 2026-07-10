@@ -255,7 +255,7 @@ export default function RequestInsights() {
           ))}
           {/* Mock area chart below numbers */}
           <div style={{ gridColumn: '1 / -1', height: '120px', width: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
               <AreaChart data={currentFunnel.areaData} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id={`colorVal-${currentFunnel.stages.length}`} x1="0" y1="0" x2="1" y2="0">
@@ -403,7 +403,7 @@ export default function RequestInsights() {
             </div>
           </div>
           <div style={{ height: '260px', width: '100%', flexGrow: 1 }}>
-            <ResponsiveContainer>
+            <ResponsiveContainer minWidth={0} minHeight={0}>
               {ordersChartType === 'bar' ? (
                 <BarChart data={barData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
@@ -513,7 +513,7 @@ export default function RequestInsights() {
         </div>
 
         <div style={{ height: '280px', width: '100%' }}>
-          <ResponsiveContainer>
+          <ResponsiveContainer minWidth={0} minHeight={0}>
             {breakupChartType === 'bar' ? (
               <BarChart data={breakupData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />

@@ -1976,7 +1976,7 @@ export default function MechanicDetailPage() {
                   <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: '1.25rem' }}>Revenue Trend</h3>
                   <div style={{ height: '240px' }}>
                     {isMounted ? (
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
                         <AreaChart data={revenueTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                           <defs>
                             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -2062,7 +2062,7 @@ export default function MechanicDetailPage() {
                   <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b', margin: 0, marginBottom: '1.25rem' }}>Job Trend</h3>
                   <div style={{ height: '260px' }}>
                     {isMounted ? (
-                      <ResponsiveContainer width="100%" height="100%">
+                      <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
                         <BarChart data={jobTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                           <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} axisLine={false} />

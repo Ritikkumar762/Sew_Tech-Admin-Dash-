@@ -182,7 +182,7 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
         </div>
 
         <div className={styles.trendChart}>
-          <ResponsiveContainer width="100%" height={250}>
+          <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height={250}>
             {filter === 'city' ? (
               <BarChart data={trendCity} margin={{ top: 20, right: 10, left: 35, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />

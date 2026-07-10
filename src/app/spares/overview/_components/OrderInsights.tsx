@@ -376,7 +376,7 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
 
           {/* AreaChart Wave rendered absolutely at the bottom */}
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '120px', zIndex: 1 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
               <AreaChart 
                 data={[
                   { x: 0, val: 109.32 },
@@ -517,7 +517,7 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
             </div>
           </div>
           <div style={{ height: 220 }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
               <BarChart data={orderTrend} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />

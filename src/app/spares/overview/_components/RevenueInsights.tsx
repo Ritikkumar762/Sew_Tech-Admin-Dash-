@@ -141,7 +141,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
             </div>
           </div>
           <div style={{ height: '257px', width: '100%', marginTop: 'auto', position: 'relative' }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
               <AreaChart data={revenueTrend} margin={{ top: 53, right: 14, left: 30, bottom: 20 }}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -285,7 +285,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
             </div>
           </div>
           <div style={{ height: '257px', width: '100%', marginTop: 'auto', position: 'relative' }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
               <BarChart data={revenueTrend} margin={{ top: 53, right: 14, left: 30, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />

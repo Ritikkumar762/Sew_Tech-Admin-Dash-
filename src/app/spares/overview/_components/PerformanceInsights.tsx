@@ -290,7 +290,7 @@ export default function PerformanceInsights({ perfInsights }: Props) {
           </div>
         </div>
         <div style={{ height: '257px', width: '100%', position: 'relative' }}>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
             <LineChart 
               data={isComparing ? MOCK_PERF_TREND_COMPARE : MOCK_PERF_TREND} 
               margin={{ top: 53, right: 14, left: 30, bottom: 20 }}

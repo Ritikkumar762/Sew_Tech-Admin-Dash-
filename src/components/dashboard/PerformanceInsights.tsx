@@ -185,7 +185,7 @@ export default function PerformanceInsights() {
         </div>
 
         <div style={{ height: '300px', width: '100%', animation: 'fadeIn 0.8s ease' }}>
-          <ResponsiveContainer>
+          <ResponsiveContainer minWidth={0} minHeight={0}>
             {isCompare ? (
               <AreaChart data={compareData} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
                 <defs>

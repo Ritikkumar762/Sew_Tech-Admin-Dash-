@@ -95,7 +95,7 @@ export default function RevenueInsights() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b' }}></div>Revenue</div>
           </div>
           <div style={{ height: '280px', width: '100%' }}>
-            <ResponsiveContainer>
+            <ResponsiveContainer minWidth={0} minHeight={0}>
               <LineChart data={lineData} margin={{ top: 20, right: 20, left: 20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
@@ -122,7 +122,7 @@ export default function RevenueInsights() {
             </div>
           </div>
           <div style={{ height: '280px', width: '100%' }}>
-            <ResponsiveContainer>
+            <ResponsiveContainer minWidth={0} minHeight={0}>
               <BarChart data={barData} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />

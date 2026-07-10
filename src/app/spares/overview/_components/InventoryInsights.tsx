@@ -163,7 +163,7 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
             <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Stock by Category</h2>
           </div>
           <div style={{ height: '257px', width: '100%', marginTop: 'auto' }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
               <BarChart data={stockCategory} margin={{ top: 53, right: 14, left: 18, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />
