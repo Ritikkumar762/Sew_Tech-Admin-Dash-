@@ -304,14 +304,22 @@ export default function UsersPage() {
                     const isSelected = selectedIds.includes(user.id);
                     const roleStyle = getRoleStyle(user.role);
                     // Match copying ID label to role
-                    let idLabel = 'Customer ID';
-                    if (user.role.toLowerCase().includes('mechanic')) idLabel = 'Mehcanic ID';
-                    else if (user.role.toLowerCase().includes('kaarigar')) idLabel = 'Kaarigar ID';
-                    else if (user.role.toLowerCase().includes('admin')) idLabel = 'Admin ID';
-                    else if (user.role.toLowerCase().includes('audit')) idLabel = 'Audit ID';
+                    let idLabel = `Customer ID ${user.id}`;
+                    if (user.role.toLowerCase().includes('mechanic')) idLabel = `Mechanic ID ${user.id}`;
+                    else if (user.role.toLowerCase().includes('kaarigar')) idLabel = `Kaarigar ID ${user.id}`;
+                    else if (user.role.toLowerCase().includes('admin')) idLabel = `Admin ID ${user.id}`;
+                    else if (user.role.toLowerCase().includes('audit')) idLabel = `Audit ID ${user.id}`;
+                    else if (user.role.toLowerCase().includes('seller')) idLabel = `Seller ID ${user.id}`;
 
                     return (
-                      <tr key={user.id} style={isSelected ? { backgroundColor: '#f0f7ff' } : {}}>
+                      <tr 
+                        key={user.id} 
+                        style={{ 
+                          ...(isSelected ? { backgroundColor: '#f0f7ff' } : {}),
+                          position: 'relative',
+                          zIndex: activeMenuId === user.id ? 10 : 1
+                        }}
+                      >
                         <td>
                           <input 
                             type="checkbox" 
@@ -376,7 +384,7 @@ export default function UsersPage() {
                               View <ExternalLink size={12} />
                             </button>
                             
-                            <div className={styles.moreMenuWrapper}>
+                            <div className={styles.moreMenuWrapper} style={{ zIndex: activeMenuId === user.id ? 10 : 1 }}>
                               <button 
                                 className={styles.moreBtn}
                                 onClick={(e) => toggleMenu(user.id, e)}

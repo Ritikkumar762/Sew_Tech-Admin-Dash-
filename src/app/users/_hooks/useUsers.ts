@@ -278,7 +278,13 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
         id: String(u.user_id),
         name: u.full_name || 'Unknown',
         email: u.email || '',
-        role: u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Customer',
+        role: (() => {
+          if (u.is_mechanic) return 'Mechanic';
+          if (u.role === 'admin') return 'Admin';
+          if (u.role === 'seller') return 'Seller';
+          if (u.role === 'buyer') return 'Customer';
+          return u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Customer';
+        })(),
         status: u.is_active ? 'Active' : 'Inactive',
         joinedAt: u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
         avatar: u.profile_picture_url || undefined,
@@ -454,7 +460,13 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
         id:           String(u.user_id),
         name:         u.full_name || 'Unknown',
         email:        u.email || '',
-        role:         u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Customer',
+        role: (() => {
+          if (u.is_mechanic) return 'Mechanic';
+          if (u.role === 'admin') return 'Admin';
+          if (u.role === 'seller') return 'Seller';
+          if (u.role === 'buyer') return 'Customer';
+          return u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Customer';
+        })(),
         status:       u.is_active ? 'Active' : 'Inactive',
         joinedAt:     u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
         avatar:       u.profile_picture_url || undefined,

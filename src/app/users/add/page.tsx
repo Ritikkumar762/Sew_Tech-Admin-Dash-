@@ -53,17 +53,19 @@ export default function AddUserWizardPage() {
   // Backend supports 'individual' and 'business' only
   const userTypesList = ['Individual', 'Business Owner'];
 
+  const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
   // ── Fetch Master Data ───────────────────────────────────────
   useEffect(() => {
     const fetchMasterData = async () => {
       try {
-        const indRes = await fetch('/api/v1/onboarding/industries');
+        const indRes = await fetch(`${API}/api/v1/onboarding/industries`);
         if (indRes.ok) {
           const indData = await indRes.json();
           setIndustriesList(indData || []);
         }
         
-        const servRes = await fetch('/api/v1/onboarding/services');
+        const servRes = await fetch(`${API}/api/v1/onboarding/services`);
         if (servRes.ok) {
           const servData = await servRes.json();
           setServicesList(servData || []);
@@ -177,6 +179,18 @@ export default function AddUserWizardPage() {
           >
             Cancel
           </button>
+          
+          {currentStep > 1 && (
+            <button 
+              type="button" 
+              className={styles.discardBtn}
+              onClick={() => setCurrentStep(prev => prev - 1)}
+              disabled={isSubmitting}
+            >
+              Back
+            </button>
+          )}
+
           <button 
             type="button" 
             className={styles.submitBtn}
