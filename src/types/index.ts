@@ -38,6 +38,7 @@ export type User = {
   businessName?: string;
   businessType?: string;
   gstNumber?: string;
+  isVerified?: boolean;
   modulesUsed?: string[];
   activities?: Array<{ id: string; title: string; status: 'Completed' | 'Cancelled' | 'Pending'; date: string }>;
   escalations?: Array<{ id: string; disputeId: string; mechanicName: string; mechanicAvatar?: string; issueType: string; status: 'Resolved' | 'Active' }>;

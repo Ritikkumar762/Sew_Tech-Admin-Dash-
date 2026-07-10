@@ -19,13 +19,17 @@ export default function AddUserWizardPage() {
   const [email, setEmail] = useState('');
   const [dob, setDob] = useState('');
   const [role, setRole] = useState('Customer');
-  const [gender, setGender] = useState('OTHER');
+  const [gender, setGender] = useState('male');
   
   // Step 2
   const [userType, setUserType] = useState('Individual');
   const [businessName, setBusinessName] = useState('');
   const [businessType, setBusinessType] = useState('');
   const [gstNumber, setGstNumber] = useState('');
+  const [membershipType, setMembershipType] = useState('Free');
+  const [walletBalance, setWalletBalance] = useState('500.00');
+  const [isActive, setIsActive] = useState(true);
+  const [isVerified, setIsVerified] = useState(true);
 
   // Step 3
   const [selectedIndustries, setSelectedIndustries] = useState<number[]>([]);
@@ -45,20 +49,21 @@ export default function AddUserWizardPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [generalError, setGeneralError] = useState<string | null>(null);
 
-  const rolesList = ['Customer', 'Buyer', 'Seller', 'Admin', 'Mechanic', 'Kaarigar', 'Audit', 'Super-Admin', 'Spares Admin', 'Kaarigar Admin', 'Mechanic Admin', 'Academic Admin', 'Exchange Admin'];
-  const userTypesList = ['Individual', 'Business Owner', 'Partner', 'Corporate'];
+  const rolesList = ['Customer', 'Seller', 'Mechanic', 'Audit', 'Super-Admin', 'Spares Admin', 'Kaarigar Admin', 'Mechanic Admin', 'Academic Admin', 'Exchange Admin'];
+  // Backend supports 'individual' and 'business' only
+  const userTypesList = ['Individual', 'Business Owner'];
 
   // ── Fetch Master Data ───────────────────────────────────────
   useEffect(() => {
     const fetchMasterData = async () => {
       try {
-        const indRes = await fetch('http://127.0.0.1:8000/api/v1/onboarding/industries');
+        const indRes = await fetch('/api/v1/onboarding/industries');
         if (indRes.ok) {
           const indData = await indRes.json();
           setIndustriesList(indData || []);
         }
         
-        const servRes = await fetch('http://127.0.0.1:8000/api/v1/onboarding/services');
+        const servRes = await fetch('/api/v1/onboarding/services');
         if (servRes.ok) {
           const servData = await servRes.json();
           setServicesList(servData || []);
@@ -121,14 +126,25 @@ export default function AddUserWizardPage() {
           phone: formattedPhone,
           dob,
           role,
-          gender,
+          // gender lowercase to match backend GenderEnum: male/female/others
+          gender: gender.toLowerCase(),
           userType,
           businessName,
           businessType,
           gstNumber,
           industryIds: selectedIndustries,
           serviceIds: selectedServices,
-          status: 'Active'
+          membershipType,
+          walletBalance,
+          isActive,
+          isVerified,
+          sendNotification,
+          // Fields required by the User type union
+          status: 'Active',
+          location: 'Unknown',
+          modulesUsed: [],
+          activities: [],
+          escalations: [],
         });
         router.push('/users');
       } catch (err: any) {
@@ -234,9 +250,10 @@ export default function AddUserWizardPage() {
               <div className={styles.fieldGroup}>
                 <label className={styles.label}>Gender</label>
                 <select className={styles.input} value={gender} onChange={(e) => setGender(e.target.value)} disabled={isSubmitting}>
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
-                  <option value="OTHER">Other</option>
+                  {/* Lowercase values match backend GenderEnum exactly */}
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="others">Other</option>
                 </select>
               </div>
 
@@ -263,7 +280,8 @@ export default function AddUserWizardPage() {
                 {errors.userType && <span className={styles.errorText}>{errors.userType}</span>}
               </div>
 
-              {(userType === 'Business Owner' || userType === 'Corporate') && (
+              {/* Show business fields only for Business Owner — 'Corporate' removed as backend doesn't support it */}
+              {userType === 'Business Owner' && (
                 <>
                   <div className={styles.fieldGroup}>
                     <label className={styles.label}>Business Name</label>
@@ -279,6 +297,30 @@ export default function AddUserWizardPage() {
                   </div>
                 </>
               )}
+
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Membership Type</label>
+                <select className={styles.input} value={membershipType} onChange={(e) => setMembershipType(e.target.value)} disabled={isSubmitting}>
+                  <option value="Free">Free</option>
+                  <option value="Gold">Gold</option>
+                </select>
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Wallet Balance (₹)</label>
+                <input type="text" placeholder="500.00" className={styles.input} value={walletBalance} onChange={(e) => setWalletBalance(e.target.value)} disabled={isSubmitting} />
+              </div>
+
+              <div className={styles.fieldGroup} style={{ display: 'flex', gap: '2rem', alignItems: 'center', paddingTop: '1rem' }}>
+                <label className={styles.notificationOption}>
+                  <input type="checkbox" className={styles.checkbox} checked={isActive} onChange={(e) => setIsActive(e.target.checked)} disabled={isSubmitting} />
+                  <span>Is Active</span>
+                </label>
+                <label className={styles.notificationOption}>
+                  <input type="checkbox" className={styles.checkbox} checked={isVerified} onChange={(e) => setIsVerified(e.target.checked)} disabled={isSubmitting} />
+                  <span>Is Verified</span>
+                </label>
+              </div>
             </div>
           </>
         )}
@@ -300,8 +342,8 @@ export default function AddUserWizardPage() {
                 disabled={isSubmitting || industriesList.length === 0}
               >
                 {industriesList.length === 0 && <option disabled>Loading industries...</option>}
-                {industriesList.map(ind => (
-                  <option key={ind.id} value={ind.id}>{ind.name}</option>
+                {industriesList.map((ind: any, i: number) => (
+                  <option key={ind.industry_id || ind.id || `ind-${i}`} value={ind.industry_id || ind.id}>{ind.name}</option>
                 ))}
               </select>
             </div>
@@ -325,8 +367,8 @@ export default function AddUserWizardPage() {
                 disabled={isSubmitting || servicesList.length === 0}
               >
                 {servicesList.length === 0 && <option disabled>Loading services...</option>}
-                {servicesList.map(serv => (
-                  <option key={serv.id} value={serv.id}>{serv.name}</option>
+                {servicesList.map((serv: any, i: number) => (
+                  <option key={serv.service_id || serv.id || `srv-${i}`} value={serv.service_id || serv.id}>{serv.name}</option>
                 ))}
               </select>
             </div>

@@ -221,12 +221,12 @@ export default function InventoryPage() {
 
   // Helper calculations for parents
   const getProductStock = (product: Product) => {
-    if (product.variants.length === 0) return product.stock;
+    if (product.variants.length === 0) return 0;
     return product.variants.reduce((sum, v) => sum + v.stock, 0);
   };
 
   const getProductTotalAmount = (product: Product) => {
-    if (product.variants.length === 0) return product.stock * product.price;
+    if (product.variants.length === 0) return 0;
     return product.variants.reduce((sum, v) => sum + v.stock * v.price, 0);
   };
 

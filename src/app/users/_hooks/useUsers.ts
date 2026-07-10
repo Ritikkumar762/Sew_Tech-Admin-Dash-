@@ -5,6 +5,8 @@ import { User } from '@/types';
 import { apiClient } from '@/lib/api';
 import { ENDPOINTS } from '@/lib/endpoints';
 
+const API = 'http://localhost:8000';
+
 // Rich mock data matching the screenshot specs
 const INITIAL_MOCK_USERS: User[] = [
   {
@@ -241,13 +243,18 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     setLoading(true);
     setError(null);
     try {
-      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-      if (!token) {
-        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+      const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
+      
+      const queryParams = new URLSearchParams({
+        page: page.toString(),
+        page_size: pageSize.toString(),
+      });
+      if (search) {
+        queryParams.append('search', search);
       }
       
       const response = await fetch(
-        `http://127.0.0.1:8000/api/v1/users/?page=${page}&page_size=${pageSize}&search=${search}`, 
+        `${API}/api/v1/users/?${queryParams.toString()}`, 
         {
           method: "GET",
           headers: {
@@ -276,7 +283,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
         joinedAt: u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
         avatar: u.profile_picture_url || undefined,
         phone: u.phone_number || '',
-        location: 'Unknown', // Location not provided by backend
+        location: 'Unknown', 
         lastLogin: u.updated_at ? new Date(u.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
         lifetimeValue: u.wallet_balance ? `₹${parseFloat(u.wallet_balance).toFixed(0)}` : '-',
         membership: u.membership_type || 'Free',
@@ -286,6 +293,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
         businessName: u.business_name || undefined,
         businessType: u.business_type || undefined,
         gstNumber: u.gst_number || undefined,
+        isVerified: u.is_verified || false,
         modulesUsed: [],
         activities: [],
         escalations: []
@@ -333,58 +341,93 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     }
   }, []);
 
-  // Create a new user (Admin API)
-  const createUser = useCallback(async (userData: Omit<User, 'id' | 'joinedAt' | 'lastLogin' | 'lifetimeValue' | 'location'> & { location?: string, industryIds?: number[], serviceIds?: number[], gender?: string }) => {
+  // Create a new user (Admin API — mirrors onboarding steps 1-4)
+  const createUser = useCallback(async (userData: Omit<User, 'id' | 'joinedAt' | 'lastLogin' | 'lifetimeValue' | 'location'> & { 
+    location?: string, 
+    industryIds?: number[], 
+    serviceIds?: number[], 
+    gender?: string,
+    membershipType?: string,
+    walletBalance?: string,
+    isActive?: boolean,
+    isVerified?: boolean,
+    sendNotification?: boolean,
+    businessName?: string,
+    businessType?: string,
+    gstNumber?: string,
+    dob?: string
+  }) => {
     try {
-      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-      if (!token) {
-        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
-      }
+      const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
+      const token = HARDCODED_TOKEN;
 
-      const payload = {
-        full_name: userData.name,
-        email: userData.email,
-        phone_number: userData.phone,
-        role: userData.role?.toLowerCase() || 'customer',
-        gender: userData.gender?.toLowerCase() || 'others',
-        date_of_birth: userData.dob ? new Date(userData.dob).toISOString().split('T')[0] : "1990-01-01",
-        business_owner_type: (userData.userType && userData.userType.toUpperCase() === 'BUSINESS OWNER') ? 'BUSINESS' : 'INDIVIDUAL',
-        business_name: userData.businessName || null,
-        business_type: userData.businessType || null,
-        gst_number: userData.gstNumber || null,
-        industry_ids: userData.industryIds?.length ? userData.industryIds : [1],
-        service_ids: userData.serviceIds?.length ? userData.serviceIds : [1]
+      // Normalise user_type for backend (accepts 'individual' or 'business')
+      const rawType = (userData.userType || 'Individual').toLowerCase().trim();
+      const backendUserType =
+        rawType === 'business owner' || rawType === 'business' || rawType === 'corporate'
+          ? 'business'
+          : 'individual';
+
+      const payload: Record<string, unknown> = {
+        full_name:         userData.name,
+        email:             userData.email,
+        phone_number:      userData.phone,
+        role:              userData.role || 'Customer',
+        date_of_birth:     userData.dob
+                             ? new Date(userData.dob).toISOString().split('T')[0]
+                             : undefined,
+        // gender must be lowercase to match backend GenderEnum ('male','female','others')
+        gender:            userData.gender ? userData.gender.toLowerCase() : undefined,
+        user_type:         backendUserType,
+        // Business details (Step 2 parity)
+        business_name:     userData.businessName || undefined,
+        business_type:     userData.businessType || undefined,
+        gst_number:        userData.gstNumber || undefined,
+        // Industry + Service selections (Step 3 & 4 parity)
+        industry_ids:      userData.industryIds ?? [],
+        service_ids:       userData.serviceIds ?? [],
+        // Flags
+        is_active:         userData.isActive !== undefined ? userData.isActive : true,
+        send_notification: userData.sendNotification !== undefined ? userData.sendNotification : false,
       };
 
-      const res = await fetch(`http://127.0.0.1:8000/api/v1/users`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
-        body: JSON.stringify(payload)
+      // Remove undefined keys to keep payload clean
+      Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
+
+      const res = await fetch(`${API}/api/v1/users/`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
       });
-      
+
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        const errorMsg = Array.isArray(err.detail) ? JSON.stringify(err.detail) : (err.detail || err.message || `User Creation Failed`);
+        const detail = err.detail;
+        const errorMsg = Array.isArray(detail)
+          ? detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ')
+          : (typeof detail === 'string' ? detail : (err.message || 'User Creation Failed'));
         throw new Error(errorMsg);
       }
-      
+
       const finalData = await res.json();
-      
+
       const newUser: User = {
         location: 'Unknown',
         ...userData,
-        id: String(finalData.user_id || Math.random().toString(36).substr(2, 9)),
-        joinedAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
-        lastLogin: '-',
-        lifetimeValue: '-',
-        modulesUsed: userData.modulesUsed || [],
-        activities: [],
-        escalations: []
+        id:           String(finalData.user_id),
+        joinedAt:     new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        lastLogin:    '-',
+        lifetimeValue: '₹500',
+        modulesUsed:  userData.modulesUsed || [],
+        activities:   [],
+        escalations:  [],
       };
 
-      setUsers((prev) => [newUser, ...prev]);
+      setUsers(prev => [newUser, ...prev]);
       setTotalCount(prev => prev + 1);
-
       return newUser;
     } catch (err: any) {
       setError(err?.message || 'Failed to create user.');
@@ -395,43 +438,40 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
   // Fetch single user
   const fetchUser = useCallback(async (id: string) => {
     try {
-      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-      if (!token) {
-        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
-      }
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/${id}`, {
-        method: "GET",
+      const token = typeof window !== 'undefined'
+        ? (localStorage.getItem('adminToken') || localStorage.getItem('auth_token'))
+        : null;
+      const response = await fetch(`${API}/api/v1/users/${id}`, {
+        method: 'GET',
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
       if (!response.ok) throw new Error('Failed to fetch user');
-      const data = await response.json();
-      
-      const u = data;
+      const u = await response.json();
       const mappedUser: User = {
-        id: String(u.user_id),
-        name: u.full_name || 'Unknown',
-        email: u.email || '',
-        role: u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Customer',
-        status: u.is_active ? 'Active' : 'Inactive',
-        joinedAt: u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
-        avatar: u.profile_picture_url || undefined,
-        phone: u.phone_number || '',
-        location: 'Unknown',
-        lastLogin: u.updated_at ? new Date(u.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
+        id:           String(u.user_id),
+        name:         u.full_name || 'Unknown',
+        email:        u.email || '',
+        role:         u.role ? u.role.charAt(0).toUpperCase() + u.role.slice(1) : 'Customer',
+        status:       u.is_active ? 'Active' : 'Inactive',
+        joinedAt:     u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
+        avatar:       u.profile_picture_url || undefined,
+        phone:        u.phone_number || '',
+        location:     'Unknown',
+        lastLogin:    u.updated_at ? new Date(u.updated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '-',
         lifetimeValue: u.wallet_balance ? `₹${parseFloat(u.wallet_balance).toFixed(0)}` : '-',
-        membership: u.membership_type || 'Free',
-        dob: u.date_of_birth || undefined,
-        userType: u.business_owner_type || undefined,
-        typeOfUser: u.business_owner_type || undefined,
+        membership:   u.membership_type || 'Free',
+        dob:          u.date_of_birth || undefined,
+        userType:     u.business_owner_type || undefined,
+        typeOfUser:   u.business_owner_type || undefined,
         businessName: u.business_name || undefined,
         businessType: u.business_type || undefined,
-        gstNumber: u.gst_number || undefined,
-        modulesUsed: [],
-        activities: [],
-        escalations: []
+        gstNumber:    u.gst_number || undefined,
+        modulesUsed:  [],
+        activities:   [],
+        escalations:  [],
       };
       return mappedUser;
     } catch (err: any) {
@@ -440,22 +480,20 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     }
   }, [users]);
 
-  // Deactivate user
+  // Deactivate user (soft delete)
   const deactivateUser = useCallback(async (id: string) => {
     try {
-      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-      if (!token) {
-        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
-      }
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/${id}/deactivate`, {
-        method: "DELETE",
+      const token = typeof window !== 'undefined'
+        ? (localStorage.getItem('adminToken') || localStorage.getItem('auth_token'))
+        : null;
+      const response = await fetch(`${API}/api/v1/users/${id}/deactivate`, {
+        method: 'DELETE',
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
       if (!response.ok) throw new Error('Failed to deactivate user');
-      
       setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'Inactive' } : u));
     } catch (err: any) {
       setError(err?.message || 'Failed to deactivate user.');
@@ -463,22 +501,20 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     }
   }, []);
 
-  // Hard Delete user
+  // Hard delete user
   const deleteUser = useCallback(async (id: string) => {
     try {
-      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-      if (!token) {
-        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
-      }
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/${id}`, {
-        method: "DELETE",
+      const token = typeof window !== 'undefined'
+        ? (localStorage.getItem('adminToken') || localStorage.getItem('auth_token'))
+        : null;
+      const response = await fetch(`${API}/api/v1/users/${id}`, {
+        method: 'DELETE',
         headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
       });
       if (!response.ok) throw new Error('Failed to delete user');
-      
       setUsers(prev => prev.filter(u => u.id !== id));
     } catch (err: any) {
       setError(err?.message || 'Failed to delete user.');
@@ -489,41 +525,33 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
   // Update complete user details
   const updateUser = useCallback(async (id: string, updatedFields: Partial<User>) => {
     try {
-      let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-      if (!token) {
-        token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
-      }
+      const token = typeof window !== 'undefined'
+        ? (localStorage.getItem('adminToken') || localStorage.getItem('auth_token'))
+        : null;
 
-      // Map frontend fields back to backend payload
-      const payload: any = {};
-      if (updatedFields.name) payload.full_name = updatedFields.name;
-      if (updatedFields.email) payload.email = updatedFields.email;
-      if (updatedFields.phone) payload.phone_number = updatedFields.phone;
-      if (updatedFields.role) payload.role = updatedFields.role.toLowerCase();
-      if (updatedFields.dob) payload.date_of_birth = new Date(updatedFields.dob).toISOString().split('T')[0];
-      if (updatedFields.userType) payload.business_owner_type = updatedFields.userType.toLowerCase();
-      if (updatedFields.businessName) payload.business_name = updatedFields.businessName;
-      if (updatedFields.businessType) payload.business_type = updatedFields.businessType;
-      if (updatedFields.gstNumber) payload.gst_number = updatedFields.gstNumber;
+      // Map frontend fields to backend AdminUserUpdateRequest schema
+      const payload: Record<string, unknown> = {};
+      if (updatedFields.role)   payload.role      = updatedFields.role.toLowerCase();
       if (updatedFields.status) payload.is_active = updatedFields.status === 'Active';
 
-      // We attempt to call PUT /api/v1/users/{id}
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/${id}`, {
-        method: "PUT",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        console.warn("Update API Failed (might not exist), falling back to local update", errData);
+      if (Object.keys(payload).length > 0) {
+        const response = await fetch(`${API}/api/v1/admin/users/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          console.warn('Update API response:', errData);
+        }
       }
 
-      setUsers((prev) => {
-        const updated = prev.map((u) => (u.id === id ? { ...u, ...updatedFields } : u));
+      // Always update local state optimistically
+      setUsers(prev => {
+        const updated = prev.map(u => u.id === id ? { ...u, ...updatedFields } : u);
         if (typeof window !== 'undefined') {
           localStorage.setItem('users_data', JSON.stringify(updated));
         }

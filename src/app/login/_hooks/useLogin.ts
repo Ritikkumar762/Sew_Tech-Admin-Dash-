@@ -3,58 +3,102 @@ import { useRouter } from 'next/navigation';
 
 export type LoginMode = 'otp' | 'password' | 'verify_otp';
 
+// Backend base URL — reads from env, falls back to relative (proxied via next.config)
+const API = process.env.NEXT_PUBLIC_API_URL ?? '';
+
 export function useLogin() {
   const router = useRouter();
   const [mode, setMode] = useState<LoginMode>('otp');
-  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');     // used for OTP flow
+  const [email, setEmail] = useState('');     // kept for password flow UI
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // ── Actions ──────────────────────────────────────────────────
+  // ── OTP Request (real API) ────────────────────────────────────
   const requestOtp = useCallback(async () => {
-    if (!email) {
-      setError('Please enter a valid email.');
+    const rawPhone = (phone || email).trim();
+    if (!rawPhone) {
+      setError('Please enter your phone number.');
       return;
     }
+    // Normalise: add +91 if bare 10-digit number
+    const formattedPhone = rawPhone.startsWith('+')
+      ? rawPhone
+      : `+91${rawPhone.replace(/\D/g, '')}`;
+
     setLoading(true);
     setError(null);
     try {
-      // TODO: Replace with real API call
-      // await apiClient.post('/auth/request-otp', { email });
-      await new Promise(r => setTimeout(r, 600)); // mock delay
+      const res = await fetch(`${API}/api/v1/auth/request-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: formattedPhone }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.detail || 'Failed to send OTP');
+      }
       setMode('verify_otp');
     } catch (err: any) {
       setError(err.message || 'Failed to request OTP. Try again.');
     } finally {
       setLoading(false);
     }
-  }, [email]);
+  }, [phone, email]);
 
+  // ── OTP Verify (real API) → stores token ─────────────────────
   const verifyOtp = useCallback(async () => {
     const otpValue = otp.join('');
     if (otpValue.length < 6) return;
 
+    const rawPhone = (phone || email).trim();
+    const formattedPhone = rawPhone.startsWith('+')
+      ? rawPhone
+      : `+91${rawPhone.replace(/\D/g, '')}`;
+
     setLoading(true);
     setError(null);
     try {
-      // TODO: Replace with real API call
-      // await apiClient.post('/auth/verify-otp', { email, otp: otpValue });
-      await new Promise(r => setTimeout(r, 600)); // mock delay
-      if (otpValue === '123456') {
-        // Success
+      // Step 1: verify OTP → get verified_otp_token
+      const verifyRes = await fetch(`${API}/api/v1/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: formattedPhone, otp: otpValue }),
+      });
+      const verifyData = await verifyRes.json().catch(() => ({}));
+      if (!verifyRes.ok) {
+        throw new Error(verifyData.detail || 'Incorrect OTP');
+      }
+
+      // Step 2: If user is already onboarded (admin), get access token via login endpoint
+      const loginRes = await fetch(`${API}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone_number: formattedPhone, otp: otpValue }),
+      });
+      const loginData = await loginRes.json().catch(() => ({}));
+
+      if (loginRes.ok && loginData.access_token) {
+        // Store token — all hooks read 'auth_token'
+        localStorage.setItem('auth_token', loginData.access_token);
+        if (loginData.refresh_token) {
+          localStorage.setItem('refresh_token', loginData.refresh_token);
+        }
         router.push('/dashboard');
       } else {
-        throw new Error('Incorrect OTP');
+        // verified_otp_token returned — user not fully registered (shouldn't happen for admin)
+        throw new Error('Admin account not found for this phone number.');
       }
     } catch (err: any) {
       setError(err.message || 'Incorrect OTP');
     } finally {
       setLoading(false);
     }
-  }, [email, otp, router]);
+  }, [phone, email, otp, router]);
 
+  // ── Password login (kept as fallback, not used by backend) ────
   const loginWithPassword = useCallback(async () => {
     if (!email || !password) {
       setError('Please enter your email and password.');
@@ -63,13 +107,12 @@ export function useLogin() {
     setLoading(true);
     setError(null);
     try {
-      // TODO: Replace with real API call
-      // await apiClient.post('/auth/login', { email, password });
-      await new Promise(r => setTimeout(r, 600)); // mock delay
+      // Backend uses phone+OTP — password login not supported
+      // This is a UI-only mock for development
       if (email === 'admin@sewtech.com' && password === 'admin') {
         router.push('/dashboard');
       } else {
-        throw new Error('Invalid credentials. (Hint: admin@sewtech.com / admin)');
+        throw new Error('Invalid credentials. Use phone number + OTP to login.');
       }
     } catch (err: any) {
       setError(err.message || 'Login failed.');
@@ -84,15 +127,16 @@ export function useLogin() {
   };
 
   const handleOtpChange = (index: number, value: string) => {
-    if (value.length > 1) value = value.slice(-1); // only single char
+    if (value.length > 1) value = value.slice(-1);
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
-    setError(null); // clear error when typing
+    setError(null);
   };
 
   return {
     mode,
+    phone, setPhone,
     email, setEmail,
     password, setPassword,
     otp, handleOtpChange,
