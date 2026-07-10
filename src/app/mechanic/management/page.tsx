@@ -1008,7 +1008,7 @@ export default function MechanicPage() {
       {toastConfig.show && (
         <div style={{
           position: 'fixed',
-          top: '20px',
+          bottom: '20px',
           right: '20px',
           backgroundColor: toastConfig.type === 'success' ? '#10b981' : '#ef4444',
           color: 'white',

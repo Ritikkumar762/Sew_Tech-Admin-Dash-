@@ -155,7 +155,8 @@ export function useMechanics() {
     try {
       const q: string[] = [];
       if (params.page)   q.push(`page=${params.page}`);
-      if (params.limit)  q.push(`limit=${params.limit ?? 20}`);
+      // The API expects `pageSize` instead of `limit`
+      if (params.limit)  q.push(`pageSize=${params.limit ?? 20}`);
       if (params.status) q.push(`status=${encodeURIComponent(toApiStatus(params.status))}`);
       if (params.search) q.push(`search=${encodeURIComponent(params.search)}`);
       const url = `${API}${q.length ? '?' + q.join('&') : ''}`;
@@ -350,12 +351,12 @@ export function useMechanics() {
       }
 
       // Refresh full list to sync with server
-      await fetchMechanics();
+      await fetchMechanics({ limit: 1000 });
       return { success: true, data: json?.data ?? { id, status: apiStatus }, message: json?.message ?? 'Status updated' };
     } catch (err: any) {
       console.error('[useMechanics] updateMechanicStatus failed:', err);
       // Revert optimistic update
-      await fetchMechanics();
+      await fetchMechanics({ limit: 1000 });
       return { success: false, error: err?.message || 'Failed to update status' };
     }
   }, [fetchMechanics]);
@@ -402,7 +403,7 @@ export function useMechanics() {
   }, []);
 
   // ── Initial load ────────────────────────────────────────────────────────────
-  useEffect(() => { fetchMechanics(); }, [fetchMechanics]);
+  useEffect(() => { fetchMechanics({ limit: 1000 }); }, [fetchMechanics]);
 
   return {
     mechanics,

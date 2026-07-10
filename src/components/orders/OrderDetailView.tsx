@@ -124,8 +124,13 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const [activeTab, setActiveTab] = useState<'summary' | 'quotes' | 'tracking'>('summary');
   const [sentNotification, setSentNotification] = useState(false);
   const [searchQuoteQuery, setSearchQuoteQuery] = useState('');
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState('Push notification sent to nearby mechanics successfully!');
+  
+  const [toastConfig, setToastConfig] = useState<{show: boolean, message: string, type: 'success' | 'error'}>({ show: false, message: '', type: 'success' });
+  const showToastMsg = (message: string, type: 'success' | 'error' = 'success') => {
+    setToastConfig({ show: true, message, type });
+    setTimeout(() => setToastConfig(prev => ({ ...prev, show: false })), 3500);
+  };
+  
   const [isPlaying, setIsPlaying]   = useState(false);
   const [tlOffset, setTlOffset]     = useState(0);
   const [showAssign, setShowAssign] = useState(false);
@@ -520,15 +525,14 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                         Completed: 'Completed', DiagnosisAvailable: 'Diagnosis Available',
                         PickUp: 'Pick Up', Cancelled: 'Cancelled'
                       };
-                      setToastMessage(`Status updated to "${labelMap[val] || val}" successfully!`);
-                      setShowToast(true);
-                      setTimeout(() => setShowToast(false), 3000);
+                      showToastMsg(`Status updated to "${labelMap[val] || val}" successfully!`, 'success');
                       fetchBookingDetail();
                     } else {
-                      alert('Failed to update status in the database.');
+                      showToastMsg('Failed to update status in the database.', 'error');
                     }
                   } catch (err) {
                     console.error(err);
+                    showToastMsg('Error updating status.', 'error');
                   }
                 }}
                 style={{
@@ -959,9 +963,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                 <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1f2937' }}>No Quotes Received</span>
                 <button
                   onClick={() => {
-                    setShowToast(true);
                     setSentNotification(true);
-                    setTimeout(() => setShowToast(false), 3000);
+                    showToastMsg('Push notification sent to nearby mechanics successfully!', 'success');
                   }}
                   style={{
                     display: 'inline-flex',
@@ -1435,17 +1438,17 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
             )}
 
             {/* Notification Toast */}
-            {showToast && (
+            {toastConfig.show && (
               <div style={{
                 position: 'fixed',
-                top: '20px',
+                bottom: '20px',
                 right: '20px',
-                backgroundColor: '#10b981',
+                backgroundColor: toastConfig.type === 'success' ? '#10b981' : '#ef4444',
                 color: 'white',
                 padding: '0.75rem 1.25rem',
                 borderRadius: '0.5rem',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                zIndex: 1000,
+                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                zIndex: 1100,
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 display: 'flex',
@@ -1453,8 +1456,12 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                 gap: '0.5rem',
                 animation: 'odFade 0.2s ease'
               }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                {toastMessage}
+                {toastConfig.type === 'success' ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                ) : (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                )}
+                {toastConfig.message}
               </div>
             )}
           </div>

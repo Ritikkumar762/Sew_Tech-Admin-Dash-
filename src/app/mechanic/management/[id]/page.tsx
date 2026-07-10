@@ -972,7 +972,7 @@ export default function MechanicDetailPage() {
       {showToast && (
         <div style={{
           position: 'fixed',
-          top: '20px',
+          bottom: '20px',
           right: '20px',
           backgroundColor: '#10b981',
           color: 'white',

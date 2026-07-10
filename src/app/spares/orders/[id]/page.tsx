@@ -42,6 +42,11 @@ export default function OrderDetailPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [selectedReturnReasons, setSelectedReturnReasons] = useState<string[]>([]);
   const [isOtherReturnSelected, setIsOtherReturnSelected] = useState(true);
+  const [toastConfig, setToastConfig] = useState<{show: boolean, message: string, type: 'success' | 'error'}>({ show: false, message: '', type: 'success' });
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToastConfig({ show: true, message, type });
+    setTimeout(() => setToastConfig(prev => ({ ...prev, show: false })), 3500);
+  };
 
   // Fetch Order Details from Database
   const fetchOrderDetail = useCallback(async () => {
@@ -105,11 +110,13 @@ export default function OrderDetailPage() {
       });
       if (res.ok) {
         setOrder((prev: any) => prev ? { ...prev, status: newStatus } : null);
+        showToast(`Status updated to "${newStatus}" successfully!`, 'success');
       } else {
-        alert('Failed to update spares order status in the database.');
+        showToast('Failed to update spares order status in the database.', 'error');
       }
     } catch (err) {
       console.error('Error updating status:', err);
+      showToast('Error updating status. Please try again.', 'error');
     }
   };
 
@@ -130,11 +137,13 @@ export default function OrderDetailPage() {
       if (res.ok) {
         setOrder((prev: any) => prev ? { ...prev, status: 'Cancelled' } : null);
         setShowCancelModal(false);
+        showToast('Order cancelled successfully!', 'success');
       } else {
-        alert('Failed to cancel spares order in the database.');
+        showToast('Failed to cancel spares order in the database.', 'error');
       }
     } catch (err) {
       console.error('Error cancelling order:', err);
+      showToast('Error cancelling order. Please try again.', 'error');
     }
   };
 
@@ -496,6 +505,34 @@ export default function OrderDetailPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Floating Toast Notification */}
+      {toastConfig.show && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          backgroundColor: toastConfig.type === 'success' ? '#10b981' : '#ef4444',
+          color: 'white',
+          padding: '0.75rem 1.25rem',
+          borderRadius: '0.5rem',
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          zIndex: 1200,
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          {toastConfig.type === 'success' ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+          )}
+          {toastConfig.message}
         </div>
       )}
     </div>
