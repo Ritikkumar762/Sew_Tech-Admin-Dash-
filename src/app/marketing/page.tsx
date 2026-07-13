@@ -202,7 +202,18 @@ export default function MarketingPage() {
                     <td style={{ padding: '1rem 1.5rem' }}>
                       <input type="checkbox" style={{ accentColor: '#3b82f6', width: '16px', height: '16px', borderRadius: '4px', border: '1px solid #d1d5db' }} />
                     </td>
-                    <td style={{ padding: '1rem', fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{campaign.spareName}</td>
+                    <td style={{ padding: '1rem', fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        {campaign.imageUrl ? (
+                          <img src={campaign.imageUrl} alt={campaign.spareName || 'Banner'} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
+                        ) : (
+                          <div style={{ width: '40px', height: '40px', backgroundColor: '#f3f4f6', borderRadius: '6px', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span style={{ fontSize: '10px', color: '#9ca3af' }}>N/A</span>
+                          </div>
+                        )}
+                        <span>{campaign.spareName}</span>
+                      </div>
+                    </td>
                     <td style={{ padding: '1rem', fontSize: '0.875rem', color: '#111827', textAlign: 'center', fontWeight: 600 }}>{campaign.startDate} - {campaign.endDate}</td>
                     <td style={{ padding: '1rem', textAlign: 'center' }}>
                       <span style={{ background: '#eff6ff', color: '#3b82f6', padding: '4px 12px', borderRadius: '4px', fontSize: '0.875rem', fontWeight: 600 }}>{campaign.impressionsL30D}</span>

@@ -1,0 +1,187 @@
+.container {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: var(--bg-secondary, #f8fafc);
+  min-height: 100vh;
+}
+
+.headerCard, .detailCard {
+  background: white;
+  border-radius: var(--radius-lg, 12px);
+  padding: 1.25rem 1.5rem;
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.headerCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.profileInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.backArrow {
+  background: white;
+  border: 1px solid var(--border-color, #e2e8f0);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748b;
+  transition: all 0.2s;
+}
+
+.backArrow:hover {
+  background: #f1f5f9;
+}
+
+.profileTitleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.profileName {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.copyIdBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.5rem;
+  background: #f1f5f9;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  width: fit-content;
+  transition: all 0.2s;
+}
+
+.copyIdBadge:hover {
+  background: #e2e8f0;
+}
+
+.copySuccess {
+  background: #dcfce7;
+  color: #16a34a;
+  border-color: #86efac;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.refundBtn {
+  background: white;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.resolveBtn {
+  background: #1e293b;
+  border: 1px solid #1e293b;
+  color: white;
+  padding: 0.5rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.topInfoRow {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+  padding: 0.5rem 0;
+}
+
+.infoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.infoLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.infoValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.statusActive {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-block;
+  margin-top: 0.25rem;
+}
+
+.sectionTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #0f172a;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.descriptionText {
+  font-size: 0.875rem;
+  color: #334155;
+  line-height: 1.6;
+}
+
+.serviceStrip {
+  background: #1e293b;
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.serviceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.addressBox {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 0.875rem;
+  color: #334155;
+  line-height: 1.6;
+}

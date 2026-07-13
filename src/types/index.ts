@@ -145,5 +145,7 @@ export type Campaign = {
   currentCTR?: string;
   targetAudience?: string;
   tabCategory?: 'Home Screen' | 'ST Spares' | 'ST Mechanic' | 'ST Kaarigar' | 'ST Exchange' | 'ST Academics';
+  imageUrl?: string;
+  creative?: any;
 };
 

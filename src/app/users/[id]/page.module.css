@@ -236,6 +236,212 @@
   color: var(--text-primary);
 }
 
+/* ── Mechanic Personal Details ── */
+.activeServicesRow {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.servicePill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+  background: #f8fafc;
+}
+
+.serviceOrange {
+  background: #fff7ed;
+}
+
+.serviceOrange .serviceIcon {
+  width: 20px;
+  height: 20px;
+  background: #f97316;
+  border-radius: 50%;
+}
+
+.serviceGreen {
+  background: #f0fdf4;
+}
+
+.serviceGreen .serviceIcon {
+  width: 20px;
+  height: 20px;
+  background: #10b981;
+  border-radius: 50%;
+}
+
+.serviceCyan {
+  background: #ecfeff;
+}
+
+.serviceCyan .serviceIcon {
+  width: 20px;
+  height: 20px;
+  background: #06b6d4;
+  border-radius: 50%;
+}
+
+.serviceMore {
+  color: #94a3b8;
+  margin-left: 0.25rem;
+  cursor: pointer;
+}
+
+.tagBlue {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tagGreen {
+  background: #f0fdf4;
+  color: #16a34a;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+.pitchesGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+
+.pitchCard {
+  background: #f8fafc;
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  border: 1px solid var(--border-color);
+}
+
+.pitchTitle {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.audioPlayerPlaceholder {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.audioTrack {
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  position: relative;
+}
+
+.audioProgress {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 30%;
+  background: #3b82f6;
+  border-radius: 4px;
+}
+
+.audioThumb {
+  position: absolute;
+  left: 30%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  background: #2563eb;
+  border-radius: 50%;
+}
+
+.audioTimes {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
+.audioControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-top: 0.5rem;
+}
+
+.audioControlIcon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #cbd5e1;
+}
+
+.audioPlayBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #2563eb;
+}
+
+.videoPlayerPlaceholder {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #94a3b8;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background-image: url('https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop');
+  background-size: cover;
+  background-position: center;
+}
+
+.videoPlayBtn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid white;
+}
+
+.documentPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 0.2s;
+}
+
+.documentPill:hover {
+  background: #dbeafe;
+}
+
 /* ── Activity Tab Styles ── */
 .modulesRow {
   display: flex;
@@ -648,6 +854,94 @@
 
 .arrowBtn:hover {
   background: var(--bg-primary);
+}
+
+/* ── Jobs and Violations Tabs ── */
+.subTabsContainer {
+  display: flex;
+  gap: 1.5rem;
+  border-bottom: 2px solid #f1f5f9;
+  margin-bottom: 1rem;
+}
+
+.subTab {
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.subTab:hover {
+  color: #1e293b;
+}
+
+.subTabActive {
+  color: #1e293b;
+}
+
+.subTabActive::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #1e293b;
+}
+
+.filterPillsRow {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.filterPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filterPillBlack {
+  background: #1e293b;
+  color: white;
+  border-color: #1e293b;
+}
+
+.filterCross, .filterPlus {
+  font-size: 0.9rem;
+  margin-left: 0.2rem;
+}
+
+.statusOngoing {
+  background: #dbeafe;
+  color: #2563eb;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.statusDiagnosis {
+  background: #fae8ff;
+  color: #c026d3;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 0.75rem;
 }
 
 /* Responsiveness */

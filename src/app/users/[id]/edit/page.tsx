@@ -10,7 +10,8 @@ import {
   Copy, 
   Check, 
   ChevronDown, 
-  X 
+  X,
+  MoreVertical
 } from 'lucide-react';
 
 // Help parse custom dob string ("21 Jan' 1990") to input date format (YYYY-MM-DD)
@@ -263,8 +264,33 @@ export default function EditUserPage() {
 
       {/* Form Card Grid */}
       <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {role === 'Mechanic' && (
+          <div className={styles.formCard}>
+            <h2 className={styles.sectionTitle}>Active Services</h2>
+            <div className={styles.activeServicesRow}>
+              <div className={`${styles.servicePill} ${styles.serviceOrange}`}>
+                <span className={styles.serviceIcon}></span> Video Call Assistance <MoreVertical size={14} className={styles.serviceMore} />
+              </div>
+              <div className={`${styles.servicePill} ${styles.serviceGreen}`}>
+                <span className={styles.serviceIcon}></span> Instant Smart Booking <MoreVertical size={14} className={styles.serviceMore} />
+              </div>
+              <div className={`${styles.servicePill} ${styles.serviceCyan}`}>
+                <span className={styles.serviceIcon}></span> Invite Quote <MoreVertical size={14} className={styles.serviceMore} />
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className={styles.formCard}>
-          <h2 className={styles.sectionTitle}>Basic Details</h2>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 className={styles.sectionTitle} style={{ marginBottom: 0 }}>Basic Details</h2>
+            {role === 'Mechanic' && (
+              <select className={styles.input} style={{ width: '120px', padding: '0.35rem 0.75rem', height: 'auto' }}>
+                <option value="Live">Live</option>
+                <option value="Offline">Offline</option>
+              </select>
+            )}
+          </div>
 
           <div className={styles.formGrid}>
           {/* Email ID Field */}
@@ -363,23 +389,25 @@ export default function EditUserPage() {
             </div>
           </div>
 
-          {/* Role Dropdown */}
-          <div className={styles.fieldGroup}>
-            <label className={styles.label}>
-              Role <span className={styles.required}>*</span>
-            </label>
-            <select 
-              className={styles.input}
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              disabled={isSaving}
-            >
-              {rolesList.map(r => (
-                <option key={r} value={r}>{r}</option>
-              ))}
-            </select>
-            {errors.role && <span className={styles.errorText}>{errors.role}</span>}
-          </div>
+          {/* Role Dropdown - Only if not Mechanic, as Mechanic role is fixed for this view or can be changed but let's keep it */}
+          {role !== 'Mechanic' && (
+            <div className={styles.fieldGroup}>
+              <label className={styles.label}>
+                Role <span className={styles.required}>*</span>
+              </label>
+              <select 
+                className={styles.input}
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                disabled={isSaving}
+              >
+                {rolesList.map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+              {errors.role && <span className={styles.errorText}>{errors.role}</span>}
+            </div>
+          )}
 
           {/* User Type Dropdown */}
           {role === 'Customer' && (
@@ -402,6 +430,122 @@ export default function EditUserPage() {
           )}
           </div>
         </div>
+
+        {role === 'Mechanic' && (
+          <div className={styles.formCard}>
+            <h2 className={styles.sectionTitle}>Profile Details</h2>
+            <div className={styles.formGrid}>
+              <div className={styles.fieldGroup} style={{ gridColumn: '1 / -1' }}>
+                <label className={styles.label}>Bio <span className={styles.required}>*</span></label>
+                <div className={styles.richTextEditor}>
+                  <div className={styles.richTextToolbar}>
+                    <span>14 ▼</span>
+                    <span style={{ fontWeight: 'bold' }}>T</span>
+                    <span style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#1e293b', display: 'inline-block' }}></span>
+                    <span style={{ fontWeight: 'bold' }}>B</span>
+                    <span style={{ fontStyle: 'italic' }}>I</span>
+                    <span style={{ textDecoration: 'underline' }}>U</span>
+                    <span>S</span>
+                    <span>≡</span>
+                    <span>🔗</span>
+                    <span>☷</span>
+                  </div>
+                  <textarea 
+                    className={styles.richTextArea} 
+                    placeholder="Add Body to your post"
+                    defaultValue="Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut et massa mi. Aliquam in hendrerit urna."
+                  />
+                  <div style={{ textAlign: 'right', fontSize: '0.75rem', color: '#94a3b8', padding: '0.25rem 0.5rem' }}>50/200</div>
+                </div>
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Experience (in years) <span className={styles.required}>*</span></label>
+                <input type="text" className={styles.input} defaultValue="12" />
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Availability <span className={styles.required}>*</span></label>
+                <select className={styles.input}>
+                  <option>Demo Manufacturer</option>
+                  <option>Mon, Tue, Wed, Thu, Fri</option>
+                </select>
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Location Preference: <span className={styles.required}>*</span></label>
+                <div className={styles.dropdownSelectWrapper}>
+                  <div className={styles.multiSelectTrigger}>
+                    <div className={styles.tagsRow}>
+                      <span className={styles.langTag}>Delhi NCR <X size={10} style={{ marginLeft: '0.25rem', cursor: 'pointer' }} /></span>
+                    </div>
+                    <ChevronDown size={14} style={{ color: '#64748b' }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.fieldGroup}>
+                <label className={styles.label}>Skills: <span className={styles.required}>*</span></label>
+                <div className={styles.dropdownSelectWrapper}>
+                  <div className={styles.multiSelectTrigger}>
+                    <div className={styles.tagsRow}>
+                      <span className={styles.langTag}>Skill Tag 1 <X size={10} style={{ marginLeft: '0.25rem', cursor: 'pointer' }} /></span>
+                    </div>
+                    <ChevronDown size={14} style={{ color: '#64748b' }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.fieldGroup} style={{ gridColumn: '1 / -1' }}>
+                <label className={styles.label}>Machines/ Brands familiar with: <span className={styles.required}>*</span></label>
+                <div className={styles.dropdownSelectWrapper}>
+                  <div className={styles.multiSelectTrigger}>
+                    <div className={styles.tagsRow}>
+                      <span className={styles.langTag}>Machine Tag 1 <X size={10} style={{ marginLeft: '0.25rem', cursor: 'pointer' }} /></span>
+                    </div>
+                    <ChevronDown size={14} style={{ color: '#64748b' }} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.pitchesGrid} style={{ marginTop: '2rem' }}>
+              <div className={styles.pitchCard}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 className={styles.pitchTitle} style={{ marginBottom: 0 }}>Mechanic Audio Pitch</h3>
+                  <button type="button" className={styles.deletePitchBtn}>Delete Pitch 🗑</button>
+                </div>
+                <div className={styles.audioPlayerPlaceholder}>
+                  <div className={styles.audioTrack}>
+                    <div className={styles.audioProgress}></div>
+                    <div className={styles.audioThumb}></div>
+                  </div>
+                  <div className={styles.audioTimes}>
+                    <span>02:30</span>
+                    <span>03:30</span>
+                  </div>
+                  <div className={styles.audioControls}>
+                    <div className={styles.audioControlIcon}></div>
+                    <div className={styles.audioControlIcon}></div>
+                    <div className={styles.audioPlayBtn}></div>
+                    <div className={styles.audioControlIcon}></div>
+                    <div className={styles.audioControlIcon}></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className={styles.pitchCard}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                  <h3 className={styles.pitchTitle} style={{ marginBottom: 0 }}>Mechanic Video Pitch</h3>
+                  <button type="button" className={styles.deletePitchBtn}>Delete Pitch 🗑</button>
+                </div>
+                <div className={styles.videoPlayerPlaceholder}>
+                  <div className={styles.videoPlayBtn}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Business Details Section - Shown conditionally if User Type is Business Owner and role is Customer */}
         {role === 'Customer' && userType === 'Business Owner' && (

@@ -24,7 +24,7 @@ export default function UserDetailPage() {
   // ── States ──────────────────────────────────────────────────
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'personal' | 'activity' | 'escalations'>('personal');
+  const [activeTab, setActiveTab] = useState<'personal' | 'activity' | 'escalations' | 'identity' | 'jobs' | 'violations'>('personal');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copiedDisputeId, setCopiedDisputeId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -180,12 +180,36 @@ export default function UserDetailPage() {
         >
           Personal Details
         </button>
+        {user.role.toLowerCase().includes('mechanic') && (
+          <button 
+            className={`${styles.tab} ${activeTab === 'identity' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('identity')}
+          >
+            Identity & Verification
+          </button>
+        )}
         <button 
           className={`${styles.tab} ${activeTab === 'activity' ? styles.activeTab : ''}`}
           onClick={() => setActiveTab('activity')}
         >
           Activity Snapshot
         </button>
+        {user.role.toLowerCase().includes('mechanic') && (
+          <>
+            <button 
+              className={`${styles.tab} ${activeTab === 'jobs' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('jobs')}
+            >
+              Jobs
+            </button>
+            <button 
+              className={`${styles.tab} ${activeTab === 'violations' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('violations')}
+            >
+              Violations & Risk
+            </button>
+          </>
+        )}
         {user.role.toLowerCase() === 'customer' && (
           <button 
             className={`${styles.tab} ${activeTab === 'escalations' ? styles.activeTab : ''}`}
@@ -197,7 +221,129 @@ export default function UserDetailPage() {
       </div>
 
       {/* Tab Panels */}
-      {activeTab === 'personal' && (
+      {activeTab === 'personal' && user.role.toLowerCase().includes('mechanic') && (
+        <div className={styles.detailsGrid}>
+          {/* Basic Details Card */}
+          <div className={styles.detailCard}>
+            <h2 className={styles.cardTitle}>Basic Details</h2>
+            <div className={styles.roleAlertStrip}>
+              Role : Mechanic
+            </div>
+            <div className={styles.infoGrid}>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Email</span>
+                <span className={styles.infoValue}>{user.email || 'nishant.kumar@gmail.com'}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Phone Number</span>
+                <span className={styles.infoValue}>{user.phone || '+919876543210'}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>DOB</span>
+                <span className={styles.infoValue}>{user.dob || "21 Jan' 1990"}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Selected Language</span>
+                <span className={styles.infoValue}>{user.selectedLanguage || 'Hindi, English, Punjabi'}</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Joining Date</span>
+                <span className={styles.infoValue}>{user.joiningDate || "21 Jan' 2026"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Active Services */}
+          <div className={styles.detailCard}>
+            <h2 className={styles.cardTitle}>Active Services</h2>
+            <div className={styles.activeServicesRow}>
+              <div className={`${styles.servicePill} ${styles.serviceOrange}`}>
+                <span className={styles.serviceIcon}></span> Video Call Assistance <MoreVertical size={14} className={styles.serviceMore} />
+              </div>
+              <div className={`${styles.servicePill} ${styles.serviceGreen}`}>
+                <span className={styles.serviceIcon}></span> Instant Smart Booking <MoreVertical size={14} className={styles.serviceMore} />
+              </div>
+              <div className={`${styles.servicePill} ${styles.serviceCyan}`}>
+                <span className={styles.serviceIcon}></span> Invite Quote <MoreVertical size={14} className={styles.serviceMore} />
+              </div>
+            </div>
+          </div>
+
+          {/* Profile Details */}
+          <div className={styles.detailCard}>
+            <h2 className={styles.cardTitle}>Profile Details</h2>
+            <div style={{ marginBottom: '1.5rem' }}>
+              <span className={styles.infoLabel}>Bio:</span>
+              <p style={{ fontSize: '0.875rem', color: '#1e293b', marginTop: '0.5rem', lineHeight: '1.5' }}>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut et massa mi. Aliquam in hendrerit urna.
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut et massa mi. Aliquam in hendrerit urna.
+              </p>
+            </div>
+            <div className={styles.infoGrid} style={{ marginBottom: '1.5rem' }}>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Experience (in years):</span>
+                <span className={styles.infoValue}>3</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Availability:</span>
+                <span className={styles.infoValue}>Mon, Tue, Wed, Thu, Fri</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Location Preference:</span>
+                <span className={styles.infoValue}>Delhi NCR</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Skills:</span>
+                <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
+                  <span className={styles.tagBlue}>Skill Tag 1</span>
+                  <span className={styles.tagBlue}>Skill Tag 2</span>
+                </div>
+              </div>
+            </div>
+            <div>
+              <span className={styles.infoLabel}>Machines/ Brands familiar with:</span>
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                <span className={styles.tagBlue}>Machine Tag 1 <ExternalLink size={12} style={{ marginLeft: '0.25rem' }} /></span>
+                <span className={styles.tagBlue}>Machine Tag 1 <ExternalLink size={12} style={{ marginLeft: '0.25rem' }} /></span>
+                <span className={styles.tagGreen}>Brand Tag 1</span>
+                <span className={styles.tagGreen}>Brand Tag 2</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Pitches */}
+          <div className={styles.pitchesGrid}>
+            <div className={styles.pitchCard}>
+              <h3 className={styles.pitchTitle}>Mechanic Audio Pitch<span style={{ color: 'red' }}>*</span></h3>
+              <div className={styles.audioPlayerPlaceholder}>
+                <div className={styles.audioTrack}>
+                  <div className={styles.audioProgress}></div>
+                  <div className={styles.audioThumb}></div>
+                </div>
+                <div className={styles.audioTimes}>
+                  <span>02:30</span>
+                  <span>03:30</span>
+                </div>
+                <div className={styles.audioControls}>
+                  <div className={styles.audioControlIcon}></div>
+                  <div className={styles.audioControlIcon}></div>
+                  <div className={styles.audioPlayBtn}></div>
+                  <div className={styles.audioControlIcon}></div>
+                  <div className={styles.audioControlIcon}></div>
+                </div>
+              </div>
+            </div>
+            <div className={styles.pitchCard}>
+              <h3 className={styles.pitchTitle}>Mechanic Video Pitch<span style={{ color: 'red' }}>*</span></h3>
+              <div className={styles.videoPlayerPlaceholder}>
+                <div className={styles.videoPlayBtn}></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'personal' && !user.role.toLowerCase().includes('mechanic') && (
         <div className={styles.detailsGrid}>
           {/* Basic Details Card */}
           <div className={styles.detailCard}>
@@ -258,43 +404,82 @@ export default function UserDetailPage() {
         </div>
       )}
 
+      {/* Identity & Verification Tab */}
+      {activeTab === 'identity' && (
+        <div className={styles.detailsGrid}>
+          <div className={styles.detailCard}>
+            <h2 className={styles.cardTitle}>Documents</h2>
+            
+            <div className={styles.infoGrid} style={{ marginTop: '1rem' }}>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Name as on Aadhar Card:</span>
+                <span className={styles.infoValue}>Nishant Kumar</span>
+              </div>
+              <div className={styles.infoItem}>
+                <span className={styles.infoLabel}>Aadhar Number:</span>
+                <span className={styles.infoValue}>1234 5678 1234</span>
+              </div>
+              <div className={styles.infoItem} style={{ marginTop: '1.5rem' }}>
+                <span className={styles.infoLabel}>Name as on PAN Card:</span>
+                <span className={styles.infoValue}>Nishant Kumar</span>
+              </div>
+              <div className={styles.infoItem} style={{ marginTop: '1.5rem' }}>
+                <span className={styles.infoLabel}>PAN Number:</span>
+                <span className={styles.infoValue}>1234 5678 1234</span>
+              </div>
+              <div className={styles.infoItem} style={{ marginTop: '1.5rem', gridColumn: '2 / 3' }}>
+                <span className={styles.infoLabel}>PAN Card Uploaded:</span>
+                <div style={{ marginTop: '0.25rem' }}>
+                  <a href="#" className={styles.documentPill}>
+                    nishant-pan-card.pdf <ExternalLink size={14} />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeTab === 'activity' && (
         <div className={styles.detailCard}>
-          <h2 className={styles.cardTitle}>Modules Used</h2>
-          
-          <div className={styles.modulesRow}>
-            {(() => {
-              const displayModules = user.modulesUsed?.length ? user.modulesUsed : ['spares', 'exchange', 'kaarigar', 'academy'];
-              return (
-                <>
-                  {displayModules.includes('spares') && (
-                    <div className={`${styles.moduleBadge} ${styles.spares}`}>
-                      <span>spares</span>
-                      <img src="/sewtech spares.svg" alt="spares icon" />
-                    </div>
-                  )}
-                  {displayModules.includes('exchange') && (
-                    <div className={`${styles.moduleBadge} ${styles.exchange}`}>
-                      <span>exchange</span>
-                      <img src="/Exchnage_sidebar_logo.svg" alt="exchange icon" />
-                    </div>
-                  )}
-                  {displayModules.includes('kaarigar') && (
-                    <div className={`${styles.moduleBadge} ${styles.kaarigar}`}>
-                      <span>kaarigar</span>
-                      <img src="/kaarigar_logo.png" alt="kaarigar icon" style={{ filter: 'brightness(0) invert(1)' }} />
-                    </div>
-                  )}
-                  {displayModules.includes('academy') && (
-                    <div className={`${styles.moduleBadge} ${styles.academy}`}>
-                      <span>academy</span>
-                      <img src="/Academy_logo.svg" alt="academy icon" style={{ filter: 'brightness(0) invert(1)' }} />
-                    </div>
-                  )}
-                </>
-              );
-            })()}
-          </div>
+          {!user.role.toLowerCase().includes('mechanic') && (
+            <>
+              <h2 className={styles.cardTitle}>Modules Used</h2>
+              <div className={styles.modulesRow}>
+                {(() => {
+                  const displayModules = user.modulesUsed?.length ? user.modulesUsed : ['spares', 'exchange', 'kaarigar', 'academy'];
+                  return (
+                    <>
+                      {displayModules.includes('spares') && (
+                        <div className={`${styles.moduleBadge} ${styles.spares}`}>
+                          <span>spares</span>
+                          <img src="/sewtech spares.svg" alt="spares icon" />
+                        </div>
+                      )}
+                      {displayModules.includes('exchange') && (
+                        <div className={`${styles.moduleBadge} ${styles.exchange}`}>
+                          <span>exchange</span>
+                          <img src="/Exchnage_sidebar_logo.svg" alt="exchange icon" />
+                        </div>
+                      )}
+                      {displayModules.includes('kaarigar') && (
+                        <div className={`${styles.moduleBadge} ${styles.kaarigar}`}>
+                          <span>kaarigar</span>
+                          <img src="/kaarigar_logo.png" alt="kaarigar icon" style={{ filter: 'brightness(0) invert(1)' }} />
+                        </div>
+                      )}
+                      {displayModules.includes('academy') && (
+                        <div className={`${styles.moduleBadge} ${styles.academy}`}>
+                          <span>academy</span>
+                          <img src="/Academy_logo.svg" alt="academy icon" style={{ filter: 'brightness(0) invert(1)' }} />
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+            </>
+          )}
 
           {/* Timeline heading and nodes based on role */}
           {(() => {
@@ -509,6 +694,250 @@ export default function UserDetailPage() {
                     ))}
                   </>
                 )}
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem', color: '#64748b', fontSize: '0.75rem', fontWeight: 500 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>Rows per page: </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', color: '#1e293b', fontWeight: 600 }}>
+                10 <span style={{ fontSize: '0.65rem' }}>▼</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span>1-10 of 165</span>
+              <div style={{ display: 'flex', gap: '0.5rem', color: '#94a3b8' }}>
+                <span style={{ cursor: 'pointer' }}>&lt;</span>
+                <span style={{ cursor: 'pointer' }}>&gt;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {activeTab === 'jobs' && (
+        <div className={styles.tableCard}>
+          <div className={styles.subTabsContainer}>
+            <button className={`${styles.subTab} ${styles.subTabActive}`}>All (1085)</button>
+            <button className={styles.subTab}>Instant Smart Booking (1085)</button>
+            <button className={styles.subTab}>Invite Quote(1085)</button>
+            <button className={styles.subTab}>Video Call Assistance (1085)</button>
+            <button className={styles.subTab}>Assisted Booking (1085)</button>
+          </div>
+          
+          <div className={styles.filterPillsRow}>
+            <span className={`${styles.filterPill} ${styles.filterPillBlack}`}>All <span className={styles.filterCross}>⊗</span></span>
+            <span className={styles.filterPill}>Ongoing <span className={styles.filterPlus}>⊕</span></span>
+            <span className={styles.filterPill}>Completed <span className={styles.filterPlus}>⊕</span></span>
+            <span className={styles.filterPill}>Diagnosis Available <span className={styles.filterPlus}>⊕</span></span>
+            <span className={styles.filterPill}>Cancelled <span className={styles.filterPlus}>⊕</span></span>
+          </div>
+
+          <div className={styles.tableResponsive}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th style={{ width: '40px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '16px', height: '16px', background: '#3b82f6', borderRadius: '4px' }}>
+                      <div style={{ width: '8px', height: '2px', background: 'white' }}></div>
+                    </div>
+                  </th>
+                  <th>Order <span className={styles.sortArrows}>↓↑</span></th>
+                  <th>Location <span className={styles.sortArrows}>↓↑</span></th>
+                  <th>Created On <span className={styles.sortArrows}>↓↑</span></th>
+                  <th>Status <span className={styles.sortArrows}>↓↑</span></th>
+                  <th>Feedback <span className={styles.sortArrows}>↓↑</span></th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {/* Ongoing */}
+                <tr>
+                  <td style={{ textAlign: 'center' }}><input type="checkbox" className={styles.checkbox} readOnly checked={false} /></td>
+                  <td>
+                    <div className={styles.mechanicCell}>
+                      <div className={styles.mechanicAvatar} style={{ backgroundImage: 'url(https://i.pravatar.cc/100?img=11)' }}></div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <span style={{ fontWeight: 600 }}>Aditya Bhargav</span>
+                        <div className={styles.disputeIdBadge} style={{ width: 'fit-content' }}>
+                          Request ID <Copy size={10} />
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Bangalore</td>
+                  <td>10:30 PM, 21 Jan' 26</td>
+                  <td><span className={styles.statusOngoing}>Ongoing</span></td>
+                  <td></td>
+                  <td>
+                    <div className={styles.actionCell}>
+                      <button className={styles.viewBtn}>View <ExternalLink size={12} style={{ marginLeft: '0.2rem', color: '#64748b' }} /></button>
+                      <button className={styles.moreBtn}><MoreVertical size={14} color="#64748b" /></button>
+                    </div>
+                  </td>
+                </tr>
+                {/* Completed */}
+                <tr>
+                  <td style={{ textAlign: 'center' }}><input type="checkbox" className={styles.checkbox} readOnly checked={false} /></td>
+                  <td>
+                    <div className={styles.mechanicCell}>
+                      <div className={styles.mechanicAvatar} style={{ backgroundImage: 'url(https://i.pravatar.cc/100?img=11)' }}></div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <span style={{ fontWeight: 600 }}>Aditya Bhargav</span>
+                        <div className={styles.disputeIdBadge} style={{ width: 'fit-content' }}>
+                          Request ID <Copy size={10} />
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Bangalore</td>
+                  <td>10:30 PM, 21 Jan' 26</td>
+                  <td><span className={styles.statusCompleted}>Completed</span></td>
+                  <td><span style={{ fontWeight: 600, color: '#1e293b' }}>4.5 <span style={{ color: '#f59e0b' }}>★</span></span></td>
+                  <td>
+                    <div className={styles.actionCell}>
+                      <button className={styles.viewBtn}>View <ExternalLink size={12} style={{ marginLeft: '0.2rem', color: '#64748b' }} /></button>
+                      <button className={styles.moreBtn}><MoreVertical size={14} color="#64748b" /></button>
+                    </div>
+                  </td>
+                </tr>
+                {/* Diagnosis Available */}
+                <tr>
+                  <td style={{ textAlign: 'center' }}><input type="checkbox" className={styles.checkbox} readOnly checked={false} /></td>
+                  <td>
+                    <div className={styles.mechanicCell}>
+                      <div className={styles.mechanicAvatar} style={{ backgroundImage: 'url(https://i.pravatar.cc/100?img=11)' }}></div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <span style={{ fontWeight: 600 }}>Aditya Bhargav</span>
+                        <div className={styles.disputeIdBadge} style={{ width: 'fit-content' }}>
+                          Request ID <Copy size={10} />
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Bangalore</td>
+                  <td>10:30 PM, 21 Jan' 26</td>
+                  <td><span className={styles.statusDiagnosis}>Diagnosis Available</span></td>
+                  <td></td>
+                  <td>
+                    <div className={styles.actionCell}>
+                      <button className={styles.viewBtn}>View <ExternalLink size={12} style={{ marginLeft: '0.2rem', color: '#64748b' }} /></button>
+                      <button className={styles.moreBtn}><MoreVertical size={14} color="#64748b" /></button>
+                    </div>
+                  </td>
+                </tr>
+                {/* Cancelled */}
+                <tr>
+                  <td style={{ textAlign: 'center' }}><input type="checkbox" className={styles.checkbox} readOnly checked={false} /></td>
+                  <td>
+                    <div className={styles.mechanicCell}>
+                      <div className={styles.mechanicAvatar} style={{ backgroundImage: 'url(https://i.pravatar.cc/100?img=11)' }}></div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                        <span style={{ fontWeight: 600 }}>Aditya Bhargav</span>
+                        <div className={styles.disputeIdBadge} style={{ width: 'fit-content' }}>
+                          Request ID <Copy size={10} />
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Bangalore</td>
+                  <td>10:30 PM, 21 Jan' 26</td>
+                  <td><span className={styles.statusCancelled}>Cancelled</span></td>
+                  <td></td>
+                  <td>
+                    <div className={styles.actionCell}>
+                      <button className={styles.viewBtn}>View <ExternalLink size={12} style={{ marginLeft: '0.2rem', color: '#64748b' }} /></button>
+                      <button className={styles.moreBtn}><MoreVertical size={14} color="#64748b" /></button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem 1.25rem', color: '#64748b', fontSize: '0.75rem', fontWeight: 500 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>Rows per page: </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', cursor: 'pointer', color: '#1e293b', fontWeight: 600 }}>
+                10 <span style={{ fontSize: '0.65rem' }}>▼</span>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <span>1-10 of 165</span>
+              <div style={{ display: 'flex', gap: '0.5rem', color: '#94a3b8' }}>
+                <span style={{ cursor: 'pointer' }}>&lt;</span>
+                <span style={{ cursor: 'pointer' }}>&gt;</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'violations' && (
+        <div className={styles.tableCard}>
+          <div className={styles.tableResponsive}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th style={{ width: '40px', textAlign: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '16px', height: '16px', background: '#3b82f6', borderRadius: '4px' }}>
+                      <div style={{ width: '8px', height: '2px', background: 'white' }}></div>
+                    </div>
+                  </th>
+                  <th>Dispute ID <span className={styles.sortArrows}>↓↑</span></th>
+                  <th>Disputee Name <span className={styles.sortArrows}>↓↑</span></th>
+                  <th>Issue Type <span className={styles.sortArrows}>↓↑</span></th>
+                  <th>Status <span className={styles.sortArrows}>↓↑</span></th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...Array(5)].map((_, i) => (
+                  <tr key={i}>
+                    <td style={{ textAlign: 'center' }}>
+                      <input type="checkbox" className={styles.checkbox} readOnly checked={false} />
+                    </td>
+                    <td>
+                      <div 
+                        className={styles.disputeIdBadge}
+                        onClick={() => handleCopy('STM834849', 'dispute')}
+                      >
+                        STM834849 <Copy size={10} />
+                      </div>
+                    </td>
+                    <td>
+                      <div className={styles.mechanicCell}>
+                        <div className={styles.mechanicAvatar} style={{ backgroundImage: 'url(https://i.pravatar.cc/100?img=' + (i + 10) + ')', backgroundSize: 'cover', color: 'transparent', border: '2px solid #f59e0b' }}>
+                          NK
+                        </div>
+                        <span style={{ fontWeight: 600 }}>Nishant Kumar</span>
+                      </div>
+                    </td>
+                    <td>Service Related Issue</td>
+                    <td>
+                      <span className={i === 0 ? styles.statusResolved : styles.statusActive}>
+                        {i === 0 ? 'Resolved' : 'Active'}
+                      </span>
+                    </td>
+                    <td>
+                      <div className={styles.actionCell}>
+                        <button 
+                          className={styles.viewBtn}
+                          onClick={() => alert(`Viewing ticket details: STM834849`)}
+                        >
+                          View <ExternalLink size={12} style={{ marginLeft: '0.2rem', color: '#64748b' }} />
+                        </button>
+                        <button 
+                          className={styles.moreBtn}
+                          onClick={() => alert('Actions: Escalate, Close')}
+                          aria-label="Actions"
+                        >
+                          <MoreVertical size={14} color="#64748b" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

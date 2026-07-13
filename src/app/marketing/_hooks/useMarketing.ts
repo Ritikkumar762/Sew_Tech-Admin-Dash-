@@ -44,6 +44,8 @@ export function mapBackendBannerToCampaign(b: any): Campaign {
     currentClicks:      b.currentClicks      || '—',
     currentCTR:         b.currentCTR         || '—',
     tabCategory:        b.tabCategory        || 'Home Screen',
+    imageUrl:           b.imageUrl           || undefined,
+    creative:           b.creative           || undefined,
   };
 }
 
