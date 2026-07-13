@@ -8,7 +8,7 @@ import { Calendar, ChevronDown } from 'lucide-react';
 
 export default function AddUserWizardPage() {
   const router = useRouter();
-  const { createUser } = useUsers();
+  const { createUser, fetchIndustries, fetchServices } = useUsers();
 
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -53,29 +53,20 @@ export default function AddUserWizardPage() {
   // Backend supports 'individual' and 'business' only
   const userTypesList = ['Individual', 'Business Owner'];
 
-  const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
   // ── Fetch Master Data ───────────────────────────────────────
   useEffect(() => {
-    const fetchMasterData = async () => {
+    const load = async () => {
       try {
-        const indRes = await fetch(`${API}/api/v1/onboarding/industries`);
-        if (indRes.ok) {
-          const indData = await indRes.json();
-          setIndustriesList(indData || []);
-        }
-        
-        const servRes = await fetch(`${API}/api/v1/onboarding/services`);
-        if (servRes.ok) {
-          const servData = await servRes.json();
-          setServicesList(servData || []);
-        }
+        const [inds, servs] = await Promise.all([fetchIndustries(), fetchServices()]);
+        setIndustriesList(inds);
+        setServicesList(servs);
       } catch (err) {
-        console.error('Failed to fetch master data', err);
+        console.error('Failed to load master data', err);
       }
     };
-    fetchMasterData();
-  }, []);
+    load();
+  }, [fetchIndustries, fetchServices]);
 
   // ── Validation ──────────────────────────────────────────────
   const validateStep1 = () => {

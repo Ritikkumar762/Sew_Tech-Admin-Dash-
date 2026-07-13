@@ -14,10 +14,7 @@ export function SpareDetailsHeader({ id, name, sku }: SpareDetailsHeaderProps) {
   return (
     <div className={styles.headerSection}>
       <div>
-        <div className={styles.breadcrumb}>
-          Sewtech Spare <span style={{ margin: '0 0.25rem' }}>•</span> Products Inventory <span style={{ margin: '0 0.25rem' }}>•</span> {name}
-        </div>
-        <div className={styles.titleWrapper}>
+        <div className={styles.titleWrapper} style={{ marginBottom: '0.25rem' }}>
           <h1 className={styles.title}>{name}</h1>
           <span className={styles.skuBadge}>
             {sku}
@@ -26,6 +23,9 @@ export function SpareDetailsHeader({ id, name, sku }: SpareDetailsHeaderProps) {
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
             </svg>
           </span>
+        </div>
+        <div className={styles.breadcrumb} style={{ marginBottom: 0 }}>
+          Sewtech Spare <span style={{ margin: '0 0.25rem' }}>•</span> Products Inventory <span style={{ margin: '0 0.25rem' }}>•</span> {name}
         </div>
       </div>
       <div className={styles.headerActions}>

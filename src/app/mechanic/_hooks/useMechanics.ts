@@ -3,11 +3,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { Mechanic } from '@/types';
 import { ENDPOINTS } from '@/lib/endpoints';
 
-// ── Shorthand for the mechanic applications base URL ─────────────────────────
-const API = ENDPOINTS.mechanics.applications;
+// ── Backend direct URL (bypasses Next.js proxy redirects) ────────────────────
+const API = 'http://localhost:8000/api/v1/admin/care/mechanics/applications';
 
 // ── Auth token ────────────────────────────────────────────────────────────────
-const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
 
 function getToken() {
   if (typeof window === 'undefined') return HARDCODED_TOKEN;

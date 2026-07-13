@@ -33,13 +33,13 @@ type RequestOptions = {
   auth?: boolean;
 };
 
+// ── DEV: hardcoded admin token (expires ~2026-07-31). Replace when expired. ──
+const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
+
 function getAuthToken(): string | null {
-  // Replace this with your actual token retrieval logic
-  // e.g., from cookies, NextAuth session, or Zustand store
-  if (typeof window === 'undefined') {
-    return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
-  }
-  return localStorage.getItem('auth_token') || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+  if (typeof window === 'undefined') return DEV_TOKEN;
+  // localStorage token takes priority if present; otherwise fall back to dev token
+  return localStorage.getItem('auth_token') || localStorage.getItem('adminToken') || DEV_TOKEN;
 }
 
 async function request<T>(

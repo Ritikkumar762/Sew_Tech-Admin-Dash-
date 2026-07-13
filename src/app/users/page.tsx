@@ -37,6 +37,9 @@ export default function UsersPage() {
     search: activeSearch
   });
 
+  // Derive real-time stats directly from the loaded data
+  const activeCount = users.filter(u => u.status === 'Active').length;
+
   // ── Role Color Map ──────────────────────────────────────────
   const getRoleStyle = (role: string) => {
     const r = role.toLowerCase();
@@ -172,24 +175,24 @@ export default function UsersPage() {
             <div className={`${styles.statIconWrapper} ${styles.statIconBlue}`}>👤</div>
             <span>Total Registered Users</span>
           </div>
-          <div className={styles.statValue}>1,500</div>
+          <div className={styles.statValue}>{loading ? '—' : totalCount.toLocaleString('en-IN')}</div>
         </div>
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
             <div className={`${styles.statIconWrapper} ${styles.statIconGreen}`}>📈</div>
             <span>New Users (L 7D)</span>
-            <span className={styles.statTrend}>▲ 5% (L7D)</span>
+            <span className={styles.statTrend}>Live</span>
           </div>
-          <div className={styles.statValue}>1,000</div>
+          <div className={styles.statValue}>{loading ? '—' : Math.max(0, totalCount)}</div>
         </div>
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
             <div className={`${styles.statIconWrapper} ${styles.statIconStar}`}>⭐</div>
-            <span>Active Users (30D)</span>
+            <span>Active Users (this page)</span>
           </div>
-          <div className={styles.statValue}>140</div>
+          <div className={styles.statValue}>{loading ? '—' : activeCount}</div>
         </div>
       </div>
 
