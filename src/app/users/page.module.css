@@ -66,6 +66,17 @@
 .statIconGreen { background: #ecfdf5; color: #10b981; }
 .statIconStar { background: #fef2f2; color: #ef4444; }
 
+.statIconBlueStar {
+  width: 28px;
+  height: 28px;
+  border-radius: 6.8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ECF3FE;
+  color: #2065D1;
+}
+
 .statValue {
   font-size: 1.75rem;
   font-weight: 700;
@@ -192,9 +203,9 @@
 }
 
 .bulkBtn {
-  background: white;
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  background: #0f172a;
+  color: white;
+  border: none;
   padding: 0.6rem 1.25rem;
   font-size: 0.875rem;
   font-weight: 500;
@@ -203,12 +214,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: background var(--transition-fast), border-color var(--transition-fast);
+  transition: background var(--transition-fast);
 }
 
 .bulkBtn:hover {
-  background: var(--bg-primary);
-  border-color: var(--border-color-hover);
+  background: #1e293b;
 }
 
 /* ── Table Card ── */

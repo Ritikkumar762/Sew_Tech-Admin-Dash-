@@ -124,10 +124,10 @@ export const ENDPOINTS = {
 
   // ── MDM ──────────────────────────────────────────────────────
   mdm: {
-    industries: `${BASE_URL}/v1/mdm/industries`,
-    industryById: (id: string) => `${BASE_URL}/v1/mdm/industries/${id}`,
-    machines:   `${BASE_URL}/v1/mdm/machines`,
-    machineById: (id: string) => `${BASE_URL}/v1/mdm/machines/${id}`,
+    industries: `${BASE_URL}/mdm/industries`,
+    industryById: (id: string) => `${BASE_URL}/mdm/industries/${id}`,
+    machines:   `${BASE_URL}/mdm/machines`,
+    machineById: (id: string) => `${BASE_URL}/mdm/machines/${id}`,
     categories: `${BASE_URL}/mdm/categories`,
     locations:  `${BASE_URL}/mdm/locations`,
     pricing:    `${BASE_URL}/mdm/pricing`,
@@ -137,16 +137,16 @@ export const ENDPOINTS = {
   // ── Admin ───────────────────────────────────────────────────
   admin: {
     dashboard: {
-      smartView: `${BASE_URL}/v1/admin/dashboard/smart-view`,
+      smartView: `${BASE_URL}/admin/dashboard/smart-view`,
     },
     sellerApplications: {
-      list: `${BASE_URL}/v1/admin/seller-applications`,
-      byId: (id: string) => `${BASE_URL}/v1/admin/seller-applications/${id}`,
-      review: (id: string) => `${BASE_URL}/v1/admin/seller-applications/${id}/review`,
+      list: `${BASE_URL}/admin/seller-applications`,
+      byId: (id: string) => `${BASE_URL}/admin/seller-applications/${id}`,
+      review: (id: string) => `${BASE_URL}/admin/seller-applications/${id}/review`,
     },
-    sellers: `${BASE_URL}/v1/admin/sellers`,
-    products: `${BASE_URL}/v1/admin/products`,
-    productStatus: (id: string) => `${BASE_URL}/v1/admin/products/${id}/status`,
+    sellers: `${BASE_URL}/admin/sellers`,
+    products: `${BASE_URL}/admin/products`,
+    productStatus: (id: string) => `${BASE_URL}/admin/products/${id}/status`,
   },
 
   // ── Settings ─────────────────────────────────────────────────

@@ -12,14 +12,16 @@ import {
   Copy, 
   Plus, 
   ExternalLink, 
-  MoreVertical, 
-  Calendar, 
-  ChevronDown, 
-  Check, 
+  MoreVertical,
+  Calendar,
+  ChevronDown,
+  Check,
   Filter,
+  SlidersHorizontal,
   PlusCircle,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Star
 } from 'lucide-react';
 
 export default function UsersPage() {
@@ -167,7 +169,7 @@ export default function UsersPage() {
             onClick={() => router.push('/users/add')}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}
           >
-            <PlusCircle size={16} /> Add New User
+            Add New User <PlusCircle size={16} />
           </button>
         } 
       />
@@ -177,7 +179,7 @@ export default function UsersPage() {
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Image src="/user _management_logo.svg" alt="User Icon" width={28} height={28} />
+              <Image src="/avatar-clean.svg" alt="User Icon" width={28} height={28} />
             </div>
             <span>Total Registered Users</span>
           </div>
@@ -187,7 +189,7 @@ export default function UsersPage() {
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Image src="/user _management_logo.svg" alt="User Icon" width={28} height={28} />
+              <Image src="/avatar-clean.svg" alt="User Icon" width={28} height={28} />
             </div>
             <span>New Users (L 7D)</span>
             <span className={styles.statTrend} style={{ background: 'transparent', padding: 0 }}>
@@ -199,8 +201,8 @@ export default function UsersPage() {
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <Image src="/Rating_button.svg" alt="Active Users Icon" width={50} height={26} />
+            <div className={styles.statIconBlueStar}>
+              <Star size={14} fill="currentColor" />
             </div>
             <span>Active Users (30D)</span>
           </div>
@@ -240,7 +242,7 @@ export default function UsersPage() {
           </div>
 
           <button className={styles.applyFiltersBtn} onClick={handleApplyFilters}>
-            <Filter size={16} /> Apply Filters
+            Apply Filters <SlidersHorizontal size={14} />
           </button>
         </div>
 
