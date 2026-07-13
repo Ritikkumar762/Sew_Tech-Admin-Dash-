@@ -125,10 +125,10 @@
 }
 
 .membershipBadge {
-  background: #fef3c7;
-  color: #d97706;
-  padding: 0.1rem 0.5rem;
-  border-radius: 4px;
+  background: #facc15;
+  color: #000;
+  padding: 0.15rem 0.6rem;
+  border-radius: 12px;
   font-size: 0.75rem;
   font-weight: 700;
   width: fit-content;
@@ -140,6 +140,7 @@
   border-bottom: 2px solid var(--border-color);
   gap: 2rem;
   margin-top: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .tab {
@@ -245,40 +246,62 @@
 }
 
 .moduleBadge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.85rem;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.85rem;
   font-weight: 700;
-  text-transform: lowercase;
+  line-height: 1;
 }
 
-.moduleSpares { background: #ffe4e6; color: #e11d48; }
-.moduleExchange { background: #ffedd5; color: #ea580c; }
-.moduleKaarigar { background: #e0f2fe; color: #0284c7; }
-.moduleAcademy { background: #f3e8ff; color: #7c3aed; }
+.moduleBadge img {
+  height: 18px;
+  width: auto;
+  object-fit: contain;
+}
+
+.moduleBadge.spares { background-color: #F31546; }
+.moduleBadge.exchange { background-color: #F59E0B; }
+.moduleBadge.kaarigar { background-color: #4081f9; }
+.moduleBadge.academy { background-color: #a855f7; }
 
 /* Timeline components */
+.timelineWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.timelineTopLine {
+  width: 100%;
+  height: 1px;
+  background: #e2e8f0;
+}
+
 .timeline {
   display: flex;
   flex-direction: column;
   position: relative;
-  padding-left: 2rem;
-  margin-top: 1rem;
+  padding-left: 3.5rem;
+  padding-top: 2rem;
+  padding-bottom: 1rem;
 }
 
 .timeline::before {
   content: '';
   position: absolute;
-  left: 0.65rem;
-  top: 0.75rem;
-  bottom: 0.75rem;
-  width: 2px;
+  left: 1.5rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
   background: #e2e8f0;
 }
 
 .timelineItem {
   position: relative;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .timelineItem:last-child {
@@ -287,36 +310,101 @@
 
 .timelineNode {
   position: absolute;
-  left: -2rem;
-  top: 0.15rem;
-  width: 24px;
-  height: 24px;
+  left: -3.05rem;
+  top: 0.5rem;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: #eff6ff;
-  border: 2px solid #3b82f6;
-  color: #3b82f6;
+  background: #60a5fa;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 0.75rem;
-  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+  font-weight: 500;
+  font-size: 1.1rem;
+  z-index: 1;
 }
 
-.timelineItem:hover .timelineNode {
-  transform: scale(1.15);
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+.timelineNodeBlack {
+  background: #1e293b;
+  color: white;
+  border: none;
 }
 
 .timelineContent {
   background: #f8fafc;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 0.85rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+}
+
+.timelineTitle {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 0.95rem;
+}
+
+.timelineBtn {
+  background: #1e293b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
   align-items: center;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.timelineTime {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.timelineStatus {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.statusCompleted {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.statusCancelled {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+.statusNotSelected {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.timelineBottomLineContainer {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.timelineBottomLine {
+  flex: 1;
+  height: 1px;
+  background: #e2e8f0;
+}
+
+.timelineFooterText {
+  color: #64748b;
+  font-size: 0.85rem;
+  padding: 0 1rem;
 }
 
 .timelineItem:hover .timelineContent {
@@ -414,7 +502,7 @@
 
 .table th {
   background: #f8fafc;
-  padding: 0.85rem 1rem;
+  padding: 1.25rem 1rem;
   font-size: 0.75rem;
   font-weight: 700;
   color: #475569;
@@ -424,7 +512,7 @@
 }
 
 .table td {
-  padding: 0.75rem 1rem;
+  padding: 1.25rem 1rem;
   font-size: 0.875rem;
   color: var(--text-primary);
   border-bottom: 1px solid var(--border-color);
