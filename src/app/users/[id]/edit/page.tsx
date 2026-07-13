@@ -262,10 +262,11 @@ export default function EditUserPage() {
       )}
 
       {/* Form Card Grid */}
-      <form onSubmit={handleSave} className={styles.formCard}>
-        <h2 className={styles.sectionTitle}>Basic Details</h2>
+      <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <div className={styles.formCard}>
+          <h2 className={styles.sectionTitle}>Basic Details</h2>
 
-        <div className={styles.formGrid}>
+          <div className={styles.formGrid}>
           {/* Email ID Field */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
@@ -399,12 +400,13 @@ export default function EditUserPage() {
               {errors.userType && <span className={styles.errorText}>{errors.userType}</span>}
             </div>
           )}
+          </div>
         </div>
 
         {/* Business Details Section - Shown conditionally if User Type is Business Owner and role is Customer */}
         {role === 'Customer' && userType === 'Business Owner' && (
-          <>
-            <h2 className={styles.sectionTitle} style={{ marginTop: '1rem' }}>Business Details</h2>
+          <div className={styles.formCard}>
+            <h2 className={styles.sectionTitle}>Business Details</h2>
             <div className={styles.formGrid}>
               {/* Business Name Field */}
               <div className={styles.fieldGroup}>
@@ -454,7 +456,7 @@ export default function EditUserPage() {
                 {errors.gstNumber && <span className={styles.errorText}>{errors.gstNumber}</span>}
               </div>
             </div>
-          </>
+          </div>
         )}
       </form>
     </div>

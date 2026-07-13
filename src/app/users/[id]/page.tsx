@@ -11,7 +11,9 @@ import {
   Check, 
   Edit, 
   ExternalLink, 
-  MoreVertical 
+  MoreVertical,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 export default function UserDetailPage() {
@@ -94,7 +96,7 @@ export default function UserDetailPage() {
 
   // Determine copied badge text
   let idLabel = 'Customer ID';
-  if (user.role.toLowerCase().includes('mechanic')) idLabel = 'Mehcanic ID';
+  if (user.role.toLowerCase().includes('mechanic')) idLabel = 'Mechanic ID';
   else if (user.role.toLowerCase().includes('kaarigar')) idLabel = 'Kaarigar ID';
   else if (user.role.toLowerCase().includes('admin')) idLabel = 'Admin ID';
   else if (user.role.toLowerCase().includes('audit')) idLabel = 'Audit ID';
@@ -153,36 +155,36 @@ export default function UserDetailPage() {
       {/* Summary Card Strip */}
       <div className={styles.summaryStrip}>
         <div className={styles.summaryCol}>
-          <span className={styles.summaryLabel}>City</span>
           <span className={styles.summaryValue}>{user.location || 'Delhi NCR'}</span>
+          <span className={styles.summaryLabel}>City</span>
         </div>
         <div className={styles.summaryCol}>
-          <span className={styles.summaryLabel}>Membership</span>
           <span className={styles.membershipBadge}>
             {user.membership || 'Silver'}
           </span>
+          <span className={styles.summaryLabel}>Membership</span>
         </div>
         <div className={styles.summaryCol}>
-          <span className={styles.summaryLabel}>Lifetime Value</span>
           <span className={styles.summaryValue}>{user.lifetimeValue}</span>
+          <span className={styles.summaryLabel}>Lifetime Value</span>
         </div>
         <div className={styles.summaryCol}>
-          <span className={styles.summaryLabel}>Joined on</span>
           <span className={styles.summaryValue}>{user.joinedAt}</span>
+          <span className={styles.summaryLabel}>Joined on</span>
         </div>
         <div className={styles.summaryCol}>
-          <span className={styles.summaryLabel}>Last Login</span>
           <span className={styles.summaryValue}>{user.lastLogin}</span>
+          <span className={styles.summaryLabel}>Last Login</span>
         </div>
         <div className={styles.summaryCol}>
-          <span className={styles.summaryLabel}>Status</span>
           <span style={{ 
             color: user.status === 'Active' ? '#10b981' : user.status === 'Inactive' ? '#4b5563' : '#ef4444',
             fontWeight: 700,
-            fontSize: '0.9375rem'
+            fontSize: '0.9rem'
           }}>
             {user.status}
           </span>
+          <span className={styles.summaryLabel}>Status</span>
         </div>
       </div>
 
@@ -216,6 +218,7 @@ export default function UserDetailPage() {
           {/* Basic Details Card */}
           <div className={styles.detailCard}>
             <h2 className={styles.cardTitle}>Basic Details</h2>
+            <hr style={{ border: 'none', borderTop: '1px dashed #e2e8f0', margin: '1rem 0' }} />
             <div className={styles.roleAlertStrip}>
               Role : {user.role}
             </div>
@@ -252,6 +255,7 @@ export default function UserDetailPage() {
           {(user.businessName || user.typeOfUser === 'Business Owner') && (
             <div className={styles.detailCard}>
               <h2 className={styles.cardTitle}>Business Details</h2>
+              <hr style={{ border: 'none', borderTop: '1px dashed #e2e8f0', margin: '1rem 0' }} />
               <div className={styles.infoGrid}>
                 <div className={styles.infoItem}>
                   <span className={styles.infoLabel}>Business Name:</span>
@@ -446,14 +450,19 @@ export default function UserDetailPage() {
             </table>
           </div>
 
-          <div className={styles.pagination}>
-            <div>Rows per page: 10</div>
+          <div className={styles.pagination} style={{ justifyContent: 'flex-start' }}>
+            <div className={styles.paginationSection}>
+              <span>Rows per page:</span>
+              <select className={styles.pageSelect} style={{ background: 'transparent', border: 'none', outline: 'none', fontWeight: 600 }}>
+                <option value={10}>10</option>
+              </select>
+            </div>
             <div>
               1–{user.escalations ? user.escalations.length : 0} of {user.escalations ? user.escalations.length : 0}
             </div>
             <div className={styles.pageArrows}>
-              <button className={styles.arrowBtn} disabled aria-label="Prev">‹</button>
-              <button className={styles.arrowBtn} disabled aria-label="Next">›</button>
+              <button className={styles.arrowBtn} disabled aria-label="Prev"><ChevronLeft size={16} /></button>
+              <button className={styles.arrowBtn} disabled aria-label="Next"><ChevronRight size={16} /></button>
             </div>
           </div>
         </div>

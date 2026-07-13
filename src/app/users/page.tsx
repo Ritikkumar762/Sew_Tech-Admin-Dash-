@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUsers } from './_hooks/useUsers';
+import Image from 'next/image';
 import { User } from '@/types';
 import PageHeader from '@/components/ui/PageHeader';
 import styles from './page.module.css';
@@ -15,7 +16,10 @@ import {
   Calendar, 
   ChevronDown, 
   Check, 
-  Filter 
+  Filter,
+  PlusCircle,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 export default function UsersPage() {
@@ -163,7 +167,7 @@ export default function UsersPage() {
             onClick={() => router.push('/users/add')}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}
           >
-            <Plus size={16} /> Add New User
+            <PlusCircle size={16} /> Add New User
           </button>
         } 
       />
@@ -172,7 +176,9 @@ export default function UsersPage() {
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <div className={`${styles.statIconWrapper} ${styles.statIconBlue}`}>👤</div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Image src="/user _management_logo.svg" alt="User Icon" width={28} height={28} />
+            </div>
             <span>Total Registered Users</span>
           </div>
           <div className={styles.statValue}>{loading ? '—' : totalCount.toLocaleString('en-IN')}</div>
@@ -180,17 +186,23 @@ export default function UsersPage() {
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <div className={`${styles.statIconWrapper} ${styles.statIconGreen}`}>📈</div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Image src="/user _management_logo.svg" alt="User Icon" width={28} height={28} />
+            </div>
             <span>New Users (L 7D)</span>
-            <span className={styles.statTrend}>Live</span>
+            <span className={styles.statTrend} style={{ background: 'transparent', padding: 0 }}>
+              <Image src="/green_up _logo.svg" alt="Trend Up" width={10} height={10} style={{ marginRight: '4px' }} /> 5% (L7D)
+            </span>
           </div>
-          <div className={styles.statValue}>{loading ? '—' : Math.max(0, totalCount)}</div>
+          <div className={styles.statValue}>{loading ? '—' : '1,000'}</div>
         </div>
 
         <div className={styles.statCard}>
           <div className={styles.statHeader}>
-            <div className={`${styles.statIconWrapper} ${styles.statIconStar}`}>⭐</div>
-            <span>Active Users (this page)</span>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <Image src="/Rating_button.svg" alt="Active Users Icon" width={50} height={26} />
+            </div>
+            <span>Active Users (30D)</span>
           </div>
           <div className={styles.statValue}>{loading ? '—' : activeCount}</div>
         </div>
@@ -438,6 +450,7 @@ export default function UsersPage() {
               <span>Rows per page:</span>
               <select 
                 className={styles.pageSelect}
+                style={{ background: 'transparent', border: 'none', outline: 'none', fontWeight: 600 }}
                 value={rowsPerPage}
                 onChange={(e) => {
                   setRowsPerPage(Number(e.target.value));
@@ -462,7 +475,7 @@ export default function UsersPage() {
                 onClick={() => setCurrentPage(prev => prev - 1)}
                 aria-label="Previous page"
               >
-                ‹
+                <ChevronLeft size={16} />
               </button>
               <button 
                 className={styles.arrowBtn}
@@ -470,7 +483,7 @@ export default function UsersPage() {
                 onClick={() => setCurrentPage(prev => prev + 1)}
                 aria-label="Next page"
               >
-                ›
+                <ChevronRight size={16} />
               </button>
             </div>
           </div>
