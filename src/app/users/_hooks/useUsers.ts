@@ -5,7 +5,7 @@ import { User } from '@/types';
 
 // ── Dev config — change token when expired ────────────────────────────────────
 const ADMIN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
-const B = 'https://project-sewtech-mart.onrender.com/api/v1';                       // direct, no proxy
+const B = '/api/v1';                       // relative, uses proxy
 const H = { 'Authorization': `Bearer ${ADMIN_TOKEN}`, 'Content-Type': 'application/json' };
 
 // ── Helper: throw on non-2xx ──────────────────────────────────────────────────
