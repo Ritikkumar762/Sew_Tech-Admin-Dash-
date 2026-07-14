@@ -74,7 +74,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     try {
       const qs = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
       if (search) qs.set('search', search);
-      const data = await apiFetch<{ users: any[]; total: number }>(`${B}/users/?${qs}`);
+      const data = await apiFetch<{ users: any[]; total: number }>(`${B}/users?${qs}`);
       setUsers((data.users ?? []).map(mapUser));
       setTotalCount(data.total ?? 0);
     } catch (err: any) {
