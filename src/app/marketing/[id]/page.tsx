@@ -705,7 +705,7 @@ export default function BannerDetailPage() {
                   alignSelf: 'flex-start'
                 }}>
                   <img 
-                    src={uploadedImage || creativeDetails?.imageUrl || "/rotary-hook.png"} 
+                    src={uploadedImage || creativeDetails?.imageUrl || "/machine.png"} 
                     alt="Spare Part" 
                     style={{ 
                       position: 'absolute',

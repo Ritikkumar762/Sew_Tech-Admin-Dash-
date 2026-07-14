@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area
 } from 'recharts';
 import { InsightCard, LineChartData } from '../_hooks/useOverview';
 import styles from '../Overview.module.css';
@@ -295,7 +295,19 @@ export default function PerformanceInsights({ perfInsights }: Props) {
               data={isComparing ? MOCK_PERF_TREND_COMPARE : MOCK_PERF_TREND} 
               margin={{ top: 53, right: 14, left: 30, bottom: 20 }}
             >
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+              <defs>
+              <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.01} />
+              </linearGradient>
+
+              <linearGradient id="yellow" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="#f59e0b" stopOpacity={0.01} />
+              </linearGradient>
+              </defs>
+
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#9ca3af" />
               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
               <YAxis 
                 axisLine={false} 
@@ -309,6 +321,22 @@ export default function PerformanceInsights({ perfInsights }: Props) {
               <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#f3f4f6', strokeWidth: 1.5 }} />
               {isComparing ? (
                 <>
+                  <Area
+                  type="linear"
+                  dataKey="Category 1"
+                  stroke="none"
+                  fill="url(#blue)"
+                  fillOpacity={1}
+                  />
+
+                  <Area
+                  type="linear"
+                  dataKey="Category 2"
+                  stroke="none"
+                  fill="url(#yellow)"
+                  fillOpacity={1}
+                  />
+
                   <Line 
                     type="linear" 
                     dataKey="Category 1" 

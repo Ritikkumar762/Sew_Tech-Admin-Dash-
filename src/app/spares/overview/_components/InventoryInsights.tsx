@@ -167,7 +167,7 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
           <div style={{ height: '257px', width: '100%', marginTop: 'auto' }}>
             <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
               <BarChart data={stockCategory} margin={{ top: 53, right: 14, left: 18, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#9ca3af" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} width={40} />
                 <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />

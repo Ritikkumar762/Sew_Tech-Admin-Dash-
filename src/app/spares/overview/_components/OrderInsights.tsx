@@ -521,7 +521,7 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
           <div style={{ height: 220 }}>
             <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
               <BarChart data={orderTrend} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#9ca3af" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
                 <Tooltip 

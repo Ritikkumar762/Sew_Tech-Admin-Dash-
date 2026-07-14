@@ -813,7 +813,7 @@ function AddCreativeContent() {
                   alignSelf: 'flex-start'
                 }}>
                   <img 
-                    src={uploadedFileUrl || "/rotary-hook.png"} 
+                    src={uploadedFileUrl || "/machine.png"} 
                     alt="Spare Part" 
                     style={{ 
                       position: 'absolute',

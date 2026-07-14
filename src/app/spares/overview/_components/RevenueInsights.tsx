@@ -149,7 +149,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
                     <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#9ca3af" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
                 <YAxis 
                   axisLine={false} 
@@ -289,7 +289,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
           <div style={{ height: '257px', width: '100%', marginTop: 'auto', position: 'relative' }}>
             <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
               <BarChart data={revenueTrend} margin={{ top: 53, right: 14, left: 30, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#9ca3af" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />
                 <YAxis 
                   axisLine={false} 
