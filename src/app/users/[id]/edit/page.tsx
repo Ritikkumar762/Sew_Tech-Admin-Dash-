@@ -92,7 +92,7 @@ export default function EditUserPage() {
       
       // Parse language string into tags array
       const langArray = user.selectedLanguage 
-        ? user.selectedLanguage.split(',').map(l => l.trim())
+        ? user.selectedLanguage.split(',').map((l: string) => l.trim())
         : [];
       setLanguages(langArray);
       
