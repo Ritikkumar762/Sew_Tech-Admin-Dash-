@@ -4,13 +4,30 @@ import { useState, useEffect, useCallback } from 'react';
 import { User } from '@/types';
 
 // ── Dev config — change token when expired ────────────────────────────────────
-const ADMIN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
 const B = 'https://project-sewtech-mart.onrender.com/api/v1';                       // absolute URL bypasses proxy
-const H = { 'Authorization': `Bearer ${ADMIN_TOKEN}`, 'Content-Type': 'application/json' };
+
+function getToken() {
+  if (typeof window === 'undefined') return HARDCODED_TOKEN;
+  return (
+    localStorage.getItem('adminToken') ??
+    localStorage.getItem('auth_token') ??
+    HARDCODED_TOKEN
+  );
+}
+
+function authHeaders(extra: Record<string, string> = {}) {
+  return {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getToken()}`,
+    ...extra,
+  };
+}
 
 // ── Helper: throw on non-2xx ──────────────────────────────────────────────────
 async function apiFetch<T>(url: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, { ...init, headers: { ...H, ...(init.headers ?? {}) } });
+  const res = await fetch(url, { ...init, headers: authHeaders(init.headers as Record<string, string>) });
   if (!res.ok) {
     const text = await res.text().catch(() => res.statusText);
     throw new Error(`${res.status}: ${text}`);
