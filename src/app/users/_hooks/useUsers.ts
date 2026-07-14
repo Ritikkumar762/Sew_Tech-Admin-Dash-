@@ -5,7 +5,8 @@ import { User } from '@/types';
 
 // ── Dev config — change token when expired ────────────────────────────────────
 const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
-const API = 'https://project-sewtech-mart.onrender.com/api/v1/users';
+const BASE_URL = '${BASE_URL}';
+const API = ${BASE_URL}/users;
 
 function getToken() {
   if (typeof window === 'undefined') return HARDCODED_TOKEN;
@@ -96,7 +97,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
   const fetchUser = useCallback(async (id: string): Promise<User | null> => {
     try {
       // Use admin detail endpoint (includes wallet, violations etc.)
-      const res = await fetch(`https://project-sewtech-mart.onrender.com/api/v1/admin/users/${id}`, { method: 'GET', headers: authHeaders() });
+      const res = await fetch(`${BASE_URL}/admin/users/${id}`, { method: 'GET', headers: authHeaders() });
       if (!res.ok) throw new Error();
       const u = await res.json();
       return mapUser(u);
@@ -163,7 +164,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     const original = users.find(u => u.id === id)?.status ?? 'Inactive';
     setUsers(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
     try {
-      const res = await fetch(`https://project-sewtech-mart.onrender.com/api/v1/admin/users/${id}`, {
+      const res = await fetch(`${BASE_URL}/admin/users/${id}`, {
         method: 'PATCH',
         headers: authHeaders(),
         body:   JSON.stringify({ is_active: newStatus === 'Active' }),
@@ -182,7 +183,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     if (fields.role   !== undefined) payload.role      = fields.role.toLowerCase();
     if (fields.status !== undefined) payload.is_active = fields.status === 'Active';
     if (Object.keys(payload).length > 0) {
-      const res = await fetch(`https://project-sewtech-mart.onrender.com/api/v1/admin/users/${id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(payload) });
+      const res = await fetch(`${BASE_URL}/admin/users/${id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(payload) });
       if (!res.ok) throw new Error();
     }
     setUsers(prev => prev.map(u => u.id === id ? { ...u, ...fields } : u));
@@ -206,7 +207,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
   // ── MASTER DATA (public endpoints) ───────────────────────────────────────
   const fetchIndustries = useCallback(async () => {
     try {
-      const res = await fetch(`https://project-sewtech-mart.onrender.com/api/v1/onboarding/industries`);
+      const res = await fetch(`${BASE_URL}/onboarding/industries`);
       if (!res.ok) throw new Error();
       return res.json();
     } catch { return []; }
@@ -214,7 +215,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
 
   const fetchServices = useCallback(async () => {
     try {
-      const res = await fetch(`https://project-sewtech-mart.onrender.com/api/v1/onboarding/services`);
+      const res = await fetch(`${BASE_URL}/onboarding/services`);
       if (!res.ok) throw new Error();
       return res.json();
     } catch { return []; }
