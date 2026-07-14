@@ -110,24 +110,26 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
                   <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#111827', lineHeight: 1.2 }}>400</div>
                   <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Orders</div>
                 </div>
-                <PieChart width={151} height={151}>
-                  <Pie 
-                    data={invDonut} 
-                    cx={75.5} 
-                    cy={75.5} 
-                    innerRadius={36} 
-                    outerRadius={56} 
-                    dataKey="value" 
-                    startAngle={90} 
-                    endAngle={-270}
-                    label={renderCustomizedLabel}
-                    labelLine={false}
-                    stroke="none"
-                  >
-                    {invDonut.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie 
+                      data={invDonut} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={36} 
+                      outerRadius={56} 
+                      dataKey="value" 
+                      startAngle={90} 
+                      endAngle={-270}
+                      label={renderCustomizedLabel}
+                      labelLine={false}
+                      stroke="none"
+                    >
+                      {invDonut.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip wrapperStyle={{ zIndex: 1000 }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
             </div>
 

@@ -1929,25 +1929,27 @@ export default function MechanicDetailPage() {
                     {/* Donut Chart */}
                     <div style={{ position: 'relative', width: '200px', height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       {isMounted ? (
-                        <PieChart width={200} height={200}>
-                          <Pie
-                            data={performanceBreakdownData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={50}
-                            outerRadius={70}
-                            paddingAngle={3}
-                            dataKey="value"
-                            label={renderCustomizedLabel}
-                            labelLine={false}
-                            stroke="none"
-                          >
-                            {performanceBreakdownData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={performanceBreakdownData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={50}
+                              outerRadius={70}
+                              paddingAngle={3}
+                              dataKey="value"
+                              label={renderCustomizedLabel}
+                              labelLine={false}
+                              stroke="none"
+                            >
+                              {performanceBreakdownData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip wrapperStyle={{ zIndex: 1000 }} />
+                          </PieChart>
+                        </ResponsiveContainer>
                       ) : (
                         <div style={{ width: '200px', height: '200px', backgroundColor: '#f8fafc' }} />
                       )}
@@ -2007,25 +2009,27 @@ export default function MechanicDetailPage() {
                     {/* Donut Chart */}
                     <div style={{ position: 'relative', width: '200px', height: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       {isMounted ? (
-                        <PieChart width={200} height={200}>
-                          <Pie
-                            data={typeBreakdownData}
-                            cx="50%"
-                            cy="50%"
-                            innerRadius={50}
-                            outerRadius={70}
-                            paddingAngle={3}
-                            dataKey="value"
-                            label={renderCustomizedLabel}
-                            labelLine={false}
-                            stroke="none"
-                          >
-                            {typeBreakdownData.map((entry: any, index: number) => (
-                              <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                            ))}
-                          </Pie>
-                          <Tooltip />
-                        </PieChart>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={typeBreakdownData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={50}
+                              outerRadius={70}
+                              paddingAngle={3}
+                              dataKey="value"
+                              label={renderCustomizedLabel}
+                              labelLine={false}
+                              stroke="none"
+                            >
+                              {typeBreakdownData.map((entry: any, index: number) => (
+                                <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                              ))}
+                            </Pie>
+                            <Tooltip wrapperStyle={{ zIndex: 1000 }} />
+                          </PieChart>
+                        </ResponsiveContainer>
                       ) : (
                         <div style={{ width: '200px', height: '200px', backgroundColor: '#f8fafc' }} />
                       )}

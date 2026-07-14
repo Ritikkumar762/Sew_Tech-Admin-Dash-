@@ -222,26 +222,28 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
                 }}>
                   <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#111827', lineHeight: 1.2 }}>{displayTotalRisk}</div>
                 </div>
-                <PieChart width={151} height={151}>
-                  <Pie 
-                    data={revenueRisk} 
-                    cx={75.5} 
-                    cy={75.5} 
-                    innerRadius={36} 
-                    outerRadius={56} 
-                    dataKey="value" 
-                    startAngle={90} 
-                    endAngle={-270}
-                    label={renderCustomizedLabel}
-                    labelLine={false}
-                    stroke="none"
-                  >
-                    {revenueRisk.map((entry, i) => (
-                      <Cell key={i} fill={getRevenueRiskColor(entry.name)} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie 
+                      data={revenueRisk} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={36} 
+                      outerRadius={56} 
+                      dataKey="value" 
+                      startAngle={90} 
+                      endAngle={-270}
+                      label={renderCustomizedLabel}
+                      labelLine={false}
+                      stroke="none"
+                    >
+                      {revenueRisk.map((entry, i) => (
+                        <Cell key={i} fill={getRevenueRiskColor(entry.name)} />
+                      ))}
+                    </Pie>
+                    <Tooltip wrapperStyle={{ zIndex: 1000 }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
 
               {/* Custom Legend */}
@@ -361,26 +363,28 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
                   <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#111827', lineHeight: 1.2 }}>{displayTotalTransactions}</div>
                   <div style={{ fontSize: '0.6rem', color: '#6b7280' }}>Orders</div>
                 </div>
-                <PieChart width={151} height={151}>
-                  <Pie 
-                    data={transactions} 
-                    cx={75.5} 
-                    cy={75.5} 
-                    innerRadius={36} 
-                    outerRadius={56} 
-                    dataKey="value" 
-                    startAngle={90} 
-                    endAngle={-270}
-                    label={renderCustomizedLabel}
-                    labelLine={false}
-                    stroke="none"
-                  >
-                    {transactions.map((entry, i) => (
-                      <Cell key={i} fill={getTransactionColor(entry.name)} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie 
+                      data={transactions} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={36} 
+                      outerRadius={56} 
+                      dataKey="value" 
+                      startAngle={90} 
+                      endAngle={-270}
+                      label={renderCustomizedLabel}
+                      labelLine={false}
+                      stroke="none"
+                    >
+                      {transactions.map((entry, i) => (
+                        <Cell key={i} fill={getTransactionColor(entry.name)} />
+                      ))}
+                    </Pie>
+                    <Tooltip wrapperStyle={{ zIndex: 1000 }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
 
               {/* Custom Legend */}

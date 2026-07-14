@@ -428,22 +428,24 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
                 <div className={styles.donutTotal}>400</div>
                 <div className={styles.donutSub}>Orders</div>
               </div>
-              <PieChart width={260} height={260}>
-                <Pie 
-                  data={orderOutcome} 
-                  cx={130} 
-                  cy={130} 
-                  innerRadius={50} 
-                  outerRadius={70} 
-                  dataKey="value"
-                  label={renderCustomLabel}
-                  labelLine={false}
-                  stroke="none"
-                >
-                  {orderOutcome.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                </Pie>
-                <Tooltip />
-              </PieChart>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie 
+                    data={orderOutcome} 
+                    cx="50%" 
+                    cy="50%" 
+                    innerRadius={50} 
+                    outerRadius={70} 
+                    dataKey="value"
+                    label={renderCustomLabel}
+                    labelLine={false}
+                    stroke="none"
+                  >
+                    {orderOutcome.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                  </Pie>
+                  <Tooltip wrapperStyle={{ zIndex: 1000 }} />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
 
             {/* Side Legend */}

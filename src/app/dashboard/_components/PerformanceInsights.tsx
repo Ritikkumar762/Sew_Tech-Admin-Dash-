@@ -139,24 +139,26 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
             <h3 className={styles.cardTitle}>{donut.label}</h3>
             <div className={styles.donutContainerBox} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <div className={styles.donutWrapper} style={{ width: 180, height: 180 }}>
-                <PieChart width={180} height={180}>
-                  <Pie 
-                    data={donut.data} 
-                    cx={90} 
-                    cy={90} 
-                    innerRadius={45} 
-                    outerRadius={65} 
-                    dataKey="value" 
-                    startAngle={90} 
-                    endAngle={-270}
-                    label={renderCustomizedLabel}
-                    labelLine={false}
-                    stroke="none"
-                  >
-                    {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie 
+                      data={donut.data} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={45} 
+                      outerRadius={65} 
+                      dataKey="value" 
+                      startAngle={90} 
+                      endAngle={-270}
+                      label={renderCustomizedLabel}
+                      labelLine={false}
+                      stroke="none"
+                    >
+                      {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip wrapperStyle={{ zIndex: 1000 }} />
+                  </PieChart>
+                </ResponsiveContainer>
                 <div className={styles.donutCenter}>
                   <div className={styles.donutTotal} style={{ fontSize: '0.9rem', fontWeight: 800 }}>{donut.centerValue}</div>
                   <div className={styles.donutSub} style={{ fontSize: '0.6rem' }}>{donut.centerLabel}</div>

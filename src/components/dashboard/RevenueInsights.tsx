@@ -163,24 +163,26 @@ export default function RevenueInsights() {
                 }}>
                   <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#111827', lineHeight: 1.2 }}>₹1L</div>
                 </div>
-                <PieChart width={151} height={151}>
-                  <Pie 
-                    data={cashflowData} 
-                    cx={75.5} 
-                    cy={75.5} 
-                    innerRadius={36} 
-                    outerRadius={56} 
-                    dataKey="value" 
-                    startAngle={90} 
-                    endAngle={-270}
-                    label={renderCustomizedLabel}
-                    labelLine={false}
-                    stroke="none"
-                  >
-                    {cashflowData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
-                  </Pie>
-                  <Tooltip formatter={(value: any) => `₹${Number(value || 0).toLocaleString()}`} />
-                </PieChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie 
+                      data={cashflowData} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={36} 
+                      outerRadius={56} 
+                      dataKey="value" 
+                      startAngle={90} 
+                      endAngle={-270}
+                      label={renderCustomizedLabel}
+                      labelLine={false}
+                      stroke="none"
+                    >
+                      {cashflowData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
+                    </Pie>
+                    <Tooltip formatter={(value: any) => `₹${Number(value || 0).toLocaleString()}`} wrapperStyle={{ zIndex: 1000 }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
 
               {/* Legend with percentages */}
@@ -227,24 +229,26 @@ export default function RevenueInsights() {
                   <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#111827', lineHeight: 1.2 }}>400</div>
                   <div style={{ fontSize: '0.625rem', color: '#6b7280', fontWeight: 600 }}>Orders</div>
                 </div>
-                <PieChart width={151} height={151}>
-                  <Pie 
-                    data={transactionData} 
-                    cx={75.5} 
-                    cy={75.5} 
-                    innerRadius={36} 
-                    outerRadius={56} 
-                    dataKey="value" 
-                    startAngle={90} 
-                    endAngle={-270}
-                    label={renderCustomizedLabel}
-                    labelLine={false}
-                    stroke="none"
-                  >
-                    {transactionData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie 
+                      data={transactionData} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={36} 
+                      outerRadius={56} 
+                      dataKey="value" 
+                      startAngle={90} 
+                      endAngle={-270}
+                      label={renderCustomizedLabel}
+                      labelLine={false}
+                      stroke="none"
+                    >
+                      {transactionData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
+                    </Pie>
+                    <Tooltip wrapperStyle={{ zIndex: 1000 }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
 
               {/* Legend with percentages */}

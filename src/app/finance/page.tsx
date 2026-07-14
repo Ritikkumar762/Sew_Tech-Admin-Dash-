@@ -278,7 +278,10 @@ export default function FinanceOverviewPage() {
                         <Cell key={`cell-${index}`} fill={PROFIT_COLORS[index % PROFIT_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(val: any) => `₹${Number(val || 0).toLocaleString('en-IN')}`} />
+                    <Tooltip 
+                      formatter={(val: any) => `₹${Number(val || 0).toLocaleString('en-IN')}`} 
+                      wrapperStyle={{ zIndex: 1000 }}
+                    />
                     <Legend 
                       verticalAlign="middle" 
                       align="right" 
@@ -363,7 +366,10 @@ export default function FinanceOverviewPage() {
                         <Cell key={`cell-${index}`} fill={INSIGHTS_COLORS[index % INSIGHTS_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(val: any) => `${val || 0}%`} />
+                    <Tooltip 
+                      formatter={(val: any) => `${val || 0}%`} 
+                      wrapperStyle={{ zIndex: 1000 }}
+                    />
                     <Legend 
                       verticalAlign="middle" 
                       align="right" 

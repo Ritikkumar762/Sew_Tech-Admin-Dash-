@@ -293,24 +293,26 @@ export default function RequestInsights() {
                   <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#111827', lineHeight: 1.2 }}>400</div>
                   <div style={{ fontSize: '0.625rem', color: '#6b7280', fontWeight: 600 }}>Request</div>
                 </div>
-                <PieChart width={151} height={151}>
-                  <Pie 
-                    data={pieData} 
-                    cx={75.5} 
-                    cy={75.5} 
-                    innerRadius={36} 
-                    outerRadius={56} 
-                    dataKey="value" 
-                    startAngle={90} 
-                    endAngle={-270}
-                    label={renderCustomizedLabel}
-                    labelLine={false}
-                    stroke="none"
-                  >
-                    {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie 
+                      data={pieData} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={36} 
+                      outerRadius={56} 
+                      dataKey="value" 
+                      startAngle={90} 
+                      endAngle={-270}
+                      label={renderCustomizedLabel}
+                      labelLine={false}
+                      stroke="none"
+                    >
+                      {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
+                    </Pie>
+                    <Tooltip wrapperStyle={{ zIndex: 1000 }} />
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
 
               {/* Legend with percentages */}
