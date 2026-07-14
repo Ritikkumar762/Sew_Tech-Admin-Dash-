@@ -32,6 +32,8 @@ export default function UserDetailPage() {
 
   // Fetch current user
   useEffect(() => {
+    if (id === 'add') return; // Prevent dynamic route from intercepting "add"
+
     const loadUser = async () => {
       setLoading(true);
       const fetchedUser = await fetchUser(id);
