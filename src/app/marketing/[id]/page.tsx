@@ -635,7 +635,7 @@ export default function BannerDetailPage() {
             width: '290.71px', 
             height: '540px',
             background: '#000000',
-            borderRadius: '26px',
+            borderRadius: '32px',
             boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
             boxSizing: 'border-box',
             border: '8.14px solid #000000',
@@ -668,58 +668,57 @@ export default function BannerDetailPage() {
               {/* Dynamic Banner Overlay */}
               <div style={{
                 position: 'absolute',
-                left: '5.5%',
-                top: '17.6%',
-                width: '89%',
-                height: '17.8%',
-                background: uploadedImage ? `url(${uploadedImage}) center/cover no-repeat` : 'linear-gradient(135deg, #ec4899, #ef4444)',
+                left: '4%',
+                top: '17.8%',
+                width: '92%',
+                height: '17.3%',
+                background: 'linear-gradient(to bottom, #FF4778, #F31546)',
                 borderRadius: '0.5rem',
-                padding: uploadedImage ? '0' : '0.5rem 0.75rem',
+                padding: '0.6rem 0.75rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 color: '#fff',
                 boxSizing: 'border-box',
-                overflow: 'visible'
+                overflow: 'hidden'
               }}>
-                {!uploadedImage && (
-                  <>
-                    {/* Left Content */}
-                    <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, overflow: 'hidden', paddingRight: '50%' }}>
-                      <span style={{ fontSize: '0.625rem', fontWeight: 500, opacity: 0.9, color: '#fff', fontFamily: 'var(--font-sans)', display: 'block' }}>
-                        {previewData.sub}
-                      </span>
-                      <h4 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '1px 0', color: '#fff', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontFamily: 'var(--font-sans)', lineHeight: 1.15 }}>
-                        {previewData.title}
-                      </h4>
-                      <span style={{ fontSize: '0.55rem', fontWeight: 500, opacity: 0.9, color: '#fff', fontFamily: 'var(--font-sans)', display: 'block', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                        {previewData.footer}
-                      </span>
-                    </div>
+                {/* Left Content */}
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, overflow: 'hidden' }}>
+                  <span style={{ fontSize: '0.45rem', fontWeight: 400, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    {previewData.sub}
+                  </span>
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: 800, margin: '4px 0 3px 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    {previewData.title}
+                  </h4>
+                  <span style={{ fontSize: '0.4rem', opacity: 0.75, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                    {previewData.footer}
+                  </span>
+                </div>
 
-                    {/* Right Image (floating overlapping UI style matching Figma: 141.29px x 141.29px) */}
-                    <div style={{
+                {/* Right Image */}
+                <div style={{
+                  position: 'relative',
+                  height: '120%',
+                  width: '48%',
+                  flexShrink: 0,
+                  marginRight: '-1%',
+                  alignSelf: 'flex-start'
+                }}>
+                  <img 
+                    src={uploadedImage || creativeDetails?.imageUrl || "/rotary-hook.png"} 
+                    alt="Spare Part" 
+                    style={{ 
                       position: 'absolute',
-                      right: '40px',
-                      top: '-8px',
-                      width: '141.29px',
-                      height: '141.29px',
-                      zIndex: 2,
-                      pointerEvents: 'none'
-                    }}>
-                      <img 
-                        src={creativeDetails?.imageUrl || "/rotary-hook.png"} 
-                        alt="Spare Part" 
-                        style={{ 
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'contain',
-                          objectPosition: 'center bottom'
-                        }} 
-                      />
-                    </div>
-                  </>
-                )}
+                      right: 0,
+                      top: 0,
+                      height: '100%',
+                      width: '100%',
+                      objectFit: 'contain',
+                      objectPosition: 'center center',
+                      zIndex: 1
+                    }} 
+                  />
+                </div>
               </div>
             </div>
           </div>

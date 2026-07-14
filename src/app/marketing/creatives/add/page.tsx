@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { apiClient, ENDPOINTS } from '@/lib';
+import { apiClient, ENDPOINTS, MARKETING_BASE_URL } from '@/lib';
 
 function AddCreativeContent() {
   const router = useRouter();
@@ -75,6 +75,15 @@ function AddCreativeContent() {
     loadCreativeDetails();
   }, [editId]);
 
+  // Revoke previous blob URL to avoid memory leaks
+  useEffect(() => {
+    return () => {
+      if (uploadedFileUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(uploadedFileUrl);
+      }
+    };
+  }, [uploadedFileUrl]);
+
   // Handle file uploading
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,11 +92,14 @@ function AddCreativeContent() {
     setLoading(true);
     setUploadedFileName(file.name);
 
+    // Immediate local preview via blob URL
+    const localPreviewUrl = URL.createObjectURL(file);
+    setUploadedFileNameUrl(localPreviewUrl);
+
     try {
       const formData = new FormData();
       formData.append('file', file);
 
-      // Perform multipart request via native fetch referencing our endpoints structure
       const response = await fetch(ENDPOINTS.marketing.upload, {
         method: 'POST',
         body: formData,
@@ -96,14 +108,16 @@ function AddCreativeContent() {
       if (response.ok) {
         const json = await response.json();
         if (json.success && json.data) {
-          setUploadedFileNameUrl(json.data.imageUrl);
+          URL.revokeObjectURL(localPreviewUrl);
+          const imageUrl = json.data.imageUrl;
+          setUploadedFileNameUrl(
+            imageUrl.startsWith('http') ? imageUrl : `${MARKETING_BASE_URL}${imageUrl}`
+          );
           setUploadedFileName(json.data.fileName || file.name);
         }
       }
     } catch (err) {
-      console.error('Failed to upload file to backend. Standard local mock fallback applied.', err);
-      // Fallback
-      setUploadedFileName(file.name);
+      console.error('Upload to backend failed, using local preview.', err);
     } finally {
       setLoading(false);
     }
@@ -712,7 +726,7 @@ function AddCreativeContent() {
             width: '290.71px', 
             height: '540px',
             background: '#000000',
-            borderRadius: '26px',
+            borderRadius: '32px',
             boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
             boxSizing: 'border-box',
             border: '8.14px solid #000000',
@@ -745,13 +759,13 @@ function AddCreativeContent() {
               {/* Dynamic Banner Overlay */}
               <div style={{
                 position: 'absolute',
-                left: '6.5%',
-                top: '17.9%',
-                width: '87%',
-                height: '17.2%',
-                background: 'linear-gradient(135deg, #ec4899, #ef4444)',
+                left: '4%',
+                top: '17.8%',
+                width: '92%',
+                height: '17.3%',
+                background: 'linear-gradient(to bottom, #FF4778, #F31546)',
                 borderRadius: '0.5rem',
-                padding: '0.5rem',
+                padding: '0.6rem 0.75rem',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -761,26 +775,26 @@ function AddCreativeContent() {
               }}>
                 {/* Left Content */}
                 <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', flex: 1, overflow: 'hidden' }}>
-                  <span style={{ fontSize: '0.5rem', fontWeight: 600, opacity: 0.9, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <span style={{ fontSize: '0.45rem', fontWeight: 400, opacity: 0.85, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     {subheader}
                   </span>
-                  <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: '2px 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  <h4 style={{ fontSize: '0.9rem', fontWeight: 800, margin: '4px 0 3px 0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                     {title}
                   </h4>
-                  <span style={{ fontSize: '0.45rem', opacity: 0.85, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: '0.4rem', opacity: 0.75, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                     {body}
                   </span>
                 </div>
                 
                 {/* Ribbon Tag label badge if present */}
                 {selectedLabel && (
-                  <div style={{ position: 'absolute', top: 0, right: '42px', zIndex: 1 }}>
+                  <div style={{ position: 'absolute', top: 0, right: '32px', zIndex: 1 }}>
                     <div style={{ 
                       background: '#ef4444', 
                       color: '#fff', 
-                      fontSize: '0.425rem', 
+                      fontSize: '0.375rem', 
                       fontWeight: 700, 
-                      padding: '3px 5px 5px 5px', 
+                      padding: '2px 4px 4px 4px', 
                       clipPath: 'polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%)',
                       textTransform: 'uppercase'
                     }}>
@@ -792,28 +806,12 @@ function AddCreativeContent() {
                 {/* Right Image */}
                 <div style={{
                   position: 'relative',
-                  height: '140%',
-                  width: '55%',
+                  height: '120%',
+                  width: '48%',
                   flexShrink: 0,
-                  marginRight: '-5%'
+                  marginRight: '-1%',
+                  alignSelf: 'flex-start'
                 }}>
-                  {/* Simulated shadow for images with white backgrounds */}
-                  <img 
-                    src={uploadedFileUrl || "/rotary-hook.png"} 
-                    alt="" 
-                    style={{ 
-                      position: 'absolute',
-                      right: 0,
-                      top: '12px',
-                      height: '100%',
-                      width: '100%',
-                      objectFit: 'contain',
-                      objectPosition: 'right center',
-                      mixBlendMode: 'multiply',
-                      filter: 'blur(15px) contrast(1.2)',
-                      opacity: 0.6
-                    }} 
-                  />
                   <img 
                     src={uploadedFileUrl || "/rotary-hook.png"} 
                     alt="Spare Part" 
@@ -824,9 +822,8 @@ function AddCreativeContent() {
                       height: '100%',
                       width: '100%',
                       objectFit: 'contain',
-                      objectPosition: 'right center',
-                      mixBlendMode: 'multiply',
-                      filter: 'contrast(1.05)'
+                      objectPosition: 'center center',
+                      zIndex: 1
                     }} 
                   />
                 </div>
