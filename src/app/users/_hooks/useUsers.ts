@@ -3,10 +3,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User } from '@types';
 
- ── Dev config — change token when expired ────────────────────────────────────
+// ── Backend direct URL (bypasses Next.js proxy redirects) ────────────────────
+const API = '/api/v1/admin/users'; // Using admin/users to match Next.js proxy
+const BASE_URL = '/api/v1/';
+
+// ── Auth token ────────────────────────────────────────────────────────────────
 const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
-const BASE_URL = '${BASE_URL}';
-const API = ${BASE_URL}users;
 
 function getToken() {
   if (typeof window === 'undefined') return HARDCODED_TOKEN;
@@ -19,21 +21,21 @@ function getToken() {
 
 function authHeaders(extra: Record<string, string> = {}) {
   return {
-    Accept: 'applicationjson',
-    'Content-Type': 'applicationjson',
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
     Authorization: `Bearer ${getToken()}`,
     ...extra,
   };
 }
 
- ── Map backend → frontend User ───────────────────────────────────────────────
+// 
 function mapUser(u: any): User {
   return {
     id:           String(u.user_id),
     name:         u.full_name       || 'Unknown',
     email:        u.email           || '',
     role: (() => {
-       Priority: admin > mechanic > seller > buyer
+// 
       if (u.role === 'admin')   return 'Admin';
       if (u.is_mechanic)        return 'Mechanic';
       if (u.role === 'seller')  return 'Seller';
@@ -67,14 +69,14 @@ function mapUser(u: any): User {
   };
 }
 
- ── Hook ─────────────────────────────────────────────────────────────────────
+// 
 export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
   const [users,      setUsers]      = useState<User[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState<string | null>(null);
 
-   ── LIST ─────────────────────────────────────────────────────────────────
+// 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -93,21 +95,21 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     }
   }, [page, pageSize, search]);
 
-   ── GET SINGLE ───────────────────────────────────────────────────────────
+// 
   const fetchUser = useCallback(async (id: string): Promise<User | null> => {
     try {
-       Use admin detail endpoint (includes wallet, violations etc.)
-      const res = await fetch(`${BASE_URL}adminusers${id}`, { method: 'GET', headers: authHeaders() });
+// 
+      const res = await fetch(`${BASE_URL}admin/users/${id}`, { method: 'GET', headers: authHeaders() });
       if (!res.ok) throw new Error();
       const u = await res.json();
       return mapUser(u);
     } catch {
-       Fallback: search in already-loaded list
+// 
       return null;
     }
   }, []);
 
-   ── CREATE (Admin POST users) ───────────────────────────────────────────
+// 
   const createUser = useCallback(async (userData: {
     name:              string;
     phone:             string;
@@ -128,7 +130,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     const rawType  = (userData.userType || 'individual').toLowerCase().trim();
     const userType = ['business owner', 'business', 'corporate'].includes(rawType) ? 'business' : 'individual';
 
-     Matches AdminUserCreateRequest schema exactly
+// 
     const payload: Record<string, unknown> = {
       full_name:         userData.name,
       phone_number:      userData.phone,
@@ -151,20 +153,20 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     if (!res.ok) throw new Error();
     const created = await res.json();
 
-     Map returned user object (same as normal onboarding response)
+// 
     const newUser = mapUser({ ...created, wallet_balance: created.wallet_balance ?? 500 });
     setUsers(prev => [newUser, ...prev]);
     setTotalCount(prev => prev + 1);
     return newUser;
   }, []);
 
-   ── UPDATE STATUS (PATCH adminusers{id}) ───────────────────────────────
+// 
   const updateStatus = useCallback(async (id: string, newStatus: User['status']) => {
-     Save original before optimistic update so rollback is always correct
+// 
     const original = users.find(u => u.id === id)?.status ?? 'Inactive';
     setUsers(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
     try {
-      const res = await fetch(`${BASE_URL}adminusers${id}`, {
+      const res = await fetch(`${BASE_URL}admin/users/${id}`, {
         method: 'PATCH',
         headers: authHeaders(),
         body:   JSON.stringify({ is_active: newStatus === 'Active' }),
@@ -172,42 +174,42 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
       if (!res.ok) throw new Error();
     } catch (err: any) {
       setError(err?.message ?? 'Failed to update status');
-       Rollback to original status (works correctly for Suspended too)
+// 
       setUsers(prev => prev.map(u => u.id === id ? { ...u, status: original } : u));
     }
   }, [users]);
 
-   ── UPDATE FIELDS (PATCH adminusers{id}) ───────────────────────────────
+// 
   const updateUser = useCallback(async (id: string, fields: Partial<User>) => {
     const payload: Record<string, unknown> = {};
     if (fields.role   !== undefined) payload.role      = fields.role.toLowerCase();
     if (fields.status !== undefined) payload.is_active = fields.status === 'Active';
     if (Object.keys(payload).length > 0) {
-      const res = await fetch(`${BASE_URL}adminusers${id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(payload) });
+      const res = await fetch(`${BASE_URL}admin/users/${id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(payload) });
       if (!res.ok) throw new Error();
     }
     setUsers(prev => prev.map(u => u.id === id ? { ...u, ...fields } : u));
   }, []);
 
-   ── DEACTIVATE (soft delete) — DELETE users{id}deactivate ─────────────
+// 
   const deactivateUser = useCallback(async (id: string) => {
-    const res = await fetch(`${API}${id}deactivate`, { method: 'DELETE', headers: authHeaders() });
+    const res = await fetch(`${API}/${id}/deactivate`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error();
     setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'Inactive' } : u));
   }, []);
 
-   ── HARD DELETE ───────────────────────────────────────────────────────────
+// 
   const deleteUser = useCallback(async (id: string) => {
-    const res = await fetch(`${API}${id}`, { method: 'DELETE', headers: authHeaders() });
+    const res = await fetch(`${API}/${id}`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error();
     setUsers(prev => prev.filter(u => u.id !== id));
     setTotalCount(prev => Math.max(0, prev - 1));
   }, []);
 
-   ── MASTER DATA (public endpoints) ───────────────────────────────────────
+// 
   const fetchIndustries = useCallback(async () => {
     try {
-      const res = await fetch(`${BASE_URL}onboardingindustries`);
+      const res = await fetch(`${BASE_URL}onboarding/industries`);
       if (!res.ok) throw new Error();
       return res.json();
     } catch { return []; }
@@ -215,7 +217,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
 
   const fetchServices = useCallback(async () => {
     try {
-      const res = await fetch(`${BASE_URL}onboardingservices`);
+      const res = await fetch(`${BASE_URL}onboarding/services`);
       if (!res.ok) throw new Error();
       return res.json();
     } catch { return []; }
