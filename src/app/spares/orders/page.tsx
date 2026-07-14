@@ -18,31 +18,27 @@ import FiltersDrawer from '@/components/orders/FiltersDrawer';
 
 // Comprehensive mock data covering all order statuses and tabs
 const INITIAL_ORDERS = [
-  { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Items not arriving on time', orderValue: 5550, status: 'Requested', avatarLetter: 'a', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2046', customerName: 'Rohan Sharma', email: 'rohan.sharma@gmail.com', phone: '+919988776655', date: "21 Jan' 26", reason: 'Need to change address', orderValue: 4320, status: 'Pickup Scheduled', avatarLetter: 'r', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2047', customerName: 'Sneha Patil', email: 'sneha.patil@gmail.com', phone: '+919123456789', date: "21 Jan' 26", reason: 'Ordered by mistake', orderValue: 2150, status: 'Pickup Failed', avatarLetter: 's', paymentMethod: 'Card', type: 'replacement' },
-  { id: 'sth-rh-2048', customerName: 'Rahul Verma', email: 'rahul.verma@gmail.com', phone: '+919876543211', date: "21 Jan' 26", reason: 'Defective product', orderValue: 3500, status: 'Return Requested', avatarLetter: 'r', paymentMethod: 'UPI', type: 'return' },
-  { id: 'sth-rh-2049', customerName: 'Priya Nair', email: 'priya.nair@gmail.com', phone: '+918877665544', date: "21 Jan' 26", reason: 'Changed mind', orderValue: 1200, status: 'Replacement in Process', avatarLetter: 'p', paymentMethod: 'COD', type: 'replacement' },
-  { id: 'sth-rh-2050', customerName: 'Amit Gupta', email: 'amit.gupta@gmail.com', phone: '+917766554433', date: "21 Jan' 26", reason: 'Wrong item sent', orderValue: 6700, status: 'Refund Completed', avatarLetter: 'a', paymentMethod: 'UPI', type: 'return' },
-  { id: 'sth-rh-2051', customerName: 'Karan Malhotra', email: 'karan.m@gmail.com', phone: '+916655443322', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5550, status: 'Pickup Completed', avatarLetter: 'k', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2052', customerName: 'Devendra Joshi', email: 'devendra.j@gmail.com', phone: '+915544332211', date: "21 Jan' 26", reason: 'Defective product', orderValue: 8900, status: 'Replacement Shipped', avatarLetter: 'd', paymentMethod: 'Netbanking', type: 'replacement' },
-  { id: 'sth-rh-2053', customerName: 'Ananya Sen', email: 'ananya.s@gmail.com', phone: '+914433221100', date: "21 Jan' 26", reason: 'Defective product', orderValue: 4500, status: 'Delivery Failed', avatarLetter: 'a', paymentMethod: 'Card', type: 'replacement' },
-  { id: 'sth-rh-2054', customerName: 'Rajesh Kumar', email: 'rajesh.k@gmail.com', phone: '+913322110099', date: "21 Jan' 26", reason: 'Defective product', orderValue: 3100, status: 'Completed', avatarLetter: 'r', paymentMethod: 'UPI', type: 'replacement' },
-  { id: 'sth-rh-2055', customerName: 'Meera Nair', email: 'meera.n@gmail.com', phone: '+912211009988', date: "21 Jan' 26", reason: 'Wrong item sent', orderValue: 2400, status: 'Refund Initiated', avatarLetter: 'm', paymentMethod: 'UPI', type: 'return' },
-  { id: 'sth-rh-2056', customerName: 'Vikram Singh', email: 'vikram.singh@gmail.com', phone: '+911100998877', date: "21 Jan' 26", reason: 'Defective product', orderValue: 5300, status: 'Pickup Scheduled', avatarLetter: 'v', paymentMethod: 'Netbanking', type: 'return' },
-  { id: 'sth-rh-2057', customerName: 'Neha Sharma', email: 'neha.s@gmail.com', phone: '+919900112233', date: "21 Jan' 26", reason: 'Defective product', orderValue: 6200, status: 'Pickup Completed', avatarLetter: 'n', paymentMethod: 'UPI', type: 'return' },
-  { id: 'sth-rh-2058', customerName: 'Arjun Kapoor', email: 'arjun.k@gmail.com', phone: '+919911223344', date: "21 Jan' 26", reason: 'Defective product', orderValue: 7500, status: 'Pickup Failed', avatarLetter: 'a', paymentMethod: 'Card', type: 'return' },
-  
+  // Return tab items
+  { id: 'sth-rh-2045', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Items not arriving on time', orderValue: 1850, status: 'Requested', avatarLetter: 'a', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2046', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Need to change address', orderValue: 1850, status: 'Pickup Scheduled', avatarLetter: 'a', paymentMethod: 'UPI', type: 'return' },
+  { id: 'sth-rh-2047', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Ordered by mistake', orderValue: 1850, status: 'Pickup Failed', avatarLetter: 'a', paymentMethod: 'UPI', type: 'return' },
+
+  // Replacement tab items
+  { id: 'sth-rh-2051', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Items not arriving on time', orderValue: 1850, status: 'Pickup Completed', avatarLetter: 'a', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2052', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Need to change address', orderValue: 1850, status: 'Pickup Scheduled', avatarLetter: 'a', paymentMethod: 'UPI', type: 'replacement' },
+  { id: 'sth-rh-2053', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Ordered by mistake', orderValue: 1850, status: 'Pickup Failed', avatarLetter: 'a', paymentMethod: 'UPI', type: 'replacement' },
+
+  // Cancelled tab items
+  { id: 'sth-rh-2064', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Items not arriving on time', orderValue: 1850, status: 'Refund completed', avatarLetter: 'a', paymentMethod: 'UPI', type: 'cancelled', cancelledBy: 'User' },
+  { id: 'sth-rh-2065', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Need to change address', orderValue: 1850, status: 'Refund requested', avatarLetter: 'a', paymentMethod: 'UPI', type: 'cancelled', cancelledBy: 'Vendor' },
+  { id: 'sth-rh-2066', customerName: 'Aditya Bhargav', email: 'aditya.bhargav@gmail.com', phone: '+919876543210', date: "21 Jan' 26", reason: 'Ordered by mistake', orderValue: 1850, status: 'Refund rejected', avatarLetter: 'a', paymentMethod: 'UPI', type: 'cancelled', cancelledBy: 'Admin' },
+
   // Ordered Tab matches (status is: 'Order Received', 'Processing', 'Shipped', 'Out for Delivery', 'Delivered')
   { id: 'sth-rh-2059', customerName: 'Gaurav Mehta', email: 'gaurav.mehta@gmail.com', phone: '+919922334455', date: "22 Jan' 26", reason: 'None', orderValue: 6700, status: 'Shipped', avatarLetter: 'g', paymentMethod: 'UPI', type: 'order' },
   { id: 'sth-rh-2060', customerName: 'Siddharth Rao', email: 'sid.rao@gmail.com', phone: '+919933445566', date: "22 Jan' 26", reason: 'None', orderValue: 3450, status: 'Processing', avatarLetter: 's', paymentMethod: 'Card', type: 'order' },
   { id: 'sth-rh-2061', customerName: 'Ishaan Verma', email: 'ishaan.v@gmail.com', phone: '+919944556677', date: "23 Jan' 26", reason: 'None', orderValue: 8900, status: 'Order Received', avatarLetter: 'i', paymentMethod: 'UPI', type: 'order' },
   { id: 'sth-rh-2062', customerName: 'Rohan Deshmukh', email: 'rohan.d@gmail.com', phone: '+919955667788', date: "24 Jan' 26", reason: 'None', orderValue: 4500, status: 'Out for Delivery', avatarLetter: 'r', paymentMethod: 'COD', type: 'order' },
-  { id: 'sth-rh-2063', customerName: 'Deepa Krishnan', email: 'deepa.k@gmail.com', phone: '+919966778899', date: "24 Jan' 26", reason: 'None', orderValue: 5800, status: 'Delivered', avatarLetter: 'd', paymentMethod: 'UPI', type: 'order' },
-
-  // Cancelled Tab matches (status is: 'Cancelled')
-  { id: 'sth-rh-2064', customerName: 'Ishita Sen', email: 'ishita.s@gmail.com', phone: '+919977889900', date: "23 Jan' 26", reason: 'Ordered by mistake', orderValue: 3100, status: 'Cancelled', avatarLetter: 'i', paymentMethod: 'UPI', type: 'order' },
-  { id: 'sth-rh-2065', customerName: 'Kabir Bakshi', email: 'kabir.b@gmail.com', phone: '+919988990011', date: "22 Jan' 26", reason: 'Need to change address', orderValue: 2400, status: 'Cancelled', avatarLetter: 'k', paymentMethod: 'Card', type: 'order' }
+  { id: 'sth-rh-2063', customerName: 'Deepa Krishnan', email: 'deepa.k@gmail.com', phone: '+919966778899', date: "24 Jan' 26", reason: 'None', orderValue: 5800, status: 'Delivered', avatarLetter: 'd', paymentMethod: 'UPI', type: 'order' }
 ];
 
 export default function SparesOrdersPage() {
@@ -79,6 +75,32 @@ export default function SparesOrdersPage() {
       const json = await res.json();
       if (json && json.success && Array.isArray(json.data)) {
         const mapped = json.data.map((item: any) => {
+          let status = item.status || 'Order Received';
+          // Clean status: Support camelCase, snake_case, or UPPERCASE from backend by converting to Title Case
+          status = status.split(/[_-]/)
+            .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' ');
+
+          const statusLower = status.toLowerCase();
+          const isCancelled = statusLower.includes('cancelled') || statusLower.includes('reject');
+          const isReturn = statusLower.includes('return') || statusLower.includes('refund');
+          const isReplacement = statusLower.includes('replacement') || statusLower.includes('pickup') || statusLower === 'requested';
+          
+          let type = item.type || item.orderType || item.requestType || item.order_type || item.request_type || '';
+          type = type.toLowerCase();
+          
+          if (type !== 'return' && type !== 'replacement' && type !== 'cancelled') {
+            if (isCancelled) {
+              type = 'cancelled';
+            } else if (isReturn) {
+              type = 'return';
+            } else if (isReplacement) {
+              type = 'replacement';
+            } else {
+              type = 'order';
+            }
+          }
+
           return {
             id: item.id,
             customerName: item.customerName || 'Rahul Sharma',
@@ -87,19 +109,19 @@ export default function SparesOrdersPage() {
             date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' }) : "21 Jan' 26",
             reason: item.reason || 'None',
             orderValue: item.amount || 1250.0,
-            status: item.status || 'Order Received',
+            status,
             avatarLetter: (item.customerName || 'C').charAt(0).toLowerCase(),
             paymentMethod: item.paymentMethod || 'UPI',
-            type: item.status === 'Cancelled' ? 'cancelled' : 'order'
+            type
           };
         });
         setOrders(mapped);
 
         // Also compute dynamic stats based on retrieved database counts!
         const total = mapped.length;
-        const cancelled = mapped.filter((o: any) => o.status === 'Cancelled').length;
-        const returned = mapped.filter((o: any) => o.status.includes('Return') || o.status.includes('Refund') || o.type === 'return').length;
-        const replacement = mapped.filter((o: any) => o.status.includes('Replacement') || o.status.includes('Pickup') || o.type === 'replacement').length;
+        const cancelled = mapped.filter((o: any) => o.type === 'cancelled').length;
+        const returned = mapped.filter((o: any) => o.type === 'return').length;
+        const replacement = mapped.filter((o: any) => o.type === 'replacement').length;
         setStats({
           totalOrders: total,
           cancelled,
@@ -136,11 +158,11 @@ export default function SparesOrdersPage() {
 
   // Dynamic Pill Filter states per tab
   const [activePills, setActivePills] = useState<Record<string, string[]>>({
-    All: ['Delayed'],
-    Ordered: ['Shipped'],
-    Return: ['Return Requested'],
-    Replacement: ['Replacement Requested'],
-    Cancelled: ['Cancelled'],
+    All: [],
+    Ordered: [],
+    Return: [],
+    Replacement: [],
+    Cancelled: [],
   });
 
   const ALL_PILLS: Record<string, { label: string; count?: number; hasPlus?: boolean }[]> = {
@@ -171,8 +193,8 @@ export default function SparesOrdersPage() {
       { label: 'Refund Completed', hasPlus: true }
     ],
     Cancelled: [
-      { label: 'Cancelled' },
-      { label: 'Cancelled by User', count: 374, hasPlus: true }
+      { label: 'Cancellation Requested', hasPlus: true },
+      { label: 'Cancellation Accepted' }
     ]
   };
 
@@ -227,30 +249,40 @@ export default function SparesOrdersPage() {
                           order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           order.status.toLowerCase().includes(searchQuery.toLowerCase());
     
+    if (!matchesSearch) return false;
+
     // Tab filter
-    if (activeTab === 'All') return matchesSearch;
-    if (activeTab === 'Ordered') return matchesSearch && (
-      order.status === 'Order Received' || 
-      order.status === 'Processing' || 
-      order.status === 'Shipped' || 
-      order.status === 'Out for Delivery' || 
-      order.status === 'Delivered'
-    );
-    if (activeTab === 'Return') return matchesSearch && (
-      order.type === 'return' ||
-      order.status === 'Return Requested' || 
-      order.status.includes('Refund')
-    );
-    if (activeTab === 'Replacement') return matchesSearch && (
-      order.type === 'replacement' ||
-      order.status === 'Requested' || 
-      order.status.includes('Pickup') || 
-      order.status.includes('Replacement') || 
-      order.status.includes('Delivery') || 
-      order.status === 'Completed'
-    );
-    if (activeTab === 'Cancelled') return matchesSearch && (order.status === 'Cancelled');
-    return matchesSearch;
+    if (activeTab === 'All') return true;
+    if (activeTab === 'Ordered') {
+      return (
+        order.status === 'Order Received' || 
+        order.status === 'Processing' || 
+        order.status === 'Shipped' || 
+        order.status === 'Out for Delivery' || 
+        order.status === 'Delivered'
+      );
+    }
+    if (activeTab === 'Return') {
+      if (order.type !== 'return') return false;
+    } else if (activeTab === 'Replacement') {
+      if (order.type !== 'replacement') return false;
+    } else if (activeTab === 'Cancelled') {
+      if (order.type !== 'cancelled') return false;
+    }
+
+    // Active Status Pills filter (Only for tabs other than 'All')
+    const pills = activePills[activeTab] || [];
+    if (pills.length > 0) {
+      // Filter list to only match the selected pill(s)!
+      const matchesPill = pills.some(pill => {
+        const p = pill.toLowerCase();
+        const s = order.status.toLowerCase();
+        return s === p || s.includes(p) || p.includes(s) || (p === 'return requested' && s === 'requested') || (p === 'cancellation accepted' && s.includes('completed'));
+      });
+      if (!matchesPill) return false;
+    }
+
+    return true;
   });
 
   const totalPages = Math.ceil(filteredOrders.length / rowsPerPage);
@@ -259,27 +291,18 @@ export default function SparesOrdersPage() {
   const getTabCount = (tabId: 'All' | 'Ordered' | 'Return' | 'Replacement' | 'Cancelled') => {
     return orders.filter(order => {
       if (tabId === 'All') return true;
-      if (tabId === 'Ordered') return (
-        order.status === 'Order Received' || 
-        order.status === 'Processing' || 
-        order.status === 'Shipped' || 
-        order.status === 'Out for Delivery' || 
-        order.status === 'Delivered'
-      );
-      if (tabId === 'Return') return (
-        order.type === 'return' ||
-        order.status === 'Return Requested' || 
-        order.status.includes('Refund')
-      );
-      if (tabId === 'Replacement') return (
-        order.type === 'replacement' ||
-        order.status === 'Requested' || 
-        order.status.includes('Pickup') || 
-        order.status.includes('Replacement') || 
-        order.status.includes('Delivery') || 
-        order.status === 'Completed'
-      );
-      if (tabId === 'Cancelled') return order.status === 'Cancelled';
+      if (tabId === 'Ordered') {
+        return (
+          order.status === 'Order Received' || 
+          order.status === 'Processing' || 
+          order.status === 'Shipped' || 
+          order.status === 'Out for Delivery' || 
+          order.status === 'Delivered'
+        );
+      }
+      if (tabId === 'Return') return order.type === 'return';
+      if (tabId === 'Replacement') return order.type === 'replacement';
+      if (tabId === 'Cancelled') return order.type === 'cancelled';
       return true;
     }).length;
   };
@@ -369,16 +392,15 @@ export default function SparesOrdersPage() {
           .status-badge {
             display: inline-flex;
             align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 0.25rem;
+            padding: 0.375rem 0.875rem;
+            border-radius: 0.5rem;
             font-size: 0.75rem;
-            font-weight: 500;
+            font-weight: 600;
           }
-          .status-requested { color: #eab308; background-color: #fef9c3; }
-          .status-scheduled { color: #f59e0b; background-color: #fef3c7; }
-          .status-failed { color: #ef4444; background-color: #fee2e2; }
-          .status-completed { color: #10b981; background-color: #d1fae5; }
-          .status-default { color: #6b7280; background-color: #f3f4f6; }
+          .status-completed { color: #16a34a; background-color: #f0fdf4; }
+          .status-warning { color: #d97706; background-color: #fffbeb; }
+          .status-danger { color: #ef4444; background-color: #fee2e2; }
+          .status-blue { color: #2563eb; background-color: #eff6ff; }
           
           .reason-pill {
             display: inline-flex;
@@ -737,8 +759,13 @@ export default function SparesOrdersPage() {
                 </th>
                 <th style={{ padding: '1rem', fontWeight: 600 }}>Order ↑↓</th>
                 <th style={{ padding: '1rem', fontWeight: 600 }}>Date ↑↓</th>
+                {activeTab === 'Cancelled' && (
+                  <th style={{ padding: '1rem', fontWeight: 600 }}>Cancelled by ↑↓</th>
+                )}
                 <th style={{ padding: '1rem', fontWeight: 600 }}>Order Value ↑↓</th>
-                <th style={{ padding: '1rem', fontWeight: 600 }}>Reason ↑↓</th>
+                {(activeTab === 'Return' || activeTab === 'Replacement' || activeTab === 'Cancelled') && (
+                  <th style={{ padding: '1rem', fontWeight: 600 }}>Reason ↑↓</th>
+                )}
                 <th style={{ padding: '1rem', fontWeight: 600 }}>Status ↑↓</th>
                 <th style={{ padding: '1rem 1.5rem', fontWeight: 600, textAlign: 'center' }}>Action</th>
               </tr>
@@ -812,14 +839,41 @@ export default function SparesOrdersPage() {
                       </div>
                     </td>
                     <td style={{ padding: '1rem', fontWeight: 500, color: '#374151' }}>{order.date}</td>
+                    {activeTab === 'Cancelled' && (
+                      <td style={{ padding: '1rem' }}>
+                        <span style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '0.25rem',
+                          fontSize: '0.75rem',
+                          fontWeight: 600,
+                          color: '#a855f7',
+                          backgroundColor: '#faf5ff',
+                          border: '1px solid #f3e8ff'
+                        }}>
+                          {order.cancelledBy || 'User'}
+                        </span>
+                      </td>
+                    )}
                     <td style={{ padding: '1rem', fontWeight: 600, color: '#111827' }}>₹{order.orderValue.toLocaleString('en-IN')}</td>
+                    {(activeTab === 'Return' || activeTab === 'Replacement' || activeTab === 'Cancelled') && (
+                      <td style={{ padding: '1rem' }}>
+                        <span className="reason-pill">
+                          {order.reason}
+                        </span>
+                      </td>
+                    )}
                     <td style={{ padding: '1rem' }}>
-                      <span className="reason-pill">
-                        {order.reason}
-                      </span>
-                    </td>
-                    <td style={{ padding: '1rem' }}>
-                      <span className={`status-badge ${order.status === 'Requested' ? 'status-requested' : order.status === 'Pickup Scheduled' ? 'status-scheduled' : order.status === 'Pickup Failed' ? 'status-failed' : order.status.includes('Completed') ? 'status-completed' : 'status-default'}`}>
+                      <span className={`status-badge ${
+                        order.status.toLowerCase().includes('completed') || order.status.toLowerCase().includes('delivered')
+                          ? 'status-completed'
+                          : order.status.toLowerCase().includes('failed') || order.status.toLowerCase().includes('rejected')
+                          ? 'status-danger'
+                          : order.status.toLowerCase().includes('scheduled') || order.status.toLowerCase().includes('requested') || order.status.toLowerCase().includes('initiated')
+                          ? 'status-warning'
+                          : 'status-blue'
+                      }`}>
                         {order.status}
                       </span>
                     </td>
@@ -835,7 +889,7 @@ export default function SparesOrdersPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#6b7280', fontWeight: 500 }}>
+                  <td colSpan={activeTab === 'Cancelled' ? 8 : activeTab === 'Return' || activeTab === 'Replacement' ? 7 : 6} style={{ padding: '3rem', textAlign: 'center', color: '#6b7280', fontWeight: 500 }}>
                     No orders found matching the criteria.
                   </td>
                 </tr>

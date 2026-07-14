@@ -109,7 +109,21 @@ export default function OrderDetailPage() {
         body: JSON.stringify({ status: newStatus })
       });
       if (res.ok) {
-        setOrder((prev: any) => prev ? { ...prev, status: newStatus } : null);
+        // Automatically determine corrected order type based on updated status
+        const isCancelled = newStatus === 'Cancelled' || newStatus.toLowerCase().includes('cancelled') || newStatus.toLowerCase().includes('reject');
+        const isReturn = newStatus.toLowerCase().includes('return') || newStatus.toLowerCase().includes('refund');
+        const isReplacement = newStatus.toLowerCase().includes('replacement') || newStatus.toLowerCase().includes('pickup') || newStatus === 'Requested';
+        
+        setOrder((prev: any) => {
+          if (!prev) return null;
+          let dynamicType = prev.type || 'order';
+          if (dynamicType !== 'return' && dynamicType !== 'replacement' && dynamicType !== 'cancelled') {
+            if (isCancelled) dynamicType = 'cancelled';
+            else if (isReturn) dynamicType = 'return';
+            else if (isReplacement) dynamicType = 'replacement';
+          }
+          return { ...prev, status: newStatus, type: dynamicType };
+        });
         showToast(`Status updated to "${newStatus}" successfully!`, 'success');
       } else {
         showToast('Failed to update spares order status in the database.', 'error');
