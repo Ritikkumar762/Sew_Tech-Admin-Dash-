@@ -4,7 +4,7 @@ import { Mechanic } from '@/types';
 import { ENDPOINTS } from '@/lib/endpoints';
 
 // ── Backend direct URL (bypasses Next.js proxy redirects) ────────────────────
-const API = 'http://localhost:8000/api/v1/admin/care/mechanics/applications';
+const API = '/api/v1/admin/care/mechanics/applications';
 
 // ── Auth token ────────────────────────────────────────────────────────────────
 const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';

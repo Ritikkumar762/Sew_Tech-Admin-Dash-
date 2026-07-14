@@ -59,13 +59,10 @@ const getTimelineState = (nodeTitle: string, currentStatus: string) => {
 
 const getStatusBadgeClass = (status: string) => {
   const s = status.toLowerCase();
-  if (s.includes('completed') || s.includes('received') || s.includes('delivered')) {
+  if (s.includes('completed') || s.includes('delivered')) {
     return 'badge-completed';
   }
-  if (s.includes('failed') || s.includes('cancelled')) {
-    return 'badge-danger';
-  }
-  return 'badge-warning';
+  return 'badge-info';
 };
 
 export default function OrderDetailReturn({
@@ -521,18 +518,33 @@ export default function OrderDetailReturn({
                     'Refund Initiated',
                     'Refund Completed',
                     'Cancelled'
-                  ].map((statusVal) => (
-                    <button
-                      key={statusVal}
-                      onClick={() => {
-                        onUpdateStatus(statusVal);
-                        setIsStatusMenuOpen(false);
-                      }}
-                      className="status-item"
-                    >
-                      {statusVal}
-                    </button>
-                  ))}
+                  ].map((statusVal) => {
+                    const sLower = statusVal.toLowerCase();
+                    const isCompleted = sLower.includes('completed') || sLower.includes('delivered');
+                    const isDanger = sLower.includes('failed') || sLower.includes('cancelled') || sLower.includes('reject');
+                    return (
+                      <button
+                        key={statusVal}
+                        onClick={() => {
+                          onUpdateStatus(statusVal);
+                          setIsStatusMenuOpen(false);
+                        }}
+                        className="status-item"
+                        style={{
+                          color: isCompleted ? '#16a34a' : isDanger ? '#ef4444' : '#2563eb',
+                          backgroundColor: isCompleted ? '#f0fdf4' : isDanger ? '#fee2e2' : '#eff6ff',
+                          margin: '4px 8px',
+                          borderRadius: '6px',
+                          width: 'calc(100% - 16px)',
+                          fontWeight: 600,
+                          fontSize: '0.8rem',
+                          padding: '6px 12px'
+                        }}
+                      >
+                        {statusVal}
+                      </button>
+                    );
+                  })}
                 </div>
               </>
             )}

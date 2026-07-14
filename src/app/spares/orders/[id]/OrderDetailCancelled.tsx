@@ -164,25 +164,35 @@ export default function OrderDetailCancelled({
                     padding: '0.25rem 0'
                   }}>
                     {[
-                      'Order Received',
-                      'Processing',
-                      'Shipped',
-                      'Out for Delivery',
-                      'Delivered',
-                      'Completed',
-                      'Cancelled'
-                    ].map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => {
-                          onUpdateStatus(status);
-                          setIsStatusMenuOpen(false);
-                        }}
-                        className="status-item"
-                      >
-                        {status}
-                      </button>
-                    ))}
+                      'Refund completed',
+                      'Refund requested',
+                      'Refund rejected'
+                    ].map((status) => {
+                      const isCompleted = status.toLowerCase().includes('completed') || status.toLowerCase().includes('delivered');
+                      const isDanger = status.toLowerCase().includes('failed') || status.toLowerCase().includes('rejected');
+                      return (
+                        <button
+                          key={status}
+                          onClick={() => {
+                            onUpdateStatus(status);
+                            setIsStatusMenuOpen(false);
+                          }}
+                          className="status-item"
+                          style={{
+                            color: isCompleted ? '#16a34a' : isDanger ? '#ef4444' : '#d97706',
+                            backgroundColor: isCompleted ? '#f0fdf4' : isDanger ? '#fee2e2' : '#fffbeb',
+                            margin: '4px 8px',
+                            borderRadius: '6px',
+                            width: 'calc(100% - 16px)',
+                            fontWeight: 600,
+                            fontSize: '0.8rem',
+                            padding: '6px 12px'
+                          }}
+                        >
+                          {status}
+                        </button>
+                      );
+                    })}
                   </div>
                 </>
               )}

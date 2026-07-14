@@ -62,13 +62,10 @@ const getTimelineState = (nodeTitle: string, currentStatus: string) => {
 
 const getStatusBadgeClass = (status: string) => {
   const s = status.toLowerCase();
-  if (s.includes('received') || s.includes('completed') || s.includes('delivered')) {
+  if (s.includes('completed') || s.includes('delivered')) {
     return 'badge-completed';
   }
-  if (s.includes('failed') || s.includes('cancelled')) {
-    return 'badge-danger';
-  }
-  return 'badge-warning';
+  return 'badge-info';
 };
 
 export default function OrderDetailOrdered({
@@ -230,18 +227,31 @@ export default function OrderDetailOrdered({
                       'Delivered',
                       'Completed',
                       'Cancelled'
-                    ].map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => {
-                          onUpdateStatus(status);
-                          setIsStatusMenuOpen(false);
-                        }}
-                        className="status-item"
-                      >
-                        {status}
-                      </button>
-                    ))}
+                    ].map((status) => {
+                      const isCompleted = status.toLowerCase().includes('completed') || status.toLowerCase().includes('delivered');
+                      return (
+                        <button
+                          key={status}
+                          onClick={() => {
+                            onUpdateStatus(status);
+                            setIsStatusMenuOpen(false);
+                          }}
+                          className="status-item"
+                          style={{
+                            color: isCompleted ? '#16a34a' : '#2563eb',
+                            backgroundColor: isCompleted ? '#f0fdf4' : '#eff6ff',
+                            margin: '4px 8px',
+                            borderRadius: '6px',
+                            width: 'calc(100% - 16px)',
+                            fontWeight: 600,
+                            fontSize: '0.8rem',
+                            padding: '6px 12px'
+                          }}
+                        >
+                          {status}
+                        </button>
+                      );
+                    })}
                   </div>
                 </>
               )}
