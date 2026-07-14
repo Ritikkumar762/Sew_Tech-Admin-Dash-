@@ -74,7 +74,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     try {
       const qs = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
       if (search) qs.set('search', search);
-      const data = await apiFetch<{ users: any[]; total: number }>(`${B}/users?${qs}`);
+      const data = await apiFetch<{ users: any[]; total: number }>(`${B}/users/?${qs}`);
       setUsers((data.users ?? []).map(mapUser));
       setTotalCount(data.total ?? 0);
     } catch (err: any) {
@@ -136,7 +136,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     if (userData.businessType) payload.business_type = userData.businessType;
     if (userData.gstNumber)    payload.gst_number    = userData.gstNumber;
 
-    const created = await apiFetch<any>(`${B}/users`, { method: 'POST', body: JSON.stringify(payload) });
+    const created = await apiFetch<any>(`${B}/users/`, { method: 'POST', body: JSON.stringify(payload) });
 
     // Map returned user object (same as normal onboarding response)
     const newUser = mapUser({ ...created, wallet_balance: created.wallet_balance ?? 500 });
