@@ -1,22 +1,31 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { User } from '@/types';
+import { User } from '../../../types';
 
-// ── Dev config — change token when expired ────────────────────────────────────
-const ADMIN_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
-const B = 'https://project-sewtech-mart.onrender.com/api/v1';                       // absolute URL bypasses proxy
-const H = { 'Authorization': `Bearer ${ADMIN_TOKEN}`, 'Content-Type': 'application/json' };
+// ── Backend direct URL (bypasses Next.js proxy redirects) ────────────────────
+const API = '/api/v1/admin/users'; // Using admin/users to match Next.js proxy
+const BASE_URL = '/api/v1/';
 
-// ── Helper: throw on non-2xx ──────────────────────────────────────────────────
-async function apiFetch<T>(url: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(url, { ...init, headers: { ...H, ...(init.headers ?? {}) } });
-  if (!res.ok) {
-    const text = await res.text().catch(() => res.statusText);
-    throw new Error(`${res.status}: ${text}`);
-  }
-  if (res.status === 204) return undefined as unknown as T;
-  return res.json();
+// ── Auth token ────────────────────────────────────────────────────────────────
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
+
+function getToken() {
+  if (typeof window === 'undefined') return HARDCODED_TOKEN;
+  return (
+    localStorage.getItem('adminToken') ??
+    localStorage.getItem('auth_token') ??
+    HARDCODED_TOKEN
+  );
+}
+
+function authHeaders(extra: Record<string, string> = {}) {
+  return {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${getToken()}`,
+    ...extra,
+  };
 }
 
 // ── Map backend → frontend User ───────────────────────────────────────────────
@@ -74,7 +83,9 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     try {
       const qs = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
       if (search) qs.set('search', search);
-      const data = await apiFetch<{ users: any[]; total: number }>(`${B}/users/?${qs}`);
+      const res = await fetch(`${API}?${qs}`, { method: 'GET', headers: authHeaders() });
+      if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
+      const data = await res.json();
       setUsers((data.users ?? []).map(mapUser));
       setTotalCount(data.total ?? 0);
     } catch (err: any) {
@@ -88,7 +99,9 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
   const fetchUser = useCallback(async (id: string): Promise<User | null> => {
     try {
       // Use admin detail endpoint (includes wallet, violations etc.)
-      const u = await apiFetch<any>(`${B}/admin/users/${id}`);
+      const res = await fetch(`${BASE_URL}admin/users/${id}`, { method: 'GET', headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      const u = await res.json();
       return mapUser(u);
     } catch {
       // Fallback: search in already-loaded list
@@ -96,7 +109,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     }
   }, []);
 
-  // ── CREATE (Admin POST /users/) ───────────────────────────────────────────
+  // ── CREATE (Admin POST users) ───────────────────────────────────────────
   const createUser = useCallback(async (userData: {
     name:              string;
     phone:             string;
@@ -136,7 +149,9 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     if (userData.businessType) payload.business_type = userData.businessType;
     if (userData.gstNumber)    payload.gst_number    = userData.gstNumber;
 
-    const created = await apiFetch<any>(`${B}/users/`, { method: 'POST', body: JSON.stringify(payload) });
+    const res = await fetch(`${API}`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
+    if (!res.ok) throw new Error();
+    const created = await res.json();
 
     // Map returned user object (same as normal onboarding response)
     const newUser = mapUser({ ...created, wallet_balance: created.wallet_balance ?? 500 });
@@ -145,16 +160,18 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     return newUser;
   }, []);
 
-  // ── UPDATE STATUS (PATCH /admin/users/{id}) ───────────────────────────────
+  // ── UPDATE STATUS (PATCH admin/users/{id}) ───────────────────────────────
   const updateStatus = useCallback(async (id: string, newStatus: User['status']) => {
     // Save original before optimistic update so rollback is always correct
     const original = users.find(u => u.id === id)?.status ?? 'Inactive';
     setUsers(prev => prev.map(u => u.id === id ? { ...u, status: newStatus } : u));
     try {
-      await apiFetch(`${B}/admin/users/${id}`, {
+      const res = await fetch(`${BASE_URL}admin/users/${id}`, {
         method: 'PATCH',
+        headers: authHeaders(),
         body:   JSON.stringify({ is_active: newStatus === 'Active' }),
       });
+      if (!res.ok) throw new Error();
     } catch (err: any) {
       setError(err?.message ?? 'Failed to update status');
       // Rollback to original status (works correctly for Suspended too)
@@ -162,26 +179,29 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     }
   }, [users]);
 
-  // ── UPDATE FIELDS (PATCH /admin/users/{id}) ───────────────────────────────
+  // ── UPDATE FIELDS (PATCH admin/users/{id}) ───────────────────────────────
   const updateUser = useCallback(async (id: string, fields: Partial<User>) => {
     const payload: Record<string, unknown> = {};
     if (fields.role   !== undefined) payload.role      = fields.role.toLowerCase();
     if (fields.status !== undefined) payload.is_active = fields.status === 'Active';
     if (Object.keys(payload).length > 0) {
-      await apiFetch(`${B}/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(payload) });
+      const res = await fetch(`${BASE_URL}admin/users/${id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error();
     }
     setUsers(prev => prev.map(u => u.id === id ? { ...u, ...fields } : u));
   }, []);
 
-  // ── DEACTIVATE (soft delete) — DELETE /users/{id}/deactivate ─────────────
+  // ── DEACTIVATE (soft delete) — DELETE users/{id}/deactivate ─────────────
   const deactivateUser = useCallback(async (id: string) => {
-    await apiFetch(`${B}/users/${id}/deactivate`, { method: 'DELETE' });
+    const res = await fetch(`${API}/${id}/deactivate`, { method: 'DELETE', headers: authHeaders() });
+    if (!res.ok) throw new Error();
     setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'Inactive' } : u));
   }, []);
 
   // ── HARD DELETE ───────────────────────────────────────────────────────────
   const deleteUser = useCallback(async (id: string) => {
-    await apiFetch(`${B}/users/${id}`, { method: 'DELETE' });
+    const res = await fetch(`${API}/${id}`, { method: 'DELETE', headers: authHeaders() });
+    if (!res.ok) throw new Error();
     setUsers(prev => prev.filter(u => u.id !== id));
     setTotalCount(prev => Math.max(0, prev - 1));
   }, []);
@@ -189,13 +209,17 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
   // ── MASTER DATA (public endpoints) ───────────────────────────────────────
   const fetchIndustries = useCallback(async () => {
     try {
-      return await apiFetch<any[]>(`${B}/onboarding/industries`, { headers: {} as any });
+      const res = await fetch(`${BASE_URL}onboarding/industries`);
+      if (!res.ok) throw new Error();
+      return res.json();
     } catch { return []; }
   }, []);
 
   const fetchServices = useCallback(async () => {
     try {
-      return await apiFetch<any[]>(`${B}/onboarding/services`, { headers: {} as any });
+      const res = await fetch(`${BASE_URL}onboarding/services`);
+      if (!res.ok) throw new Error();
+      return res.json();
     } catch { return []; }
   }, []);
 
