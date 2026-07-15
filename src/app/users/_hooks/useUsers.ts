@@ -149,7 +149,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     if (userData.businessType) payload.business_type = userData.businessType;
     if (userData.gstNumber)    payload.gst_number    = userData.gstNumber;
 
-    const res = await fetch(`${API}`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
+    const res = await fetch(`${API}/`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
     if (!res.ok) throw new Error();
     const created = await res.json();
 
