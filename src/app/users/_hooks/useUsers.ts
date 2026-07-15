@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { User } from '../../../types';
 
 // ── Backend direct URL (bypasses Next.js proxy redirects) ────────────────────
-const API = '/api/v1/admin/users'; // Using admin/users to match Next.js proxy
+const API = 'https://project-sewtech-mart.onrender.com/api/v1/users/';
 const BASE_URL = '/api/v1/';
 
 // ── Auth token ────────────────────────────────────────────────────────────────
@@ -134,7 +134,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     const payload: Record<string, unknown> = {
       full_name:         userData.name,
       phone_number:      userData.phone,
-      role:              userData.role || 'Customer',
+      role:              userData.role ? userData.role.toLowerCase() : 'customer',
       user_type:         userType,
       industry_ids:      userData.industryIds      ?? [],
       service_ids:       userData.serviceIds        ?? [],
@@ -149,7 +149,7 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     if (userData.businessType) payload.business_type = userData.businessType;
     if (userData.gstNumber)    payload.gst_number    = userData.gstNumber;
 
-    const res = await fetch(`${API}/`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
+    const res = await fetch(API, { method: 'POST', headers: authHeaders(), body: JSON.stringify(payload) });
     if (!res.ok) throw new Error();
     const created = await res.json();
 
@@ -191,16 +191,16 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, ...fields } : u));
   }, []);
 
-  // ── DEACTIVATE (soft delete) — DELETE users/{id}/deactivate ─────────────
+  // ── DEACTIVATE (soft delete) — DELETE /users/{id}/deactivate ─────────────
   const deactivateUser = useCallback(async (id: string) => {
-    const res = await fetch(`${API}/${id}/deactivate`, { method: 'DELETE', headers: authHeaders() });
+    const res = await fetch(`${API}${id}/deactivate/`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error();
     setUsers(prev => prev.map(u => u.id === id ? { ...u, status: 'Inactive' } : u));
   }, []);
 
   // ── HARD DELETE ───────────────────────────────────────────────────────────
   const deleteUser = useCallback(async (id: string) => {
-    const res = await fetch(`${API}/${id}`, { method: 'DELETE', headers: authHeaders() });
+    const res = await fetch(`${API}${id}/`, { method: 'DELETE', headers: authHeaders() });
     if (!res.ok) throw new Error();
     setUsers(prev => prev.filter(u => u.id !== id));
     setTotalCount(prev => Math.max(0, prev - 1));
