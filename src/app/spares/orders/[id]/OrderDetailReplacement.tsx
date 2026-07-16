@@ -476,13 +476,9 @@ export default function OrderDetailReplacement({
                   {[
                     'Requested',
                     'Pickup Scheduled',
-                    'Pickup Completed',
-                    'Pickup Failed',
-                    'Replacement in Process',
-                    'Replacement Shipped',
                     'Delivery Failed',
-                    'Completed',
-                    'Cancelled'
+                    'Pickup Completed',
+                    'Replacement Shipped'
                   ].map((statusVal) => {
                     const sLower = statusVal.toLowerCase();
                     const isCompleted = sLower.includes('completed') || sLower.includes('delivered');

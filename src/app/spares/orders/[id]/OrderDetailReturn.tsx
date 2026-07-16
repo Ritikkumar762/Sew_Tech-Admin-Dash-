@@ -511,13 +511,12 @@ export default function OrderDetailReturn({
                   padding: '0.25rem 0'
                 }}>
                   {[
-                    'Return Requested',
+                    'Requested',
                     'Pickup Scheduled',
-                    'Pickup Completed',
                     'Pickup Failed',
+                    'Pickup Completed',
                     'Refund Initiated',
-                    'Refund Completed',
-                    'Cancelled'
+                    'Refund Completed'
                   ].map((statusVal) => {
                     const sLower = statusVal.toLowerCase();
                     const isCompleted = sLower.includes('completed') || sLower.includes('delivered');

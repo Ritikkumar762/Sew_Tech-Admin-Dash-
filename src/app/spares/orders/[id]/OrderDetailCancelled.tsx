@@ -164,9 +164,10 @@ export default function OrderDetailCancelled({
                     padding: '0.25rem 0'
                   }}>
                     {[
-                      'Refund completed',
-                      'Refund requested',
-                      'Refund rejected'
+                      'Requested',
+                      'Cancellation Requested',
+                      'Refund Initiated',
+                      'Refund Completed'
                     ].map((status) => {
                       const isCompleted = status.toLowerCase().includes('completed') || status.toLowerCase().includes('delivered');
                       const isDanger = status.toLowerCase().includes('failed') || status.toLowerCase().includes('rejected');

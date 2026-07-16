@@ -221,12 +221,10 @@ export default function OrderDetailOrdered({
                   }}>
                     {[
                       'Order Received',
-                      'Processing',
                       'Shipped',
-                      'Out for Delivery',
-                      'Delivered',
-                      'Completed',
-                      'Cancelled'
+                      'Out of Delivery',
+                      'Delivery Failed',
+                      'Completed'
                     ].map((status) => {
                       const isCompleted = status.toLowerCase().includes('completed') || status.toLowerCase().includes('delivered');
                       return (
