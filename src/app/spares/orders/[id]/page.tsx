@@ -71,13 +71,7 @@ export default function OrderDetailPage() {
       }
     } catch (err: any) {
       console.error('Error fetching order details:', err);
-      // Fallback if local dev id or fallback needed
-      const fallback = MOCK_ORDER_DETAILS[orderId.toLowerCase()] || MOCK_ORDER_DETAILS['sth-rh-2045'];
-      if (fallback) {
-        setOrder(fallback);
-      } else {
-        setError(err.message || 'Failed to load spares order.');
-      }
+      setError(err.message || 'Failed to load spares order.');
     } finally {
       setLoading(false);
     }
@@ -99,15 +93,25 @@ export default function OrderDetailPage() {
   const handleUpdateStatus = async (newStatus: string) => {
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/admin/spares/orders/${orderId}/status`, {
-        method: 'PATCH',
+      const url = `/api/v1/admin/spares/orders/${orderId}/status`;
+      const options = {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
         },
         body: JSON.stringify({ status: newStatus })
-      });
+      };
+      
+      let res = await fetch(url, { method: 'PATCH', ...options });
+      
+      // If the server rejects PATCH (e.g. older backend on Render expects PUT), fallback to PUT
+      if (res.status === 405) {
+        // The older backend on Render requires the exact UPPERCASE enum value
+        const fallbackOptions = { ...options, body: JSON.stringify({ status: newStatus.toUpperCase() }) };
+        res = await fetch(url, { method: 'PUT', ...fallbackOptions });
+      }
+      
       if (res.ok) {
         // Automatically determine corrected order type based on updated status
         const isCancelled = newStatus === 'Cancelled' || newStatus.toLowerCase().includes('cancelled') || newStatus.toLowerCase().includes('reject');

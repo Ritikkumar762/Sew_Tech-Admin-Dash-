@@ -70,11 +70,15 @@ export default function SparesOrdersPage() {
         }
       });
       if (!res.ok) {
-        throw new Error(`Failed to fetch spares orders (Status: ${res.status})`);
+        console.warn(`Failed to fetch spares orders (Status: ${res.status})`);
+        setError(`Status: ${res.status}`);
+        return;
       }
       const json = await res.json();
-      if (json && json.success && Array.isArray(json.data)) {
-        const mapped = json.data.map((item: any) => {
+      
+      const dataArray = json.data || json.items;
+      if (dataArray && Array.isArray(dataArray)) {
+        const mapped = dataArray.map((item: any) => {
           let status = item.status || 'Order Received';
           // Clean status: Support camelCase, snake_case, or UPPERCASE from backend by converting to Title Case
           status = status.split(/[_-]/)
@@ -102,16 +106,16 @@ export default function SparesOrdersPage() {
           }
 
           return {
-            id: item.id,
-            customerName: item.customerName || 'Rahul Sharma',
-            email: item.email || 'rahul.sharma@example.com',
-            phone: item.phone || '+91 9876543210',
-            date: item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' }) : "21 Jan' 26",
+            id: item.id || (item.order_id ? `o${item.order_id}` : 'undefined'),
+            customerName: item.customerName || (item.address_snapshot?.full_name) || 'Unknown User',
+            email: item.email || (item.address_snapshot?.email) || 'unknown@example.com',
+            phone: item.phone || (item.address_snapshot?.phone) || '+91 0000000000',
+            date: (item.createdAt || item.created_at) ? new Date(item.createdAt || item.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' }) : "21 Jan' 26",
             reason: item.reason || 'None',
-            orderValue: item.amount || 1250.0,
+            orderValue: item.amount || item.final_amount || 0.0,
             status,
-            avatarLetter: (item.customerName || 'C').charAt(0).toLowerCase(),
-            paymentMethod: item.paymentMethod || 'UPI',
+            avatarLetter: (item.customerName || item.address_snapshot?.full_name || 'U').charAt(0).toLowerCase(),
+            paymentMethod: item.paymentMethod || item.payment_method || 'UPI',
             type
           };
         });
@@ -129,12 +133,12 @@ export default function SparesOrdersPage() {
           replacement
         });
       } else {
-        throw new Error(json?.message || 'Invalid data shape returned.');
+        console.warn(json?.message || 'Invalid data shape returned.');
+        setError('Invalid data shape returned.');
       }
     } catch (err: any) {
       console.error('Error fetching spares orders:', err);
-      // Fallback if backend not running during tests/dev
-      setOrders(INITIAL_ORDERS);
+      setError(err.message || 'Error fetching spares orders');
     } finally {
       setLoading(false);
     }
@@ -236,9 +240,11 @@ export default function SparesOrdersPage() {
     // In a real application, we would filter data here.
     // For demo purposes, let's simulate a quick filter effect:
     if (filters.categories.length > 0) {
-      setOrders(INITIAL_ORDERS.slice(0, 3));
+      // Just as a placeholder for frontend filtering
+      setOrders(prev => prev.slice(0, 3));
     } else {
-      setOrders(INITIAL_ORDERS);
+      // We should just re-fetch orders or clear frontend filters
+      fetchOrders();
     }
   };
 
@@ -771,8 +777,23 @@ export default function SparesOrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {displayedOrders.length > 0 ? (
-                displayedOrders.map((order, idx) => (
+                {loading ? (
+                  <tr>
+                    <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#6b7280' }}>
+                      <div style={{ display: 'inline-block', width: '2rem', height: '2rem', border: '3px solid #e5e7eb', borderTopColor: '#3b82f6', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                      <div style={{ marginTop: '1rem', fontWeight: 500 }}>Loading orders...</div>
+                      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                    </td>
+                  </tr>
+                ) : error ? (
+                  <tr>
+                    <td colSpan={7} style={{ padding: '3rem', textAlign: 'center', color: '#ef4444' }}>
+                      <div style={{ fontWeight: 600, fontSize: '1.1rem' }}>Failed to Load Orders</div>
+                      <div style={{ marginTop: '0.5rem', fontSize: '0.9rem' }}>{error}</div>
+                    </td>
+                  </tr>
+                ) : displayedOrders.length > 0 ? (
+                  displayedOrders.map((order, idx) => (
                   <tr key={order.id} className="order-row" style={{ cursor: 'pointer' }} onClick={() => router.push(`/spares/orders/${order.id}`)}>
                     <td style={{ padding: '1.25rem 1.5rem' }} onClick={(e) => e.stopPropagation()}>
                       <input type="checkbox" style={{ accentColor: '#111827', width: '16px', height: '16px', cursor: 'pointer' }} />
