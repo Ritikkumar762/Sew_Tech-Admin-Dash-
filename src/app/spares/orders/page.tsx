@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Search, 
@@ -169,38 +169,71 @@ export default function SparesOrdersPage() {
     Cancelled: [],
   });
 
-  const ALL_PILLS: Record<string, { label: string; count?: number; hasPlus?: boolean }[]> = {
-    All: [
-      { label: 'Flagged', count: 767 },
-      { label: 'Delayed' },
-      { label: 'Support Required', count: 34, hasPlus: true }
-    ],
-    Ordered: [
-      { label: 'Payment Failed', count: 767, hasPlus: true },
-      { label: 'Shipped' },
-      { label: 'Out for Delivery', count: 34, hasPlus: true },
-      { label: 'Delivery Failed', count: 12, hasPlus: true },
-      { label: 'Completed', hasPlus: true }
-    ],
-    Return: [
-      { label: 'Return Requested', hasPlus: true },
-      { label: 'Pickup Scheduled', hasPlus: true },
-      { label: 'Pickup Completed', hasPlus: true },
-      { label: 'Refund Initiated', hasPlus: true },
-      { label: 'Refund Completed', hasPlus: true }
-    ],
-    Replacement: [
-      { label: 'Return Requested', hasPlus: true },
-      { label: 'Pickup Scheduled', hasPlus: true },
-      { label: 'Pickup Completed', hasPlus: true },
-      { label: 'Refund Initiated', hasPlus: true },
-      { label: 'Refund Completed', hasPlus: true }
-    ],
-    Cancelled: [
-      { label: 'Cancellation Requested', hasPlus: true },
-      { label: 'Cancellation Accepted' }
-    ]
-  };
+  const ALL_PILLS = useMemo(() => {
+    const base: Record<string, { label: string; hasPlus?: boolean }[]> = {
+      All: [
+        { label: 'Flagged' },
+        { label: 'Delayed' },
+        { label: 'Support Required', hasPlus: true }
+      ],
+      Ordered: [
+        { label: 'Payment Failed', hasPlus: true },
+        { label: 'Order Received' },
+        { label: 'Processing' },
+        { label: 'Shipped' },
+        { label: 'Out for Delivery', hasPlus: true },
+        { label: 'Delivered' },
+        { label: 'Completed', hasPlus: true }
+      ],
+      Return: [
+        { label: 'Return Requested', hasPlus: true },
+        { label: 'Pickup Scheduled', hasPlus: true },
+        { label: 'Pickup Completed', hasPlus: true },
+        { label: 'Refund Initiated', hasPlus: true },
+        { label: 'Refund Completed', hasPlus: true }
+      ],
+      Replacement: [
+        { label: 'Return Requested', hasPlus: true },
+        { label: 'Pickup Scheduled', hasPlus: true },
+        { label: 'Pickup Completed', hasPlus: true },
+        { label: 'Refund Initiated', hasPlus: true },
+        { label: 'Refund Completed', hasPlus: true }
+      ],
+      Cancelled: [
+        { label: 'Cancellation Requested', hasPlus: true },
+        { label: 'Cancellation Accepted' }
+      ]
+    };
+
+    const result: Record<string, { label: string; count?: number; hasPlus?: boolean }[]> = {};
+    for (const [tab, pills] of Object.entries(base)) {
+      if (tab === 'All') {
+        result[tab] = [
+          { label: 'Flagged', count: 767 },
+          { label: 'Delayed' },
+          { label: 'Support Required', count: 34, hasPlus: true }
+        ];
+        continue;
+      }
+      result[tab] = pills.map(pill => ({
+        ...pill,
+        count: orders.filter(o => {
+          const tabMatch =
+            tab === 'Ordered' ? o.type === 'order' :
+            tab === 'Return' ? o.type === 'return' :
+            tab === 'Replacement' ? o.type === 'replacement' :
+            tab === 'Cancelled' ? o.type === 'cancelled' : false;
+          if (!tabMatch) return false;
+          const p = pill.label.toLowerCase();
+          const s = o.status.toLowerCase();
+          return s === p || s.includes(p) || p.includes(s) ||
+                 (p === 'return requested' && s === 'requested') ||
+                 (p === 'cancellation accepted' && s.includes('completed'));
+        }).length
+      }));
+    }
+    return result;
+  }, [orders]);
 
   const togglePill = (tab: string, label: string) => {
     setActivePills(prev => {
@@ -260,13 +293,7 @@ export default function SparesOrdersPage() {
     // Tab filter
     if (activeTab === 'All') return true;
     if (activeTab === 'Ordered') {
-      return (
-        order.status === 'Order Received' || 
-        order.status === 'Processing' || 
-        order.status === 'Shipped' || 
-        order.status === 'Out for Delivery' || 
-        order.status === 'Delivered'
-      );
+      if (order.type !== 'order') return false;
     }
     if (activeTab === 'Return') {
       if (order.type !== 'return') return false;
@@ -297,15 +324,7 @@ export default function SparesOrdersPage() {
   const getTabCount = (tabId: 'All' | 'Ordered' | 'Return' | 'Replacement' | 'Cancelled') => {
     return orders.filter(order => {
       if (tabId === 'All') return true;
-      if (tabId === 'Ordered') {
-        return (
-          order.status === 'Order Received' || 
-          order.status === 'Processing' || 
-          order.status === 'Shipped' || 
-          order.status === 'Out for Delivery' || 
-          order.status === 'Delivered'
-        );
-      }
+      if (tabId === 'Ordered') return order.type === 'order';
       if (tabId === 'Return') return order.type === 'return';
       if (tabId === 'Replacement') return order.type === 'replacement';
       if (tabId === 'Cancelled') return order.type === 'cancelled';
