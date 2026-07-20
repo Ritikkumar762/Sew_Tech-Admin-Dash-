@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
 
-const backendUrl = process.env.NODE_ENV === 'production' 
-  ? 'https://project-sewtech-mart.onrender.com' 
-  : 'http://127.0.0.1:8000';
+const backendUrl = 'https://project-sewtech-mart.onrender.com' 
 
 const nextConfig: NextConfig = {
   transpilePackages: ["recharts"],
