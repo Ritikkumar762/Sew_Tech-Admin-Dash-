@@ -9,19 +9,8 @@ import { SpareProduct, FilterState } from '@/components/products-inventory/Types
 import { AddSpareModal } from '@/components/products-inventory/AddSpareModal';
 import { BulkUploadFlow } from '@/components/products-inventory/BulkUploadFlow';
 import { useRouter } from 'next/navigation';
-
-const MOCK_DATA: SpareProduct[] = Array.from({ length: 6 }).map((_, i) => ({
-  id: `sp-${i}`,
-  sku: i % 2 === 0 ? 'HC3000' : 'STH-RH-2045',
-  name: i % 2 === 0 ? 'Industrial Sewing Needle' : 'High-Speed Rotary Hook Assembly',
-  category: i % 2 === 0 ? 'Needles' : 'Rotary Hook',
-  compatibleMachines: 3,
-  priceMin: 1850,
-  priceMax: 2400,
-  stock: i < 2 ? 0 : 45,
-  stockStatus: i < 2 ? 'Out of Stock' : 'In-Stock',
-  visibility: i === 0 ? 'Draft' : 'Live',
-}));
+import { apiClient } from '@/lib/api';
+import { ENDPOINTS } from '@/lib/endpoints';
 
 const INITIAL_FILTERS: FilterState = {
   searchQuery: '',
@@ -42,6 +31,103 @@ export default function ProductsInventoryPage() {
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [isBulkUploadOpen, setIsBulkUploadOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
+  const [data, setData] = useState<SpareProduct[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const fetchSpares = async () => {
+    setIsLoading(true);
+      try {
+        const res = await apiClient.get<any>(`${ENDPOINTS.spares.inventory}?skip=0&limit=100`);
+        
+        let items = [];
+        if (res?.data?.items && Array.isArray(res.data.items)) {
+          items = res.data.items;
+        } else if (res?.items && Array.isArray(res.items)) {
+          items = res.items;
+        } else if (res?.data && Array.isArray(res.data)) {
+          items = res.data;
+        } else if (Array.isArray(res)) {
+          items = res;
+        } else {
+          console.error("Failed to parse items array from response:", res);
+        }
+
+        if (items.length > 0) {
+          setData(items.map((item: any) => {
+          const variants = item.variants || [];
+          const stock = variants.reduce((sum: number, v: any) => sum + (v.stock_quantity || 0), 0) + (item.stock_quantity || 0);
+          return {
+            id: String(item.product_id || item.id),
+            sku: item.sku || '',
+            name: item.name || '',
+            category: (typeof item.category === 'object' ? item.category?.name : item.category) || 'General',
+            compatibleMachines: 3,
+            priceMin: Number(item.price) || 0,
+            priceMax: Number(item.discount_price) || 0,
+            stock: stock,
+            stockStatus: stock > 0 ? 'In-Stock' : 'Out of Stock',
+            visibility: 'Live',
+          };
+        }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch spares', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchDashboardStats = async () => {
+    try {
+      const res = await apiClient.get<any>(ENDPOINTS.admin.dashboard.smartView);
+      const kpis = res.module_health_kpis?.st_spares || {};
+      setDashboardStats(kpis);
+    } catch (err) {
+      console.error('Failed to fetch dashboard stats', err);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchSpares();
+    fetchDashboardStats();
+  }, []);
+
+  const handleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (selectedIds.size === data.length && data.length > 0) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(data.map(d => d.id)));
+    }
+  };
+
+  const handleMarkOutOfStock = async () => {
+    if (selectedIds.size === 0) {
+      alert('Please select at least one item');
+      return;
+    }
+    try {
+      await Promise.all(Array.from(selectedIds).map(id => 
+        apiClient.patch(`${ENDPOINTS.spares.inventory}/${id}`, { stock_quantity: 0 })
+      ));
+      alert('Items marked as out of stock successfully');
+      setSelectedIds(new Set());
+      fetchSpares();
+    } catch (err) {
+      console.error('Failed to mark out of stock', err);
+      alert('Failed to mark items out of stock');
+    }
+  };
 
   const handleClearFilters = () => {
     setFilters(INITIAL_FILTERS);
@@ -53,7 +139,7 @@ export default function ProductsInventoryPage() {
 
   // Real-time client-side filter implementation for easy backend transition
   const filteredData = useMemo(() => {
-    return MOCK_DATA.filter(item => {
+    return data.filter(item => {
       // 1. Search Query
       if (filters.searchQuery) {
         const query = filters.searchQuery.toLowerCase();
@@ -84,29 +170,29 @@ export default function ProductsInventoryPage() {
 
       return true;
     });
-  }, [filters]);
+  }, [data, filters]);
 
   // Simulated stats
   const stats = [
     { 
       title: 'Total Orders (Today)', 
-      value: '12', 
+      value: dashboardStats?.total_orders_today ?? '0', 
       icon: <img src="/total order.svg" alt="" style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> 
     },
     { 
       title: 'Revenue (Today)', 
-      value: '₹15,000', 
+      value: dashboardStats?.revenue_today ? `₹${dashboardStats.revenue_today.toLocaleString()}` : '₹0', 
       icon: <img src="/money-bag-02.svg" alt="" style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> 
     },
     { 
       title: 'Stock Alert', 
-      value: '5', 
+      value: data.filter(d => d.stock <= 5).length.toString(), 
       icon: <img src="/alert-02.svg" alt="" style={{ width: '16px', height: '16px', objectFit: 'contain' }} />, 
       alert: true 
     },
     { 
       title: 'Open Issues', 
-      value: '10', 
+      value: dashboardStats?.open_issues ?? '0', 
       icon: <img src="/laptop-issue.svg" alt="" style={{ width: '16px', height: '16px', objectFit: 'contain' }} /> 
     },
   ];
@@ -157,8 +243,18 @@ export default function ProductsInventoryPage() {
               onSearchChange={handleSearchChange} 
               onToggleFilters={() => setIsFilterOpen(prev => !prev)}
               isFilterOpen={isFilterOpen}
+              onMarkOutOfStock={handleMarkOutOfStock}
             />
-            <DataTable data={filteredData} />
+            {isLoading ? (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading inventory...</div>
+            ) : (
+              <DataTable 
+                data={filteredData} 
+                selectedIds={selectedIds}
+                onSelect={handleSelect}
+                onSelectAll={handleSelectAll}
+              />
+            )}
           </div>
         </div>
         

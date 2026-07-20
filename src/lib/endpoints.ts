@@ -148,6 +148,10 @@ export const ENDPOINTS = {
     products: `${BASE_URL}/admin/products`,
     productStatus: (id: string) => `${BASE_URL}/admin/products/${id}/status`,
   },
+  
+  seller: {
+    products: `${BASE_URL}/seller/products`,
+  },
 
   // ── Settings ─────────────────────────────────────────────────
   settings: {

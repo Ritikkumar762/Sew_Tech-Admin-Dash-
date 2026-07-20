@@ -5,21 +5,29 @@ import { SpareProduct } from './Types';
 
 interface DataTableProps {
   data: SpareProduct[];
+  selectedIds: Set<string>;
+  onSelect: (id: string) => void;
+  onSelectAll: () => void;
 }
 
-export function DataTable({ data }: DataTableProps) {
+export function DataTable({ data, selectedIds, onSelect, onSelectAll }: DataTableProps) {
   return (
     <div className={styles.tableContainer}>
       <table className={styles.table}>
         <thead>
           <tr>
             <th>
-              <input type="checkbox" className={styles.checkbox} />
+              <input 
+                type="checkbox" 
+                className={styles.checkbox} 
+                checked={data.length > 0 && selectedIds.size === data.length}
+                onChange={onSelectAll}
+              />
             </th>
             <th>Spare Name <span className={styles.sortIcon}>↓↑</span></th>
             <th>Category <span className={styles.sortIcon}>↓↑</span></th>
             <th>Compatible Machines <span className={styles.sortIcon}>↓↑</span></th>
-            <th>Price Range <span className={styles.sortIcon}>↓↑</span></th>
+            <th>Price (List / Sale) <span className={styles.sortIcon}>↓↑</span></th>
             <th>Stock Status <span className={styles.sortIcon}>↓↑</span></th>
             <th>Visibility <span className={styles.sortIcon}>↓↑</span></th>
             <th>Action</th>
@@ -29,7 +37,12 @@ export function DataTable({ data }: DataTableProps) {
           {data.map((item, idx) => (
             <tr key={item.id}>
               <td>
-                <input type="checkbox" className={styles.checkbox} />
+                <input 
+                  type="checkbox" 
+                  className={styles.checkbox} 
+                  checked={selectedIds.has(item.id)}
+                  onChange={() => onSelect(item.id)}
+                />
               </td>
               <td>
                 <div className={styles.productCell}>
@@ -51,7 +64,22 @@ export function DataTable({ data }: DataTableProps) {
                 <span className={styles.badgeMachine}>{item.compatibleMachines}</span>
               </td>
               <td>
-                <span className={styles.priceRange}>₹{item.priceMin.toLocaleString()} - ₹{item.priceMax.toLocaleString()}</span>
+                <div style={{ display: 'flex', flexDirection: 'column', fontSize: '0.875rem' }}>
+                  {item.priceMax > 0 ? (
+                    <>
+                      <span style={{ textDecoration: 'line-through', color: '#9ca3af', fontSize: '0.75rem' }}>
+                        ₹{item.priceMin.toLocaleString()}
+                      </span>
+                      <span style={{ fontWeight: 500, color: '#10b981' }}>
+                        ₹{item.priceMax.toLocaleString()}
+                      </span>
+                    </>
+                  ) : (
+                    <span style={{ fontWeight: 500 }}>
+                      ₹{item.priceMin.toLocaleString()}
+                    </span>
+                  )}
+                </div>
               </td>
               <td>
                 {item.stockStatus === 'Out of Stock' ? (

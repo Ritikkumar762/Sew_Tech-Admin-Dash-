@@ -5,9 +5,10 @@ interface TableControlsProps {
   onSearchChange: (query: string) => void;
   onToggleFilters?: () => void;
   isFilterOpen?: boolean;
+  onMarkOutOfStock?: () => void;
 }
 
-export function TableControls({ onSearchChange, onToggleFilters, isFilterOpen }: TableControlsProps) {
+export function TableControls({ onSearchChange, onToggleFilters, isFilterOpen, onMarkOutOfStock }: TableControlsProps) {
   const [dateField, setDateField] = useState<'created' | 'modified'>('created');
   const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
   const [isBulkDropdownOpen, setIsBulkDropdownOpen] = useState(false);
@@ -206,7 +207,7 @@ export function TableControls({ onSearchChange, onToggleFilters, isFilterOpen }:
                   type="button"
                   onClick={() => {
                     setIsBulkDropdownOpen(false);
-                    alert('Marked items out of stock successfully');
+                    if (onMarkOutOfStock) onMarkOutOfStock();
                   }}
                   style={{
                     padding: '8px 12px',

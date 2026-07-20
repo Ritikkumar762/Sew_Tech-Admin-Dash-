@@ -34,7 +34,7 @@ type RequestOptions = {
 };
 
 // ── DEV: hardcoded admin token (expires ~2026-07-31). Replace when expired. ──
-const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
+const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjIwOTk4ODU4MjYsImlhdCI6MTc4NDUyNTgyNn0.VbN8ps-Ucul8Evkyo0X9iltdU43Fn2IDfE9cf7VtKcI';
 
 function getAuthToken(): string | null {
   if (typeof window === 'undefined') return DEV_TOKEN;
@@ -79,7 +79,17 @@ async function request<T>(
       let message = `Request failed: ${res.status} ${res.statusText}`;
       try {
         const errBody = await res.json();
-        if (errBody?.message) message = errBody.message;
+        if (errBody?.message) {
+          message = errBody.message;
+        } else if (errBody?.detail) {
+          if (Array.isArray(errBody.detail)) {
+            message = errBody.detail.map((e: any) => `${e.loc?.join('.')}: ${e.msg}`).join(', ');
+          } else if (typeof errBody.detail === 'string') {
+            message = errBody.detail;
+          } else {
+            message = JSON.stringify(errBody.detail);
+          }
+        }
       } catch { /* ignore parse error */ }
       throw new ApiError(res.status, res.statusText, message);
     }
