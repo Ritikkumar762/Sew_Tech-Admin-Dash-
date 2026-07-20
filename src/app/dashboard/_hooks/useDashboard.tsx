@@ -386,7 +386,14 @@ function parseSmartViewPayload(payload: unknown) {
     return acc;
   }, []);
 
-  const trendCity: BarChartData[] = [];
+  const topCities = asRecord(getValue(performance, ['top_cities', 'topCities']));
+  const trendCity: BarChartData[] = topCities 
+    ? Object.entries(topCities).map(([name, value]) => ({
+        name,
+        value: toNumeric(value),
+        color: '#3b82f6'
+      }))
+    : [];
 
   const userInsights = asRecord(getValue(dataRoot, ['user_insights', 'userInsights', 'user']));
   const userTypeDistribution = asRecord(getValue(userInsights, ['user_type_distribution', 'userTypeDistribution']));
@@ -682,22 +689,12 @@ export function useDashboard() {
         setSparesKpis(parsed.sparesKpis);
         setMechanicKpis(parsed.mechanicKpis);
 
-        // HARDCODED MOCK DATA FOR VISUAL ALIGNMENT (100% MATCHING SCREENSHOTS)
-        // To easily integrate with backend API data, uncomment the parsed variables below:
-        //
-        // setPerfDonuts(parsed.perfDonuts);
-        // setTrendModule(parsed.trendModule);
-        // setTrendUserType(parsed.trendUserType);
-        // setTrendCity(parsed.trendCity);
-        // setUserDonuts(parsed.userDonuts);
-        // setNewRepeat(parsed.newRepeat);
-        
-        setPerfDonuts(MOCK_PERF_DONUTS);
-        setTrendModule(MOCK_TREND_MODULE);
-        setTrendUserType(MOCK_TREND_USER_TYPE);
-        setTrendCity(MOCK_TREND_CITY);
-        setUserDonuts(MOCK_USER_DONUTS);
-        setNewRepeat(MOCK_NEW_REPEAT);
+        setPerfDonuts(parsed.perfDonuts);
+        setTrendModule(parsed.trendModule);
+        setTrendUserType(parsed.trendUserType);
+        setTrendCity(parsed.trendCity);
+        setUserDonuts(parsed.userDonuts);
+        setNewRepeat(parsed.newRepeat);
       }
     } catch (err) {
       setTopMetrics([]);

@@ -7,15 +7,20 @@ import { ENDPOINTS } from '@/lib/endpoints';
 const API = '/api/v1/admin/care/mechanics/applications';
 
 // ── Auth token ────────────────────────────────────────────────────────────────
-const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjIwOTk4ODU4MjYsImlhdCI6MTc4NDUyNTgyNn0.VbN8ps-Ucul8Evkyo0X9iltdU43Fn2IDfE9cf7VtKcI';
 
 function getToken() {
   if (typeof window === 'undefined') return HARDCODED_TOKEN;
-  return (
-    localStorage.getItem('adminToken') ??
-    localStorage.getItem('auth_token') ??
-    HARDCODED_TOKEN
-  );
+  let t = localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') ?? HARDCODED_TOKEN;
+  try {
+    const payload = JSON.parse(atob(t.split('.')[1]));
+    if (payload.exp * 1000 < Date.now()) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('adminToken');
+      t = HARDCODED_TOKEN;
+    }
+  } catch (e) { /* ignore */ }
+  return t;
 }
 
 function authHeaders(extra: Record<string, string> = {}) {
@@ -155,8 +160,10 @@ export function useMechanics() {
     try {
       const q: string[] = [];
       if (params.page)   q.push(`page=${params.page}`);
-      // The API expects `pageSize` instead of `limit`
-      if (params.limit)  q.push(`pageSize=${params.limit ?? 20}`);
+      // The API expects `limit` (old route) or `pageSize` (new route)
+      const limitVal = params.limit ?? 1000;
+      q.push(`limit=${limitVal}`);
+      q.push(`pageSize=${limitVal}`);
       if (params.status) q.push(`status=${encodeURIComponent(toApiStatus(params.status))}`);
       if (params.search) q.push(`search=${encodeURIComponent(params.search)}`);
       const url = `${API}${q.length ? '?' + q.join('&') : ''}`;
