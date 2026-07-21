@@ -576,3 +576,195 @@
   background-color: #1f2937;
 }
 
+/* ──────────────────────────────────────────────────────
+   ────────────────────────────────────────────────────────────── */
+.variantsSection {
+  margin-top: 1.5rem;
+}
+
+.variantContainer {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  background-color: white;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.variantLeftStrip {
+  background-color: #f3f4f6;
+  width: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  border-right: 1px solid #e5e7eb;
+  flex-shrink: 0;
+}
+
+.variantRightBody {
+  flex: 1;
+  padding: 1.5rem;
+}
+
+.variantHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.variantFormGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+  max-width: 400px;
+}
+
+.variantLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4b5563;
+}
+
+.variantInput {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #111827;
+  outline: none;
+}
+
+.btnOutlineRedSmall {
+  background: white;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 0.35rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.uploadedImagesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.variantImagesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.variantImageCard {
+  position: relative;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 120px;
+  background-color: white;
+}
+
+.variantImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.deleteImageBtn {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.variantUploadBoxSmall {
+  border: 1.5px dashed #3b82f6;
+  background-color: #eff6ff;
+  border-radius: 8px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.variantUploadBoxLarge {
+  border: 1.5px dashed #3b82f6;
+  background-color: #eff6ff;
+  border-radius: 8px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.variantUploadBtn {
+  font-size: 0.75rem;
+  color: #3b82f6;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.variantUploadBtnLarge {
+  font-size: 0.875rem;
+  color: #3b82f6;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.btnAddVariant {
+  background: white;
+  border: 1.5px solid #3b82f6;
+  color: #3b82f6;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  margin-top: 1.5rem;
+  transition: all 0.2s;
+  width: max-content;
+}
+
+.btnAddVariant:hover {
+  background-color: #eff6ff;
+}
+

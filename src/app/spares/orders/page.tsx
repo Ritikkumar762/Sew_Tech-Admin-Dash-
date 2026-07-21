@@ -57,18 +57,25 @@ export default function SparesOrdersPage() {
 
   const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
 
-  // Live GET /api/spares/orders Fetch from Database
+  // Live GET /api/spares/orders Fetch from Local Backend (http://localhost:8000)
   const fetchOrders = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch('/api/v1/admin/spares/orders', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        }
-      });
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/json'
+      };
+
+      // Try local backend (http://localhost:8000) first
+      let res = await fetch('http://localhost:8000/api/v1/admin/spares/orders', { headers }).catch(() => null);
+
+      // Fallback to proxy route if local direct hit fails
+      if (!res || !res.ok) {
+        res = await fetch('/api/v1/admin/spares/orders', { headers });
+      }
+
       if (!res.ok) {
         console.warn(`Failed to fetch spares orders (Status: ${res.status})`);
         setError(`Status: ${res.status}`);

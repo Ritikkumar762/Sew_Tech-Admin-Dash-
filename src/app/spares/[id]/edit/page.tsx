@@ -101,12 +101,26 @@ export default function EditSparePage() {
 
       try {
         const brandRes = await apiClient.get<any>(ENDPOINTS.mart.brands).catch(() => null);
+        let rawBrands: any[] = [];
         if (Array.isArray(brandRes)) {
-          setBrandsList(brandRes);
+          rawBrands = brandRes;
         } else if (brandRes?.data && Array.isArray(brandRes.data)) {
-          setBrandsList(brandRes.data);
+          rawBrands = brandRes.data;
         }
-      } catch { /* Fallback */ }
+
+        const seenNames = new Set<string>();
+        const cleanBrands = rawBrands.filter(b => {
+          if (!b || !b.name) return false;
+          const nameLower = b.name.trim().toLowerCase();
+          if (seenNames.has(nameLower)) return false;
+          seenNames.add(nameLower);
+          return true;
+        });
+
+        if (cleanBrands.length > 0) {
+          setBrandsList(cleanBrands);
+        }
+      } catch { /* Silent fallback */ }
     };
     fetchMasterData();
   }, []);
@@ -165,7 +179,7 @@ export default function EditSparePage() {
         if (product.variants && product.variants.length > 0) {
           setIsVariantsEnabled(true);
           // Try to extract variant type from first variant's attributes
-          let vType = 'eg, Colour, Size, Finish Look';
+          let vType = 'Variant';
           const firstVariant = product.variants[0];
           if (firstVariant.attributes) {
             const keys = Object.keys(firstVariant.attributes);
@@ -704,9 +718,18 @@ export default function EditSparePage() {
 
               <div className={styles.formGroup}>
                 <label className={styles.label}>Material<span className={styles.required}>*</span></label>
-                <div className={styles.tagsContainer}>
-                  <span className={styles.tagPill}>High-Carbon Steel <span className={styles.tagClose}>×</span></span>
-                </div>
+                <select 
+                  className={styles.select}
+                  value={material}
+                  onChange={(e) => setMaterial(e.target.value)}
+                >
+                  <option value="High-Carbon Steel">High-Carbon Steel</option>
+                  <option value="Stainless Steel">Stainless Steel</option>
+                  <option value="Tungsten Carbide">Tungsten Carbide</option>
+                  <option value="Alloy Steel">Alloy Steel</option>
+                  <option value="Titanium Coated">Titanium Coated</option>
+                  <option value="Cast Iron">Cast Iron</option>
+                </select>
               </div>
 
               <div className={styles.formGroup}>

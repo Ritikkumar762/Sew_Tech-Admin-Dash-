@@ -48,7 +48,7 @@ async function request<T>(
   body?: unknown,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { headers = {}, timeout = 10_000, auth = true } = options;
+  const { headers = {}, timeout = 45_000, auth = true } = options;
 
   // ── Auth Header ────────────────────────────────────────────
   if (auth) {

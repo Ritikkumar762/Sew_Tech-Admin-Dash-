@@ -62,8 +62,9 @@ export default function InventoryPage() {
       const res = await apiClient.get<any>(url);
       const data = res.data || res;
       
+      const rawItems = data.items || data.data || (Array.isArray(data) ? data : (Array.isArray(res) ? res : []));
       const colors = ['#fbe5d6', '#fef3c7', '#e0f2fe', '#dcfce7', '#fce7f3'];
-      const mappedProducts = (data.items || []).map((item: any, index: number) => {
+      const mappedProducts = rawItems.map((item: any, index: number) => {
         const variants = (item.variants || []).map((v: any) => {
           let varName = '';
           if (v.name) {

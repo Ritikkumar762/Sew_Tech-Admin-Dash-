@@ -110,7 +110,8 @@ export default function ProductsInventoryPage() {
         setData([]);
       }
     } catch (err) {
-      console.error('Failed to fetch spares', err);
+      console.warn('Spares API request error or timeout, resetting data:', err);
+      setData([]);
     } finally {
       setIsLoading(false);
     }
@@ -182,7 +183,7 @@ export default function ProductsInventoryPage() {
       if (filters.categories.length > 0 && !filters.categories.includes(item.category)) {
         return false;
       }
-      if (filters.visibility.length > 1 && !filters.visibility.includes(item.visibility)) {
+      if (filters.visibility.length > 0 && !filters.visibility.includes(item.visibility)) {
         return false;
       }
       if (filters.priceMin && item.priceMin < Number(filters.priceMin)) {

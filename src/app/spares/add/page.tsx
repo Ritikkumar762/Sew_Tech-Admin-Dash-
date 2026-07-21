@@ -41,12 +41,25 @@ export default function AddSparePage() {
 
       try {
         const brandRes = await apiClient.get<any>(ENDPOINTS.mart.brands).catch(() => null);
+        let rawBrands: any[] = [];
         if (Array.isArray(brandRes)) {
-          setBrandsList(brandRes);
-          if (brandRes.length > 0) setSelectedBrandId(brandRes[0].brand_id);
+          rawBrands = brandRes;
         } else if (brandRes?.data && Array.isArray(brandRes.data)) {
-          setBrandsList(brandRes.data);
-          if (brandRes.data.length > 0) setSelectedBrandId(brandRes.data[0].brand_id);
+          rawBrands = brandRes.data;
+        }
+
+        const seenNames = new Set<string>();
+        const cleanBrands = rawBrands.filter(b => {
+          if (!b || !b.name) return false;
+          const nameLower = b.name.trim().toLowerCase();
+          if (seenNames.has(nameLower)) return false;
+          seenNames.add(nameLower);
+          return true;
+        });
+
+        if (cleanBrands.length > 0) {
+          setBrandsList(cleanBrands);
+          setSelectedBrandId(cleanBrands[0].brand_id);
         }
       } catch { /* Silent fallback */ }
 
@@ -124,6 +137,7 @@ export default function AddSparePage() {
           stock_quantity: Number(formData.stock_quantity) || 0,
           category_id: selectedCategoryId || 1,
           brand_id: selectedBrandId || 5004,
+          tag_ids: selectedTagIds.length > 0 ? selectedTagIds : (dbTagsList.length > 0 ? [dbTagsList[0].tag_id] : []),
           status: status === 'Live' ? 'PUBLISHED' : (status === 'Draft' ? 'DRAFT' : 'PENDING_REVIEW'),
           sku: formData.sku || `STH-RH-${Date.now().toString().slice(-4)}`,
           specifications: {
@@ -578,8 +592,23 @@ export default function AddSparePage() {
 
             <div className={styles.formGroup}>
               <label className={styles.label}>Manufacturer<span className={styles.required}>*</span></label>
-              <select className={styles.select}>
-                <option>Demo Manufacturer</option>
+              <select 
+                className={styles.select}
+                value={selectedBrandId}
+                onChange={(e) => setSelectedBrandId(Number(e.target.value))}
+              >
+                {brandsList.length > 0 ? (
+                  brandsList.map(b => (
+                    <option key={b.brand_id} value={b.brand_id}>{b.name}</option>
+                  ))
+                ) : (
+                  <>
+                    <option value={5004}>Apple</option>
+                    <option value={5005}>Juki</option>
+                    <option value={5006}>Brother</option>
+                    <option value={5007}>Singer</option>
+                  </>
+                )}
               </select>
             </div>
 
@@ -595,15 +624,25 @@ export default function AddSparePage() {
                 />
               </div>
               <select className={styles.select} style={{ marginTop: '1.5rem', width: '100px' }}>
-                <option>Units</option>
+                <option>Grams (g)</option>
+                <option>Kg</option>
               </select>
             </div>
 
             <div className={styles.formGroup}>
               <label className={styles.label}>Material<span className={styles.required}>*</span></label>
-              <div className={styles.tagsContainer}>
-                <span className={styles.tagPill}>High-Carbon Steel <span className={styles.tagClose}>×</span></span>
-              </div>
+              <select 
+                className={styles.select}
+                value={material}
+                onChange={(e) => setMaterial(e.target.value)}
+              >
+                <option value="High-Carbon Steel">High-Carbon Steel</option>
+                <option value="Stainless Steel">Stainless Steel</option>
+                <option value="Tungsten Carbide">Tungsten Carbide</option>
+                <option value="Alloy Steel">Alloy Steel</option>
+                <option value="Titanium Coated">Titanium Coated</option>
+                <option value="Cast Iron">Cast Iron</option>
+              </select>
             </div>
 
             <div className={styles.formGroup}>
