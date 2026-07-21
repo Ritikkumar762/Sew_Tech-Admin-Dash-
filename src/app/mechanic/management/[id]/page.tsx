@@ -1126,7 +1126,7 @@ export default function MechanicDetailPage() {
             </button>
             <h2 style={{ fontSize: '1.375rem', fontWeight: 700, color: '#111827', margin: 0 }}>{mechanic.name}</h2>
             <div 
-              onClick={() => handleCopy(mechanic.id.toUpperCase(), 'mechId')}
+              onClick={() => handleCopy(String(mechanic.id || '').toUpperCase(), 'mechId')}
               style={{
                 fontSize: '0.75rem',
                 color: '#2563eb',

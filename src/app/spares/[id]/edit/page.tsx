@@ -48,14 +48,14 @@ export default function EditSparePage() {
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
 
   const [banners, setBanners] = useState([
-    { id: 1, url: '/sale 4.png', selected: true },
+    { id: 1, url: '/sale 1.png', selected: true },
     { id: 2, url: '/sale 2.png', selected: false },
     { id: 3, url: '/sale 3.png', selected: false },
     { id: 4, url: '/sale 4.png', selected: false },
     { id: 5, url: '/sale 5.png', selected: false },
     { id: 6, url: '/sale 6.png', selected: false },
     { id: 7, url: '/sale 7.png', selected: false },
-    { id: 8, url: '/sale 2.png', selected: false },
+    { id: 8, url: '/sale 8.png', selected: false },
     { id: 9, url: '/sale 9.png', selected: false },
     { id: 10, url: '/sale 10.png', selected: false },
     { id: 11, url: '/sale 11.png', selected: false },
@@ -85,6 +85,7 @@ export default function EditSparePage() {
   const [selectedBrandId, setSelectedBrandId] = useState<number>(5004);
   const [material, setMaterial] = useState<string>('High-Carbon Steel');
   const [warranty, setWarranty] = useState<string>('1 Yr');
+  const [compatibility, setCompatibility] = useState<string>('Single Needle Lockstitch Machine');
   const [tagsList, setTagsList] = useState<string[]>(['Rotary Hook', 'Spare Part']);
   const [newTagInput, setNewTagInput] = useState<string>('');
 
@@ -734,9 +735,18 @@ export default function EditSparePage() {
 
               <div className={styles.formGroup}>
                 <label className={styles.label}>Spare Compatibility<span className={styles.required}>*</span></label>
-                <div className={styles.tagsContainer}>
-                  <span className={styles.tagPill}>High-Carbon Steel <span className={styles.tagClose}>×</span></span>
-                </div>
+                <select 
+                  className={styles.select}
+                  value={compatibility}
+                  onChange={(e) => setCompatibility(e.target.value)}
+                >
+                  <option value="Single Needle Lockstitch Machine">Single Needle Lockstitch Machine</option>
+                  <option value="Heavy Duty Industrial Machine">Heavy Duty Industrial Machine</option>
+                  <option value="Overlock Sewing Machine">Overlock Sewing Machine</option>
+                  <option value="Embroidery Machine">Embroidery Machine</option>
+                  <option value="Zig-Zag Stitch Machine">Zig-Zag Stitch Machine</option>
+                  <option value="Universal Compatibility">Universal Compatibility</option>
+                </select>
               </div>
             </div>
           </div>
@@ -1133,9 +1143,10 @@ export default function EditSparePage() {
 
           {/* Product Banner */}
           <div className={styles.sectionCard}>
-            <h2 className={styles.sectionTitle} style={{ marginBottom: '1.5rem' }}>Product Banner</h2>
+            <h2 className={styles.sectionTitle} style={{ marginBottom: '0.75rem' }}>Product Banner</h2>
+            <div style={{ borderBottom: '1px dashed #e2e8f0', marginBottom: '1.5rem' }} />
             <div className={styles.formGroup}>
-              <label className={styles.label}>Select Banner<span className={styles.required}>*</span></label>
+              <label className={styles.label} style={{ marginBottom: '0.75rem', display: 'block' }}>Select Banner<span className={styles.required}>*</span></label>
               <div className={styles.bannersContainer}>
                 <div className={styles.bannersGrid}>
                   {banners.map((banner) => (
@@ -1146,18 +1157,16 @@ export default function EditSparePage() {
                         setBanners(banners.map(b => ({ ...b, selected: b.id === banner.id })));
                       }}
                     >
-                      <input 
-                        type="checkbox" 
-                        checked={banner.selected} 
-                        readOnly 
-                        className={styles.bannerCheckbox} 
-                      />
+                      <div className={`${styles.bannerCheckCircle} ${banner.selected ? styles.bannerCheckCircleSelected : ''}`}>
+                        {banner.selected && (
+                          <svg width="9" height="7" viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                        )}
+                      </div>
                       <img src={banner.url} alt={`Banner ${banner.id}`} className={styles.bannerImage} />
                     </div>
                   ))}
-                </div>
-                <div className={styles.bannerBadgeWrapper}>
-                  <span className={styles.bannerBadge}>1020 Fill × 300 Hug</span>
                 </div>
               </div>
             </div>

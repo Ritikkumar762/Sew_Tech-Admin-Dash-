@@ -81,10 +81,26 @@ export default function ProductsInventoryPage() {
         if (items.length > 0) {
           setData(items.map((item: any) => {
           const variants = item.variants || [];
+          const tags = item.tags || [];
           const stock = variants.length > 0
-            ? variants.reduce((sum: number, v: any) => sum + (v.stock_quantity || 0), 0)
+            ? variants.reduce((sum: number, v: any) => sum + Number(v.stock_quantity || 0), 0)
             : Number(item.stock_quantity || 0);
-          
+
+          let compCount = 0;
+          if (Array.isArray(item.compatibility)) {
+            compCount = item.compatibility.length;
+          } else if (typeof item.compatibility === 'string' && item.compatibility.trim()) {
+            compCount = item.compatibility.split(',').filter(Boolean).length;
+          } else if (item.specifications?.['Tags']) {
+            compCount = item.specifications['Tags'].split(',').filter(Boolean).length;
+          } else if (tags.length > 0) {
+            compCount = tags.length;
+          } else if (variants.length > 0) {
+            compCount = variants.length;
+          } else {
+            compCount = 1;
+          }
+
           let visibilityStatus = 'Draft';
           if (item.status === 'PUBLISHED') visibilityStatus = 'Live';
           else if (item.status === 'DRAFT') visibilityStatus = 'Draft';
@@ -98,9 +114,9 @@ export default function ProductsInventoryPage() {
             sku: item.sku || '',
             name: item.name || '',
             category: (typeof item.category === 'object' ? item.category?.name : item.category) || 'General',
-            compatibleMachines: item.compatibility ? item.compatibility.length : 0,
+            compatibleMachines: compCount,
             priceMin: Number(item.price) || 0,
-            priceMax: Number(item.discount_price) || 0,
+            priceMax: item.discount_price ? Number(item.discount_price) : 0,
             stock: stock,
             stockStatus: stock > 0 ? 'In-Stock' : 'Out of Stock',
             visibility: visibilityStatus,
