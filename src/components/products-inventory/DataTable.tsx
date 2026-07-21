@@ -93,8 +93,20 @@ export function DataTable({ data, selectedIds, onSelect, onSelectAll }: DataTabl
               <td>
                 {item.visibility === 'Live' ? (
                   <img src="/live.svg" alt="Live" style={{ height: '22px', width: 'auto', display: 'block' }} />
-                ) : (
+                ) : item.visibility === 'Draft' ? (
                   <img src="/Draft.svg" alt="Draft" style={{ height: '22px', width: 'auto', display: 'block' }} />
+                ) : (
+                  <span style={{ 
+                    padding: '4px 10px', 
+                    borderRadius: '12px', 
+                    fontSize: '11px', 
+                    fontWeight: 600,
+                    backgroundColor: item.visibility === 'Under Review' ? '#fef3c7' : '#f3f4f6',
+                    color: item.visibility === 'Under Review' ? '#d97706' : '#4b5563',
+                    display: 'inline-block'
+                  }}>
+                    {item.visibility}
+                  </span>
                 )}
               </td>
               <td>

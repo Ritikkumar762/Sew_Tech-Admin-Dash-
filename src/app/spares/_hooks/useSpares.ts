@@ -1,25 +1,8 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { Spare, Order } from '@/types';
-
-// ─── Mock Data ─── Replace with real API calls ───────────────────
-const MOCK_SPARES: Spare[] = [
-  { id: 's1', name: 'Motor Brush Set', sku: 'SKU-101', category: 'Motor Parts', stock: 45, price: 350, status: 'In Stock' },
-  { id: 's2', name: 'Needle Plate (Universal)', sku: 'SKU-102', category: 'Needle Parts', stock: 4, price: 180, status: 'Low Stock' },
-  { id: 's3', name: 'Bobbin Case Assembly', sku: 'SKU-103', category: 'Bobbin', stock: 0, price: 220, status: 'Out of Stock' },
-  { id: 's4', name: 'Presser Foot - Zipper', sku: 'SKU-104', category: 'Presser Foot', stock: 30, price: 95, status: 'In Stock' },
-  { id: 's5', name: 'Feed Dog Mechanism', sku: 'SKU-105', category: 'Feed System', stock: 12, price: 560, status: 'In Stock' },
-  { id: 's6', name: 'Tension Spring Kit', sku: 'SKU-106', category: 'Springs', stock: 8, price: 75, status: 'Low Stock' },
-];
-
-const MOCK_ORDERS: Order[] = [
-  { id: 'o1', customerId: 'c1', customerName: 'Rahul Sharma', amount: 1250, status: 'Delivered', createdAt: '2026-06-01', items: 3 },
-  { id: 'o2', customerId: 'c2', customerName: 'Priya Singh', amount: 440, status: 'Shipped', createdAt: '2026-06-05', items: 2 },
-  { id: 'o3', customerId: 'c3', customerName: 'Arjun Patel', amount: 3100, status: 'Confirmed', createdAt: '2026-06-08', items: 5 },
-  { id: 'o4', customerId: 'c4', customerName: 'Sneha Verma', amount: 920, status: 'Returned', createdAt: '2026-06-02', items: 4 },
-  { id: 'o5', customerId: 'c5', customerName: 'Kiran Mehta', amount: 670, status: 'Cancelled', createdAt: '2026-06-07', items: 1 },
-];
-// ──────────────────────────────────────────────────────────────────
+import { apiClient } from '@/lib/api';
+import { ENDPOINTS } from '@/lib/endpoints';
 
 export function useSpares() {
   const [spares, setSpares] = useState<Spare[]>([]);
@@ -29,10 +12,36 @@ export function useSpares() {
   const fetchSpares = useCallback(async () => {
     setLoading(true);
     try {
-      // TODO: const res = await fetch('/api/spares'); const json = await res.json(); setSpares(json.data);
-      await new Promise((r) => setTimeout(r, 400));
-      setSpares(MOCK_SPARES);
-    } catch {
+      const res = await apiClient.get<any>(`${ENDPOINTS.spares.inventory}?skip=0&limit=100`);
+      let items: any[] = [];
+      if (res?.items && Array.isArray(res.items)) items = res.items;
+      else if (res?.data?.items && Array.isArray(res.data.items)) items = res.data.items;
+      else if (res?.data && Array.isArray(res.data)) items = res.data;
+      else if (Array.isArray(res)) items = res;
+
+      const mapped: Spare[] = items.map((item: any) => {
+        const variants = item.variants || [];
+        const totalStock = variants.length > 0
+          ? variants.reduce((sum: number, v: any) => sum + (v.stock_quantity || 0), 0)
+          : Number(item.stock_quantity || 0);
+
+        let status: 'In Stock' | 'Low Stock' | 'Out of Stock' = 'In Stock';
+        if (totalStock === 0) status = 'Out of Stock';
+        else if (totalStock < 15) status = 'Low Stock';
+
+        return {
+          id: String(item.product_id || item.id),
+          name: item.name || 'Spare Item',
+          sku: item.sku || '',
+          category: typeof item.category === 'object' ? item.category?.name : (item.category || 'General'),
+          stock: totalStock,
+          price: Number(item.price || 0),
+          status: status
+        };
+      });
+      setSpares(mapped);
+    } catch (err) {
+      console.error('Failed to load spares', err);
       setError('Failed to load spares.');
     } finally {
       setLoading(false);
@@ -51,9 +60,21 @@ export function useSparesOrders() {
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      // TODO: const res = await fetch('/api/spares/orders'); const json = await res.json(); setOrders(json.data);
-      await new Promise((r) => setTimeout(r, 400));
-      setOrders(MOCK_ORDERS);
+      const res = await apiClient.get<any>(ENDPOINTS.spares.orders);
+      let items: any[] = [];
+      if (res?.items && Array.isArray(res.items)) items = res.items;
+      else if (res?.orders && Array.isArray(res.orders)) items = res.orders;
+      else if (Array.isArray(res)) items = res;
+
+      setOrders(items.map((o: any) => ({
+        id: String(o.order_id || o.id),
+        customerId: String(o.user_id || o.customer_id || ''),
+        customerName: o.customer_name || o.user_name || 'Customer',
+        amount: Number(o.total_amount || o.amount || 0),
+        status: o.status || 'Pending',
+        createdAt: o.created_at || new Date().toISOString(),
+        items: o.items ? o.items.length : 1
+      })));
     } catch {
       setError('Failed to load orders.');
     } finally {
@@ -64,3 +85,4 @@ export function useSparesOrders() {
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
   return { orders, loading, error, refetch: fetchOrders };
 }
+

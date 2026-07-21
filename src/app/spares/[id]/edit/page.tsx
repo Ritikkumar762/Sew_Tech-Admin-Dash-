@@ -11,7 +11,7 @@ export default function EditSparePage() {
   
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isVariantsEnabled, setIsVariantsEnabled] = useState(true);
-  const [variantType, setVariantType] = useState('eg, Colour, Size, Finish Look');
+  const [variantType, setVariantType] = useState('Variant');
 
   interface VariantState {
     id: string;
@@ -22,6 +22,7 @@ export default function EditSparePage() {
     coverIndex: number;
   }
 
+  const [deletedVariantIds, setDeletedVariantIds] = useState<string[]>([]);
   const [variants, setVariants] = useState<VariantState[]>([
     {
       id: 'v-1',
@@ -78,6 +79,38 @@ export default function EditSparePage() {
     low_stock_threshold: '',
   });
 
+  const [categoriesList, setCategoriesList] = useState<any[]>([]);
+  const [brandsList, setBrandsList] = useState<any[]>([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(1);
+  const [selectedBrandId, setSelectedBrandId] = useState<number>(5004);
+  const [material, setMaterial] = useState<string>('High-Carbon Steel');
+  const [warranty, setWarranty] = useState<string>('1 Yr');
+  const [tagsList, setTagsList] = useState<string[]>(['Rotary Hook', 'Spare Part']);
+  const [newTagInput, setNewTagInput] = useState<string>('');
+
+  React.useEffect(() => {
+    const fetchMasterData = async () => {
+      try {
+        const catRes = await apiClient.get<any>(`${ENDPOINTS.mart.categories}?root_only=false`).catch(() => null);
+        if (Array.isArray(catRes)) {
+          setCategoriesList(catRes);
+        } else if (catRes?.data && Array.isArray(catRes.data)) {
+          setCategoriesList(catRes.data);
+        }
+      } catch { /* Fallback */ }
+
+      try {
+        const brandRes = await apiClient.get<any>(ENDPOINTS.mart.brands).catch(() => null);
+        if (Array.isArray(brandRes)) {
+          setBrandsList(brandRes);
+        } else if (brandRes?.data && Array.isArray(brandRes.data)) {
+          setBrandsList(brandRes.data);
+        }
+      } catch { /* Fallback */ }
+    };
+    fetchMasterData();
+  }, []);
+
   React.useEffect(() => {
     const fetchProduct = async () => {
       try {
@@ -121,6 +154,54 @@ export default function EditSparePage() {
           low_stock_threshold: product.low_stock_threshold ? String(product.low_stock_threshold) : '',
         });
         setStatus(product.status === 'PUBLISHED' ? 'Live' : (product.status === 'DRAFT' ? 'Draft' : 'Under Review'));
+
+        if (product.category_id) setSelectedCategoryId(product.category_id);
+        if (product.brand_id) setSelectedBrandId(product.brand_id);
+        if (product.specifications?.['Material']) setMaterial(product.specifications['Material']);
+        if (product.specifications?.['Warranty']) setWarranty(product.specifications['Warranty']);
+        if (product.specifications?.['Tags']) setTagsList(product.specifications['Tags'].split(', ').filter(Boolean));
+
+        // Populate variants
+        if (product.variants && product.variants.length > 0) {
+          setIsVariantsEnabled(true);
+          // Try to extract variant type from first variant's attributes
+          let vType = 'eg, Colour, Size, Finish Look';
+          const firstVariant = product.variants[0];
+          if (firstVariant.attributes) {
+            const keys = Object.keys(firstVariant.attributes);
+            if (keys.length > 0) vType = keys[0];
+          }
+          setVariantType(vType);
+
+          const mappedVariants = product.variants.map((v: any, index: number) => {
+             const idxStr = (index + 1) < 10 ? `0${index + 1}` : `${index + 1}`;
+             let val = '';
+             if (v.attributes && v.attributes[vType]) {
+               val = String(v.attributes[vType]);
+             }
+             return {
+                id: String(v.variant_id), // stringified number means existing variant
+                indexText: idxStr,
+                labelText: v.name || `Variant ${index}`,
+                value: val,
+                images: [],
+                coverIndex: 0
+             };
+          });
+          setVariants(mappedVariants);
+        } else {
+          setIsVariantsEnabled(false);
+          setVariants([
+            {
+              id: `v-${Date.now()}`,
+              indexText: '01',
+              labelText: 'Default Spare Type',
+              value: '',
+              images: [],
+              coverIndex: 0
+            }
+          ]);
+        }
       } catch (err) {
         console.error('Failed to load product data', err);
       }
@@ -135,7 +216,7 @@ export default function EditSparePage() {
       setIsSubmitting(true);
       
       const apiStatus = status === 'Live' ? 'PUBLISHED' : 
-                       (status === 'Draft' ? 'DRAFT' : 'SUSPENDED');
+                       (status === 'Draft' ? 'DRAFT' : 'PENDING_REVIEW');
       
       const payload: any = {
         name: formData.name || undefined,
@@ -143,13 +224,28 @@ export default function EditSparePage() {
         price: formData.price ? Number(formData.price) : undefined,
         discount_price: formData.sale_price ? Number(formData.sale_price) : undefined,
         stock_quantity: formData.stock_quantity ? Number(formData.stock_quantity) : undefined,
-        status: apiStatus,
+        category_id: selectedCategoryId,
+        brand_id: selectedBrandId,
         specifications: {
           "Product Dimensions": `${formData.length || 0}x${formData.width || 0}x${formData.height || 0}`,
           "Net Quantity": formData.net_quantity || '1 Unit',
-          "Item Weight": formData.weight ? `${formData.weight}g` : 'N/A'
+          "Item Weight": formData.weight ? `${formData.weight}g` : 'N/A',
+          "Material": material,
+          "Warranty": warranty,
+          "Tags": tagsList.join(', ')
         }
       };
+      
+      const statusPayload: any = { status: apiStatus };
+      if (apiStatus === 'DRAFT') {
+        statusPayload.reason = 'Status updated by admin';
+      }
+
+      try {
+        await apiClient.put(ENDPOINTS.admin.productStatus(String(params.id)), statusPayload);
+      } catch (err) {
+        console.error('Failed to update product status', err);
+      }
       
       if (formData.weight && Number(formData.weight) >= 1) {
         payload.weight_grams = Number(formData.weight);
@@ -162,6 +258,35 @@ export default function EditSparePage() {
       // Update the product fields
       await apiClient.patch(`${ENDPOINTS.spares.inventory}/${params.id}`, payload);
       
+      // Manage variants
+      if (isVariantsEnabled) {
+        for (const v of variants) {
+          if (!v.value) continue; // skip variants without value
+          const variantPayload = {
+             name: v.labelText,
+             sku_suffix: `V-${Date.now().toString().slice(-4)}-${Math.floor(Math.random()*1000)}`,
+             attributes: { [variantType]: v.value },
+          };
+          if (v.id.startsWith('v-')) {
+            try {
+              await apiClient.post(ENDPOINTS.seller.variants(String(params.id)), variantPayload);
+            } catch (err) { console.error('Failed to create variant', err); }
+          } else {
+            try {
+              await apiClient.patch(ENDPOINTS.spares.updateVariant(String(params.id), v.id), {
+                 name: v.labelText,
+                 attributes: { [variantType]: v.value }
+              });
+            } catch (err) { console.error('Failed to update variant', err); }
+          }
+        }
+        for (const deletedId of deletedVariantIds) {
+           try {
+              await apiClient.delete(ENDPOINTS.spares.updateVariant(String(params.id), deletedId));
+           } catch (err) { console.error('Failed to delete variant', err); }
+        }
+      }
+
       setShowConfirmation(true);
     } catch (err: any) {
       console.error('Failed to update spare details:', err);
@@ -237,6 +362,9 @@ export default function EditSparePage() {
   };
 
   const handleDisableVariant = (variantId: string) => {
+    if (!variantId.startsWith('v-')) {
+      setDeletedVariantIds(prev => [...prev, variantId]);
+    }
     setVariants(prev => prev.filter(v => v.id !== variantId).map((v, i) => {
       const idxStr = (i + 1) < 10 ? `0${i + 1}` : `${i + 1}`;
       return {
@@ -422,34 +550,88 @@ export default function EditSparePage() {
 
               <div className={styles.formGroup}>
                 <label className={styles.label}>Category<span className={styles.required}>*</span></label>
-                <div className={styles.tagsContainer}>
-                  <span className={styles.tagPill}>Rotary Hook <span className={styles.tagClose}>×</span></span>
-                  <span className={styles.tagPill}>Rotary Hook <span className={styles.tagClose}>×</span></span>
-                </div>
+                <select 
+                  className={styles.select}
+                  value={selectedCategoryId}
+                  onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
+                >
+                  {categoriesList.length > 0 ? (
+                    categoriesList.map(cat => (
+                      <option key={cat.category_id} value={cat.category_id}>{cat.name}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value={1}>Rotary Hook</option>
+                      <option value={2}>Needles</option>
+                      <option value={3}>Hookset</option>
+                      <option value={4}>Knives</option>
+                      <option value={5}>Presser Feet</option>
+                      <option value={6}>Bobbins</option>
+                    </>
+                  )}
+                </select>
               </div>
 
               <div className={styles.formGroup} style={{ visibility: 'hidden' }}></div> {/* Spacer */}
 
               <div className={styles.formGroup}>
                 <label className={styles.label}>Manufacturer<span className={styles.required}>*</span></label>
-                <select className={styles.select} defaultValue="Demo Manufacturer">
-                  <option value="Demo Manufacturer">Demo Manufacturer</option>
+                <select 
+                  className={styles.select}
+                  value={selectedBrandId}
+                  onChange={(e) => setSelectedBrandId(Number(e.target.value))}
+                >
+                  {brandsList.length > 0 ? (
+                    brandsList.map(brand => (
+                      <option key={brand.brand_id} value={brand.brand_id}>{brand.name}</option>
+                    ))
+                  ) : (
+                    <>
+                      <option value={5004}>Juki</option>
+                      <option value={1}>Brother</option>
+                      <option value={2}>Singer</option>
+                      <option value={3}>Organ</option>
+                    </>
+                  )}
                 </select>
               </div>
 
               <div className={styles.formGroup}>
                 <label className={styles.label}>Warranty<span className={styles.required}>*</span></label>
-                <select className={styles.select} defaultValue="1 Yr">
+                <select 
+                  className={styles.select}
+                  value={warranty}
+                  onChange={(e) => setWarranty(e.target.value)}
+                >
                   <option value="1 Yr">1 Yr</option>
-                  <option value="2 Yr">2 Yr</option>
+                  <option value="6 Months">6 Months</option>
+                  <option value="2 Yrs">2 Yrs</option>
+                  <option value="No Warranty">No Warranty</option>
                 </select>
               </div>
 
               <div className={styles.formGroup}>
                 <label className={styles.label}>Tags</label>
-                <div className={styles.tagsContainer}>
-                  <span className={styles.tagPill}>Rotary Hook <span className={styles.tagClose}>×</span></span>
-                  <span className={styles.tagPill}>Rotary Hook <span className={styles.tagClose}>×</span></span>
+                <div className={styles.tagsContainer} style={{ flexWrap: 'wrap', gap: '6px' }}>
+                  {tagsList.map((tag, idx) => (
+                    <span key={idx} className={styles.tagPill}>
+                      {tag} <span className={styles.tagClose} onClick={() => setTagsList(tagsList.filter((_, i) => i !== idx))}>×</span>
+                    </span>
+                  ))}
+                  <input 
+                    type="text"
+                    style={{ border: 'none', outline: 'none', fontSize: '0.85rem', width: '100px' }}
+                    placeholder="+ Add tag"
+                    value={newTagInput}
+                    onChange={(e) => setNewTagInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newTagInput.trim()) {
+                        e.preventDefault();
+                        setTagsList([...tagsList, newTagInput.trim()]);
+                        setNewTagInput('');
+                      }
+                    }}
+                  />
                 </div>
               </div>
             </div>

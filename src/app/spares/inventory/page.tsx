@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './Inventory.module.css';
 import { ENDPOINTS } from '../../../lib/endpoints';
+import { apiClient } from '../../../lib/api';
 
 interface Variant {
   id: string;
@@ -19,6 +20,7 @@ interface Product {
   thumbnailColor: string;
   thumbnailLetter: string;
   price: number;
+  stock: number;
   variants: Variant[];
 }
 
@@ -29,6 +31,7 @@ export default function InventoryPage() {
   const [isEditMode, setIsEditMode] = useState(false);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [hoveredStat, setHoveredStat] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -47,36 +50,52 @@ export default function InventoryPage() {
     return localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') ?? 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
   };
 
-  const fetchProducts = async (page = currentPage) => {
+  const fetchProducts = async (page = currentPage, query = debouncedSearch) => {
     setIsLoading(true);
     try {
       const skip = (page - 1) * PAGE_SIZE;
-      const res = await fetch(`${ENDPOINTS.spares.inventory}?skip=${skip}&limit=${PAGE_SIZE}`, {
-        headers: {
-          'Authorization': `Bearer ${getToken()}`,
-          'Accept': 'application/json'
-        }
-      });
-      if (!res.ok) throw new Error('Failed to fetch products');
-      const data = await res.json();
+      let url = `${ENDPOINTS.spares.inventory}?skip=${skip}&limit=${PAGE_SIZE}`;
+      if (query) {
+        url += `&q=${encodeURIComponent(query)}`;
+      }
+      
+      const res = await apiClient.get<any>(url);
+      const data = res.data || res;
       
       const colors = ['#fbe5d6', '#fef3c7', '#e0f2fe', '#dcfce7', '#fce7f3'];
       const mappedProducts = (data.items || []).map((item: any, index: number) => {
-        return {
-          id: String(item.product_id),
-          name: item.name,
-          sku: item.sku,
-          stock: Number(item.stock_quantity || 0),
-          thumbnailColor: colors[index % colors.length],
-          thumbnailLetter: item.name ? item.name.charAt(0).toUpperCase() : 'U',
-          price: Number(item.price || 0),
-          variants: (item.variants || []).map((v: any) => ({
-            id: String(v.variant_id),
-            name: Object.values(v.attributes || {}).join(', ') || 'Standard',
-            sku: v.sku,
+        const variants = (item.variants || []).map((v: any) => {
+          let varName = '';
+          if (v.name) {
+            varName = v.name;
+          } else if (v.attributes && typeof v.attributes === 'object' && Object.keys(v.attributes).length > 0) {
+            varName = Object.entries(v.attributes).map(([k, val]) => `${k}: ${val}`).join(', ');
+          } else {
+            varName = v.sku || 'Standard Variant';
+          }
+
+          return {
+            id: String(v.variant_id || v.id),
+            name: varName,
+            sku: v.sku || item.sku || '',
             stock: Number(v.stock_quantity || 0),
-            price: Number(v.effective_price || item.price || 0)
-          }))
+            price: Number(v.effective_price ?? v.price_override ?? item.price ?? 0)
+          };
+        });
+
+        const parentStock = variants.length > 0
+          ? variants.reduce((sum: number, v: any) => sum + v.stock, 0)
+          : Number(item.stock_quantity || 0);
+
+        return {
+          id: String(item.product_id || item.id),
+          name: item.name || 'Spare Item',
+          sku: item.sku || '',
+          stock: parentStock,
+          thumbnailColor: colors[index % colors.length],
+          thumbnailLetter: item.name ? item.name.charAt(0).toUpperCase() : 'S',
+          price: Number(item.price || 0),
+          variants: variants
         };
       });
       setProducts(mappedProducts);
@@ -89,7 +108,22 @@ export default function InventoryPage() {
   };
 
   useEffect(() => {
-    fetchProducts(currentPage);
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    } else {
+      fetchProducts(1, debouncedSearch);
+    }
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    fetchProducts(currentPage, debouncedSearch);
   }, [currentPage]);
 
   // Toggle Edit Mode
@@ -114,35 +148,41 @@ export default function InventoryPage() {
         const backupProd = backupProducts.find((b) => b.id === prod.id);
         if (!backupProd) return;
 
-        prod.variants.forEach((variant) => {
-          const backupVar = backupProd.variants.find((b) => b.id === variant.id);
-          if (backupVar && (backupVar.stock !== variant.stock || backupVar.price !== variant.price)) {
-            const updateUrl = ENDPOINTS.spares.updateVariant(prod.id, variant.id);
-            const promise = fetch(updateUrl, {
-              method: 'PATCH',
-              headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${getToken()}`,
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify({
-                stock_quantity: variant.stock,
-                price_override: variant.price
+        if (prod.variants && prod.variants.length > 0) {
+          prod.variants.forEach((variant) => {
+            const backupVar = backupProd.variants.find((b) => b.id === variant.id);
+            if (!backupVar || backupVar.stock !== variant.stock || backupVar.price !== variant.price) {
+              const updateUrl = ENDPOINTS.spares.updateVariant(prod.id, variant.id);
+              updatePromises.push(
+                apiClient.patch(updateUrl, {
+                  stock_quantity: variant.stock,
+                  price_override: variant.price
+                })
+              );
+            }
+          });
+        } else {
+          // Sync parent stock/price if no variants
+          if (backupProd.stock !== prod.stock || backupProd.price !== prod.price) {
+            const updateUrl = `${ENDPOINTS.spares.inventory}/${prod.id}`;
+            updatePromises.push(
+              apiClient.patch(updateUrl, {
+                stock_quantity: prod.stock,
+                price: prod.price
               })
-            });
-            updatePromises.push(promise);
+            );
           }
-        });
+        }
       });
 
       await Promise.all(updatePromises);
       setIsEditMode(false);
       setExpandedRows(new Set());
-      await fetchProducts();
-      showToast('Changes saved successfully!', 'success');
-    } catch (error) {
+      await fetchProducts(currentPage);
+      showToast('Changes saved successfully to Database!', 'success');
+    } catch (error: any) {
       console.error('Failed to save changes:', error);
-      showToast('Failed to save changes. Please try again.', 'error');
+      showToast(`Failed to save changes: ${error.message || 'Error'}`, 'error');
       setIsLoading(false);
     }
   };
@@ -184,12 +224,15 @@ export default function InventoryPage() {
     setProducts(prevProducts =>
       prevProducts.map(product => {
         if (product.id !== productId) return product;
+        const updatedVariants = product.variants.map(v => {
+          if (v.id !== variantId) return v;
+          return { ...v, stock: newValue };
+        });
+        const newParentStock = updatedVariants.reduce((sum, v) => sum + v.stock, 0);
         return {
           ...product,
-          variants: product.variants.map(v => {
-            if (v.id !== variantId) return v;
-            return { ...v, stock: newValue };
-          }),
+          stock: newParentStock,
+          variants: updatedVariants,
         };
       })
     );
@@ -207,7 +250,6 @@ export default function InventoryPage() {
           return { ...v, price: newValue };
         });
 
-        // Update the parent price to match the first variant's price
         const parentPrice = updatedVariants[0]?.price || product.price;
 
         return {
@@ -219,27 +261,55 @@ export default function InventoryPage() {
     );
   };
 
+  // Update parent product stock quantity (when no variants exist)
+  const handleUpdateProductStock = (productId: string, newValue: number) => {
+    if (newValue < 0 || isNaN(newValue)) return;
+    setProducts(prevProducts =>
+      prevProducts.map(product => {
+        if (product.id !== productId) return product;
+        return { ...product, stock: newValue };
+      })
+    );
+  };
+
+  // Update parent product price (when no variants exist)
+  const handleUpdateProductPrice = (productId: string, newValue: number) => {
+    if (newValue < 0 || isNaN(newValue)) return;
+    setProducts(prevProducts =>
+      prevProducts.map(product => {
+        if (product.id !== productId) return product;
+        return { ...product, price: newValue };
+      })
+    );
+  };
+
   // Helper calculations for parents
   const getProductStock = (product: Product) => {
-    if (product.variants.length === 0) return 0;
+    if (product.variants.length === 0) return product.stock;
     return product.variants.reduce((sum, v) => sum + v.stock, 0);
   };
 
   const getProductTotalAmount = (product: Product) => {
-    if (product.variants.length === 0) return 0;
-    return product.variants.reduce((sum, v) => sum + v.stock * v.price, 0);
+    if (product.variants.length === 0) return product.stock * product.price;
+    return product.variants.reduce((sum, v) => sum + (v.stock * v.price), 0);
   };
 
   // Stats calculations
   const totalStockValue = products.reduce((sum, p) => sum + getProductTotalAmount(p), 0);
-  const outOfStockCount = products.reduce(
-    (sum, p) => sum + p.variants.filter(v => v.stock === 0).length,
-    0
-  );
-  const lowStockCount = products.reduce(
-    (sum, p) => sum + p.variants.filter(v => v.stock > 0 && v.stock < 15).length,
-    0
-  );
+
+  const outOfStockCount = products.reduce((sum, p) => {
+    if (p.variants.length === 0) {
+      return sum + (p.stock === 0 ? 1 : 0);
+    }
+    return sum + p.variants.filter(v => v.stock === 0).length;
+  }, 0);
+
+  const lowStockCount = products.reduce((sum, p) => {
+    if (p.variants.length === 0) {
+      return sum + (p.stock > 0 && p.stock < 15 ? 1 : 0);
+    }
+    return sum + p.variants.filter(v => v.stock > 0 && v.stock < 15).length;
+  }, 0);
   const deadStockValue = 15000; // Mock stat matching Image 1
 
   const renderProductThumbnail = (letter: string, thumbnailColor: string) => {
@@ -293,11 +363,8 @@ export default function InventoryPage() {
     );
   };
 
-  // Filtering
-  const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.sku.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filtering is now handled by the backend
+  const filteredProducts = products;
 
   return (
     <div className={styles.pageContainer}>
@@ -625,13 +692,53 @@ export default function InventoryPage() {
 
                   <div>
                     <div className={`${styles.dataBox} ${isExpanded ? styles.dataBoxExpanded : ''}`}>
-                      {parentStock}
+                      {isEditMode && product.variants.length === 0 ? (
+                        <div className={styles.stockEditor} onClick={e => e.stopPropagation()}>
+                          <button 
+                            type="button"
+                            className={styles.editorBtn}
+                            onClick={() => handleUpdateProductStock(product.id, parentStock - 1)}
+                          >
+                            −
+                          </button>
+                          <input 
+                            type="text"
+                            className={styles.editorInput}
+                            value={parentStock}
+                            onChange={(e) => handleUpdateProductStock(product.id, parseInt(e.target.value) || 0)}
+                          />
+                          <button 
+                            type="button"
+                            className={styles.editorBtn}
+                            onClick={() => handleUpdateProductStock(product.id, parentStock + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+                      ) : (
+                        parentStock
+                      )}
                     </div>
                   </div>
 
                   <div>
                     <div className={`${styles.dataBox} ${isExpanded ? styles.dataBoxExpanded : ''}`}>
-                      ₹{product.price.toLocaleString('en-IN')}
+                      {isEditMode && product.variants.length === 0 ? (
+                        <div className={styles.priceEditorWrapper} onClick={e => e.stopPropagation()}>
+                          <span className={styles.currencySymbol}>₹</span>
+                          <input 
+                            type="text"
+                            className={styles.priceInput}
+                            value={product.price === 0 ? '' : product.price}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, '');
+                              handleUpdateProductPrice(product.id, parseInt(val) || 0);
+                            }}
+                          />
+                        </div>
+                      ) : (
+                        `₹${product.price.toLocaleString('en-IN')}`
+                      )}
                     </div>
                   </div>
 
@@ -645,84 +752,148 @@ export default function InventoryPage() {
                 {/* Sub Variants Rows (Expanded Mode) */}
                 {isExpanded && (
                   <div className={styles.variantsContainer}>
-                    {product.variants.map((variant) => (
-                      <div key={variant.id} className={styles.variantRow}>
-                        <div></div> {/* spacer column for checkbox align */}
-                        
-                        <div className={styles.variantCell}>
-                          <span className={styles.variantName}>{variant.name}</span>
-                          <span className={styles.variantSubtext}>{variant.sku}</span>
-                        </div>
+                    {product.variants.length > 0 ? (
+                      product.variants.map((variant) => (
+                        <div key={variant.id} className={styles.variantRow}>
+                          <div></div> {/* spacer column for checkbox align */}
+                          
+                          <div className={styles.variantCell}>
+                            <span className={styles.variantName}>{variant.name}</span>
+                            <span className={styles.variantSubtext}>{variant.sku}</span>
+                          </div>
 
+                          <div>
+                            {isEditMode ? (
+                              <div className={styles.stockEditor}>
+                                <button 
+                                  type="button"
+                                  className={styles.editorBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateVariantStock(product.id, variant.id, variant.stock - 1);
+                                  }}
+                                >
+                                  −
+                                </button>
+                                <input 
+                                  type="text"
+                                  className={styles.editorInput}
+                                  value={variant.stock}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateVariantStock(product.id, variant.id, parseInt(e.target.value) || 0);
+                                  }}
+                                />
+                                <button 
+                                  type="button"
+                                  className={styles.editorBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateVariantStock(product.id, variant.id, variant.stock + 1);
+                                  }}
+                                >
+                                  +
+                                </button>
+                              </div>
+                            ) : (
+                              <div className={styles.whiteBox}>{variant.stock}</div>
+                            )}
+                          </div>
+
+                          <div>
+                            {isEditMode ? (
+                              <div className={styles.priceEditorWrapper}>
+                                <span className={styles.currencySymbol}>₹</span>
+                                <input 
+                                  type="text"
+                                  className={styles.priceInput}
+                                  value={variant.price === 0 ? '' : variant.price}
+                                  onClick={(e) => e.stopPropagation()}
+                                  onChange={(e) => {
+                                    e.stopPropagation();
+                                    const val = e.target.value.replace(/[^0-9]/g, '');
+                                    handleUpdateVariantPrice(product.id, variant.id, parseInt(val) || 0);
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <div className={styles.whiteBox}>
+                                ₹{variant.price.toLocaleString('en-IN')}
+                              </div>
+                            )}
+                          </div>
+
+                          <div>
+                            <div className={styles.whiteBox}>
+                              ₹{(variant.stock * variant.price).toLocaleString('en-IN')}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      /* Standard Item Row for Single-SKU products */
+                      <div className={styles.variantRow}>
+                        <div></div>
+                        <div className={styles.variantCell}>
+                          <span className={styles.variantName}>Standard Item (Primary Variant)</span>
+                          <span className={styles.variantSubtext}>{product.sku || 'N/A'}</span>
+                        </div>
                         <div>
                           {isEditMode ? (
-                            <div className={styles.stockEditor}>
+                            <div className={styles.stockEditor} onClick={e => e.stopPropagation()}>
                               <button 
                                 type="button"
                                 className={styles.editorBtn}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUpdateVariantStock(product.id, variant.id, variant.stock - 1);
-                                }}
+                                onClick={() => handleUpdateProductStock(product.id, parentStock - 1)}
                               >
                                 −
                               </button>
                               <input 
                                 type="text"
                                 className={styles.editorInput}
-                                value={variant.stock}
-                                onClick={(e) => e.stopPropagation()}
-                                onChange={(e) => {
-                                  e.stopPropagation();
-                                  handleUpdateVariantStock(product.id, variant.id, parseInt(e.target.value) || 0);
-                                }}
+                                value={parentStock}
+                                onChange={(e) => handleUpdateProductStock(product.id, parseInt(e.target.value) || 0)}
                               />
                               <button 
                                 type="button"
                                 className={styles.editorBtn}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleUpdateVariantStock(product.id, variant.id, variant.stock + 1);
-                                }}
+                                onClick={() => handleUpdateProductStock(product.id, parentStock + 1)}
                               >
                                 +
                               </button>
                             </div>
                           ) : (
-                            <div className={styles.whiteBox}>{variant.stock}</div>
+                            <div className={styles.whiteBox}>{parentStock}</div>
                           )}
                         </div>
-
                         <div>
                           {isEditMode ? (
-                            <div className={styles.priceEditorWrapper}>
+                            <div className={styles.priceEditorWrapper} onClick={e => e.stopPropagation()}>
                               <span className={styles.currencySymbol}>₹</span>
                               <input 
                                 type="text"
                                 className={styles.priceInput}
-                                value={variant.price === 0 ? '' : variant.price}
-                                onClick={(e) => e.stopPropagation()}
+                                value={product.price === 0 ? '' : product.price}
                                 onChange={(e) => {
-                                  e.stopPropagation();
                                   const val = e.target.value.replace(/[^0-9]/g, '');
-                                  handleUpdateVariantPrice(product.id, variant.id, parseInt(val) || 0);
+                                  handleUpdateProductPrice(product.id, parseInt(val) || 0);
                                 }}
                               />
                             </div>
                           ) : (
                             <div className={styles.whiteBox}>
-                              ₹{variant.price.toLocaleString('en-IN')}
+                              ₹{product.price.toLocaleString('en-IN')}
                             </div>
                           )}
                         </div>
-
                         <div>
                           <div className={styles.whiteBox}>
-                            ₹{(variant.stock * variant.price).toLocaleString('en-IN')}
+                            ₹{parentAmount.toLocaleString('en-IN')}
                           </div>
                         </div>
                       </div>
-                    ))}
+                    )}
                   </div>
                 )}
               </div>

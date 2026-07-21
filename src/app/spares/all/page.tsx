@@ -39,7 +39,31 @@ export default function ProductsInventoryPage() {
   const fetchSpares = async () => {
     setIsLoading(true);
       try {
-        const res = await apiClient.get<any>(`${ENDPOINTS.spares.inventory}?skip=0&limit=100`);
+        let url = `${ENDPOINTS.spares.inventory}?skip=0&limit=100`;
+        
+        if (filters.searchQuery) {
+          url += `&q=${encodeURIComponent(filters.searchQuery)}`;
+        }
+        
+        if (filters.stockStatus.length > 0) {
+          const hasInStock = filters.stockStatus.includes('In-Stock');
+          const hasOutStock = filters.stockStatus.includes('Out-of-Stock');
+          if (hasInStock && !hasOutStock) {
+            url += `&in_stock=true`;
+          } else if (hasOutStock && !hasInStock) {
+            url += `&in_stock=false`;
+          }
+        }
+        
+        if (filters.visibility.length === 1) {
+          const vis = filters.visibility[0];
+          if (vis === 'Live') url += `&status=PUBLISHED`;
+          else if (vis === 'Draft') url += `&status=DRAFT`;
+          else if (vis === 'Under Review') url += `&status=PENDING_REVIEW`;
+          else if (vis === 'Archive') url += `&status=ARCHIVED`;
+        }
+
+        const res = await apiClient.get<any>(url);
         
         let items = [];
         if (res?.data?.items && Array.isArray(res.data.items)) {
@@ -57,20 +81,33 @@ export default function ProductsInventoryPage() {
         if (items.length > 0) {
           setData(items.map((item: any) => {
           const variants = item.variants || [];
-          const stock = variants.reduce((sum: number, v: any) => sum + (v.stock_quantity || 0), 0) + (item.stock_quantity || 0);
+          const stock = variants.length > 0
+            ? variants.reduce((sum: number, v: any) => sum + (v.stock_quantity || 0), 0)
+            : Number(item.stock_quantity || 0);
+          
+          let visibilityStatus = 'Draft';
+          if (item.status === 'PUBLISHED') visibilityStatus = 'Live';
+          else if (item.status === 'DRAFT') visibilityStatus = 'Draft';
+          else if (item.status === 'PENDING_REVIEW') visibilityStatus = 'Under Review';
+          else if (item.status === 'ARCHIVED') visibilityStatus = 'Archive';
+          else if (item.status === 'SUSPENDED') visibilityStatus = 'Suspended';
+          else if (item.status) visibilityStatus = item.status;
+
           return {
             id: String(item.product_id || item.id),
             sku: item.sku || '',
             name: item.name || '',
             category: (typeof item.category === 'object' ? item.category?.name : item.category) || 'General',
-            compatibleMachines: 3,
+            compatibleMachines: item.compatibility ? item.compatibility.length : 0,
             priceMin: Number(item.price) || 0,
             priceMax: Number(item.discount_price) || 0,
             stock: stock,
             stockStatus: stock > 0 ? 'In-Stock' : 'Out of Stock',
-            visibility: 'Live',
+            visibility: visibilityStatus,
           };
         }));
+      } else {
+        setData([]);
       }
     } catch (err) {
       console.error('Failed to fetch spares', err);
@@ -91,6 +128,9 @@ export default function ProductsInventoryPage() {
 
   React.useEffect(() => {
     fetchSpares();
+  }, [filters.searchQuery, filters.stockStatus, filters.visibility]);
+
+  React.useEffect(() => {
     fetchDashboardStats();
   }, []);
 
@@ -137,37 +177,20 @@ export default function ProductsInventoryPage() {
     setFilters(prev => ({ ...prev, searchQuery: query }));
   };
 
-  // Real-time client-side filter implementation for easy backend transition
   const filteredData = useMemo(() => {
     return data.filter(item => {
-      // 1. Search Query
-      if (filters.searchQuery) {
-        const query = filters.searchQuery.toLowerCase();
-        const matchesName = item.name.toLowerCase().includes(query);
-        const matchesSku = item.sku.toLowerCase().includes(query);
-        if (!matchesName && !matchesSku) return false;
-      }
-
-      // 2. Categories
       if (filters.categories.length > 0 && !filters.categories.includes(item.category)) {
         return false;
       }
-
-      // 3. Stock Status
-      if (filters.stockStatus.length > 0) {
-        const matchesStatus = filters.stockStatus.some(status => {
-          if (status === 'Out-of-Stock') return item.stockStatus === 'Out of Stock';
-          if (status === 'In-Stock') return item.stockStatus === 'In-Stock';
-          return false; // Low Stock / Dead stock placeholder logic
-        });
-        if (!matchesStatus) return false;
-      }
-
-      // 4. Visibility
-      if (filters.visibility.length > 0 && !filters.visibility.includes(item.visibility)) {
+      if (filters.visibility.length > 1 && !filters.visibility.includes(item.visibility)) {
         return false;
       }
-
+      if (filters.priceMin && item.priceMin < Number(filters.priceMin)) {
+        return false;
+      }
+      if (filters.priceMax && item.priceMin > Number(filters.priceMax)) {
+        return false;
+      }
       return true;
     });
   }, [data, filters]);

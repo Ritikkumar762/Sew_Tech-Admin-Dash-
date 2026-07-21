@@ -151,6 +151,14 @@ export const ENDPOINTS = {
   
   seller: {
     products: `${BASE_URL}/seller/products`,
+    variants: (productId: string) => `${BASE_URL}/seller/products/${productId}/variants`,
+    variantDelete: (productId: string, variantId: string) => `${BASE_URL}/admin/products/${productId}/variants/${variantId}`,
+  },
+
+  mart: {
+    categories: `${BASE_URL}/mart/categories`,
+    brands:     `${BASE_URL}/mart/brands`,
+    tags:       `${BASE_URL}/mart/tags`,
   },
 
   // ── Settings ─────────────────────────────────────────────────
