@@ -68,10 +68,12 @@ export default function SparesOrdersPage() {
         'Accept': 'application/json'
       };
 
-      // Try local backend (http://localhost:8000) first
-      let res = await fetch('http://localhost:8000/api/v1/admin/spares/orders', { headers }).catch(() => null);
+      // Try local/configured backend first
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+      const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
+      let res = await fetch(`${cleanBaseUrl}/api/v1/admin/spares/orders`, { headers }).catch(() => null);
 
-      // Fallback to proxy route if local direct hit fails
+      // Fallback to proxy route if direct hit fails
       if (!res || !res.ok) {
         res = await fetch('/api/v1/admin/spares/orders', { headers });
       }

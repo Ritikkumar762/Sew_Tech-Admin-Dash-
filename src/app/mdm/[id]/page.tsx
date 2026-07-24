@@ -14,10 +14,19 @@ function MDMDetailContent() {
     setIndustryName,
     industrySpares,
     industryMachines,
+    industrySkills,
     skillName,
     setSkillName,
     skillMachines,
     skillIndustries,
+    categoryName,
+    setCategoryName,
+    categorySpares,
+    machineTypeName,
+    setMachineTypeName,
+    machineTypeMachines,
+    machineTypeSpares,
+    machineTypeSkills,
     showSkillAddDrop,
     setShowSkillAddDrop,
     skillsOptions,
@@ -33,6 +42,17 @@ function MDMDetailContent() {
     indOptions,
     selectedIndInput,
     setSelectedIndInput,
+    machineOptions,
+    selectedMachineInput,
+    setSelectedMachineInput,
+    showMachineAddDrop,
+    setShowMachineAddDrop,
+    brandsList,
+    machineTypesList,
+    categoriesList,
+    brandsOptions,
+    machineTypesOptions,
+    categoriesOptions,
     handleAddField,
     handleRemoveField,
     handleSave,
@@ -140,7 +160,15 @@ function MDMDetailContent() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, color: '#111827' }}>
-            {editType === 'industry' ? industryName : (editType === 'category' ? 'Needle' : (editType === 'machineType' ? 'Lockstitch Machine' : (editType === 'skill' ? skillName : machineData.name)))}
+            {editType === 'industry' 
+              ? industryName 
+              : (editType === 'category' 
+                  ? categoryName 
+                  : (editType === 'machineType' 
+                      ? machineTypeName 
+                      : (editType === 'skill' 
+                          ? skillName 
+                          : machineData.name)))}
           </h1>
         </div>
 
@@ -169,16 +197,13 @@ function MDMDetailContent() {
           <div className="card" style={{ background: '#fff', borderRadius: '0.75rem', padding: '2rem', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
             <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Visible Name <span style={{ color: '#ef4444' }}>*</span></span>
             <div style={{ position: 'relative', maxWidth: '500px' }}>
-              <select 
+              <input 
+                type="text"
                 value={industryName}
                 onChange={(e) => setIndustryName(e.target.value)}
-                className="select-picker"
-              >
-                <option>Apparel & Fashion</option>
-                <option>Medical & Healthcare Textiles</option>
-                <option>Furniture & Upholstery</option>
-              </select>
-              <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+                className="form-input"
+                placeholder="Enter Industry Name"
+              />
             </div>
           </div>
 
@@ -212,8 +237,8 @@ function MDMDetailContent() {
 
               {/* Tags Grid loop */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', overflowY: 'auto' }}>
-                {industrySpares.map((item) => (
-                  <div key={item.id} className="tag-pill">
+                {industrySpares.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
                     <span>{item.name}</span>
                     <span onClick={() => handleRemoveField('indSpares', item.id)} className="tag-remove">×</span>
                   </div>
@@ -226,7 +251,7 @@ function MDMDetailContent() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <strong style={{ fontSize: '1rem', color: '#111827' }}>Machines Mapped</strong>
                 <button 
-                  onClick={() => setShowSkillAddDrop(!showSkillAddDrop)}
+                  onClick={() => setShowMachineAddDrop(!showMachineAddDrop)}
                   style={{ width: '32px', height: '32px', borderRadius: '4px', background: '#111827', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   className="animate-btn"
                 >
@@ -234,22 +259,22 @@ function MDMDetailContent() {
                 </button>
               </div>
 
-              {showSkillAddDrop && (
+              {showMachineAddDrop && (
                 <div className="add-field-box">
                   <select 
-                    value={selectedSkillInput}
-                    onChange={(e) => setSelectedSkillInput(e.target.value)}
+                    value={selectedMachineInput}
+                    onChange={(e) => setSelectedMachineInput(e.target.value)}
                     style={{ flex: 1, padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.8rem' }}
                   >
-                    {skillsOptions.map(opt => <option key={opt}>{opt}</option>)}
+                    {machineOptions.map(opt => <option key={opt}>{opt}</option>)}
                   </select>
                   <button onClick={() => handleAddField('indMachines')} style={{ background: '#111827', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Add</button>
                 </div>
               )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', overflowY: 'auto' }}>
-                {industryMachines.map((item) => (
-                  <div key={item.id} className="tag-pill">
+                {industryMachines.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
                     <span>{item.name}</span>
                     <span onClick={() => handleRemoveField('indMachines', item.id)} className="tag-remove">×</span>
                   </div>
@@ -270,18 +295,13 @@ function MDMDetailContent() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
               <div>
                 <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Visible Name <span style={{ color: '#ef4444' }}>*</span></span>
-                <div style={{ position: 'relative' }}>
-                  <select 
-                    value={editType === 'spare' ? 'Industrial Sewing Machine Needle' : machineData.name}
-                    onChange={(e) => setMachineData({ ...machineData, name: e.target.value })}
-                    className="select-picker"
-                  >
-                    <option>Industrial Single Needle Lockstitch Machine</option>
-                    <option>Industrial Sewing Machine Needle</option>
-                    <option>Brother S-7200C Sewing Machine</option>
-                  </select>
-                  <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
-                </div>
+                <input 
+                  type="text"
+                  value={machineData.name}
+                  onChange={(e) => setMachineData({ ...machineData, name: e.target.value })}
+                  className="form-input"
+                  placeholder="Enter Name"
+                />
               </div>
 
               <div>
@@ -292,8 +312,10 @@ function MDMDetailContent() {
                     onChange={(e) => setMachineData({ ...machineData, machineType: e.target.value })}
                     className="select-picker"
                   >
-                    <option>Locksmith Machine</option>
-                    <option>Overlock Machine</option>
+                    {editType === 'spare' 
+                      ? categoriesList.map(item => <option key={item.category_id} value={item.category_id}>{item.name}</option>)
+                      : machineTypesList.map(item => <option key={item.machine_type_id} value={item.machine_type_id}>{item.name}</option>)
+                    }
                   </select>
                   <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
                 </div>
@@ -307,9 +329,10 @@ function MDMDetailContent() {
                     onChange={(e) => setMachineData({ ...machineData, brand: e.target.value })}
                     className="select-picker"
                   >
-                    <option>Singer</option>
-                    <option>Brother</option>
-                    <option>Juki</option>
+                    {brandsList.map(item => {
+                      const idVal = item.brand_id || item.machine_brand_id;
+                      return <option key={idVal} value={idVal}>{item.name}</option>;
+                    })}
                   </select>
                   <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
                 </div>
@@ -390,8 +413,8 @@ function MDMDetailContent() {
               )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowY: 'auto', maxHeight: '250px' }}>
-                {machineData.skills.map((item) => (
-                  <div key={item.id} className="tag-pill">
+                {machineData.skills.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
                     <span>{item.name}</span>
                     <span onClick={() => handleRemoveField('skills', item.id)} className="tag-remove">×</span>
                   </div>
@@ -430,8 +453,8 @@ function MDMDetailContent() {
               )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowY: 'auto', maxHeight: '250px' }}>
-                {machineData.spares.map((item) => (
-                  <div key={item.id} className="tag-pill">
+                {machineData.spares.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
                     <span>{item.name}</span>
                     <span onClick={() => handleRemoveField('spares', item.id)} className="tag-remove">×</span>
                   </div>
@@ -470,8 +493,8 @@ function MDMDetailContent() {
               )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowY: 'auto', maxHeight: '250px' }}>
-                {machineData.industries.map((item) => (
-                  <div key={item.id} className="tag-pill">
+                {machineData.industries.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
                     <span>{item.name}</span>
                     <span onClick={() => handleRemoveField('industries', item.id)} className="tag-remove">×</span>
                   </div>
@@ -489,14 +512,13 @@ function MDMDetailContent() {
           <div className="card" style={{ background: '#fff', borderRadius: '0.75rem', padding: '2rem', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
             <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Visible Name <span style={{ color: '#ef4444' }}>*</span></span>
             <div style={{ position: 'relative', maxWidth: '500px' }}>
-              <select 
-                value="Industrial Single Needle Lockstitch Machine"
-                disabled
-                className="select-picker"
-              >
-                <option>Industrial Single Needle Lockstitch Machine</option>
-              </select>
-              <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+              <input 
+                type="text"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                className="form-input"
+                placeholder="Enter Category Name"
+              />
             </div>
           </div>
 
@@ -524,16 +546,16 @@ function MDMDetailContent() {
                   >
                     {sparesOptions.map(opt => <option key={opt}>{opt}</option>)}
                   </select>
-                  <button onClick={() => handleAddField('indSpares')} style={{ background: '#111827', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Add</button>
+                  <button onClick={() => handleAddField('categorySpares')} style={{ background: '#111827', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Add</button>
                 </div>
               )}
 
               {/* Tags Grid loop */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', overflowY: 'auto' }}>
-                {industrySpares.map((item) => (
-                  <div key={item.id} className="tag-pill">
+                {categorySpares.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
                     <span>{item.name}</span>
-                    <span onClick={() => handleRemoveField('indSpares', item.id)} className="tag-remove">×</span>
+                    <span onClick={() => handleRemoveField('categorySpares', item.id)} className="tag-remove">×</span>
                   </div>
                 ))}
               </div>
@@ -549,14 +571,13 @@ function MDMDetailContent() {
           <div className="card" style={{ background: '#fff', borderRadius: '0.75rem', padding: '2rem', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
             <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Visible Name <span style={{ color: '#ef4444' }}>*</span></span>
             <div style={{ position: 'relative', maxWidth: '500px' }}>
-              <select 
-                value="Industrial Single Needle Lockstitch Machine"
-                disabled
-                className="select-picker"
-              >
-                <option>Industrial Single Needle Lockstitch Machine</option>
-              </select>
-              <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+              <input 
+                type="text"
+                value={machineTypeName}
+                onChange={(e) => setMachineTypeName(e.target.value)}
+                className="form-input"
+                placeholder="Enter Machine Type Name"
+              />
             </div>
           </div>
 
@@ -569,8 +590,8 @@ function MDMDetailContent() {
                 <button 
                   onClick={() => {
                     setShowSpareAddDrop(false);
-                    setShowIndAddDrop(false);
-                    setShowSkillAddDrop(!showSkillAddDrop);
+                    setShowSkillAddDrop(false);
+                    setShowMachineAddDrop(!showMachineAddDrop);
                   }}
                   style={{ width: '28px', height: '28px', borderRadius: '4px', background: '#111827', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   className="animate-btn"
@@ -579,24 +600,24 @@ function MDMDetailContent() {
                 </button>
               </div>
 
-              {showSkillAddDrop && (
+              {showMachineAddDrop && (
                 <div className="add-field-box">
                   <select 
-                    value={selectedSkillInput}
-                    onChange={(e) => setSelectedSkillInput(e.target.value)}
+                    value={selectedMachineInput}
+                    onChange={(e) => setSelectedMachineInput(e.target.value)}
                     style={{ flex: 1, padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.8rem' }}
                   >
-                    {skillsOptions.map(opt => <option key={opt}>{opt}</option>)}
+                    {machineOptions.map(opt => <option key={opt}>{opt}</option>)}
                   </select>
-                  <button onClick={() => handleAddField('skills')} style={{ background: '#111827', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Add</button>
+                  <button onClick={() => handleAddField('machTypeMachines')} style={{ background: '#111827', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Add</button>
                 </div>
               )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowY: 'auto', maxHeight: '250px' }}>
-                {machineData.skills.map((item) => (
-                  <div key={item.id} className="tag-pill">
+                {machineTypeMachines.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
                     <span>{item.name}</span>
-                    <span onClick={() => handleRemoveField('skills', item.id)} className="tag-remove">×</span>
+                    <span onClick={() => handleRemoveField('machTypeMachines', item.id)} className="tag-remove">×</span>
                   </div>
                 ))}
               </div>
@@ -609,7 +630,7 @@ function MDMDetailContent() {
                 <button 
                   onClick={() => {
                     setShowSkillAddDrop(false);
-                    setShowIndAddDrop(false);
+                    setShowMachineAddDrop(false);
                     setShowSpareAddDrop(!showSpareAddDrop);
                   }}
                   style={{ width: '28px', height: '28px', borderRadius: '4px', background: '#111827', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -628,15 +649,15 @@ function MDMDetailContent() {
                   >
                     {sparesOptions.map(opt => <option key={opt}>{opt}</option>)}
                   </select>
-                  <button onClick={() => handleAddField('spares')} style={{ background: '#111827', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Add</button>
+                  <button onClick={() => handleAddField('machTypeSpares')} style={{ background: '#111827', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Add</button>
                 </div>
               )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowY: 'auto', maxHeight: '250px' }}>
-                {machineData.spares.map((item) => (
-                  <div key={item.id} className="tag-pill">
+                {machineTypeSpares.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
                     <span>{item.name}</span>
-                    <span onClick={() => handleRemoveField('spares', item.id)} className="tag-remove">×</span>
+                    <span onClick={() => handleRemoveField('machTypeSpares', item.id)} className="tag-remove">×</span>
                   </div>
                 ))}
               </div>
@@ -648,69 +669,10 @@ function MDMDetailContent() {
                 <strong style={{ fontSize: '0.95rem', color: '#111827' }}>Skills Mapped</strong>
                 <button 
                   onClick={() => {
-                    setShowSkillAddDrop(false);
+                    setShowMachineAddDrop(false);
                     setShowSpareAddDrop(false);
-                    setShowIndAddDrop(!showIndAddDrop);
+                    setShowSkillAddDrop(!showSkillAddDrop);
                   }}
-                  style={{ width: '28px', height: '28px', borderRadius: '4px', background: '#111827', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                  className="animate-btn"
-                >
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                </button>
-              </div>
-
-              {showIndAddDrop && (
-                <div className="add-field-box">
-                  <select 
-                    value={selectedIndInput}
-                    onChange={(e) => setSelectedIndInput(e.target.value)}
-                    style={{ flex: 1, padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.8rem' }}
-                  >
-                    {indOptions.map(opt => <option key={opt}>{opt}</option>)}
-                  </select>
-                  <button onClick={() => handleAddField('industries')} style={{ background: '#111827', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Add</button>
-                </div>
-              )}
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowY: 'auto', maxHeight: '250px' }}>
-                {machineData.industries.map((item) => (
-                  <div key={item.id} className="tag-pill">
-                    <span>{item.name}</span>
-                    <span onClick={() => handleRemoveField('industries', item.id)} className="tag-remove">×</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ─── RENDERING CONDITION E: Edit Skill ─── */}
-      {editType === 'skill' && (
-        <>
-          {/* Visible Name Card */}
-          <div className="card" style={{ background: '#fff', borderRadius: '0.75rem', padding: '2rem', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
-            <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Visible Name <span style={{ color: '#ef4444' }}>*</span></span>
-            <div style={{ position: 'relative', maxWidth: '500px' }}>
-              <select 
-                value="Industrial Single Needle Lockstitch Machine"
-                disabled
-                className="select-picker"
-              >
-                <option>Industrial Single Needle Lockstitch Machine</option>
-              </select>
-              <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-          </div>
-
-          {/* Columns Mapped */}
-          <div style={{ display: 'flex', gap: '1.5rem' }}>
-            {/* Machines Mapped */}
-            <div className="bordered-column-grid">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <strong style={{ fontSize: '0.95rem', color: '#111827' }}>Machines Mapped</strong>
-                <button 
-                  onClick={() => setShowSkillAddDrop(!showSkillAddDrop)}
                   style={{ width: '28px', height: '28px', borderRadius: '4px', background: '#111827', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                   className="animate-btn"
                 >
@@ -727,13 +689,71 @@ function MDMDetailContent() {
                   >
                     {skillsOptions.map(opt => <option key={opt}>{opt}</option>)}
                   </select>
+                  <button onClick={() => handleAddField('machTypeSkills')} style={{ background: '#111827', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Add</button>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowY: 'auto', maxHeight: '250px' }}>
+                {machineTypeSkills.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
+                    <span>{item.name}</span>
+                    <span onClick={() => handleRemoveField('machTypeSkills', item.id)} className="tag-remove">×</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ─── RENDERING CONDITION E: Edit Skill ─── */}
+      {editType === 'skill' && (
+        <>
+          {/* Visible Name Card */}
+          <div className="card" style={{ background: '#fff', borderRadius: '0.75rem', padding: '2rem', border: '1px solid #e5e7eb', boxShadow: '0 1px 3px rgba(0,0,0,0.02)' }}>
+            <span style={{ fontSize: '0.75rem', color: '#9ca3af', fontWeight: 600, display: 'block', marginBottom: '0.5rem' }}>Visible Name <span style={{ color: '#ef4444' }}>*</span></span>
+            <div style={{ position: 'relative', maxWidth: '500px' }}>
+              <input 
+                type="text"
+                value={skillName}
+                onChange={(e) => setSkillName(e.target.value)}
+                className="form-input"
+                placeholder="Enter Skill Name"
+              />
+            </div>
+          </div>
+
+          {/* Columns Mapped */}
+          <div style={{ display: 'flex', gap: '1.5rem' }}>
+            {/* Machines Mapped */}
+            <div className="bordered-column-grid">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <strong style={{ fontSize: '0.95rem', color: '#111827' }}>Machines Mapped</strong>
+                <button 
+                  onClick={() => setShowMachineAddDrop(!showMachineAddDrop)}
+                  style={{ width: '28px', height: '28px', borderRadius: '4px', background: '#111827', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  className="animate-btn"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </button>
+              </div>
+
+              {showMachineAddDrop && (
+                <div className="add-field-box">
+                  <select 
+                    value={selectedMachineInput}
+                    onChange={(e) => setSelectedMachineInput(e.target.value)}
+                    style={{ flex: 1, padding: '0.5rem', border: '1px solid #e5e7eb', borderRadius: '4px', fontSize: '0.8rem' }}
+                  >
+                    {machineOptions.map(opt => <option key={opt}>{opt}</option>)}
+                  </select>
                   <button onClick={() => handleAddField('skillMachines')} style={{ background: '#111827', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}>Add</button>
                 </div>
               )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowY: 'auto', maxHeight: '250px' }}>
-                {skillMachines.map((item) => (
-                  <div key={item.id} className="tag-pill">
+                {skillMachines.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
                     <span>{item.name}</span>
                     <span onClick={() => handleRemoveField('skillMachines', item.id)} className="tag-remove">×</span>
                   </div>
@@ -768,8 +788,8 @@ function MDMDetailContent() {
               )}
 
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', overflowY: 'auto', maxHeight: '250px' }}>
-                {skillIndustries.map((item) => (
-                  <div key={item.id} className="tag-pill">
+                {skillIndustries.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="tag-pill">
                     <span>{item.name}</span>
                     <span onClick={() => handleRemoveField('skillIndustries', item.id)} className="tag-remove">×</span>
                   </div>

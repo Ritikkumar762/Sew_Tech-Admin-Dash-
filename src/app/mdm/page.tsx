@@ -27,6 +27,7 @@ export default function MasterDataManagementPage() {
     filteredSkills,
     handleEditClick,
     handleAddNew,
+    handleDeleteClick,
     leftTabs
   } = useMdm();
 
@@ -234,15 +235,23 @@ export default function MasterDataManagementPage() {
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }}>{ind.name}</td>
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#9ca3af', textAlign: 'right' }}>
                             Skills Mapped: <strong style={{ color: '#111827', marginRight: '1rem' }}>{ind.skillsCount}</strong>
-                            | Machines Mapped: <strong style={{ color: '#111827', marginLeft: '4px' }}>{ind.machinesCount}</strong>
+                            | Machines Mapped: <strong style={{ color: '#111827', marginRight: '1rem' }}>{ind.machinesCount}</strong>
+                            | Spares Mapped: <strong style={{ color: '#111827', marginLeft: '4px' }}>{ind.sparesCount ?? 0}</strong>
                           </td>
-                          <td style={{ padding: '1.25rem 1.5rem', width: '60px', textAlign: 'right' }}>
+                          <td style={{ padding: '1.25rem 1.5rem', width: '100px', textAlign: 'right' }}>
                             <button 
                               onClick={() => handleEditClick('industry', ind.id)}
                               style={{ border: 'none', background: '#111827', color: '#fff', width: '32px', height: '32px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                               className="animate-btn"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteClick('industry', ind.id)}
+                              style={{ border: 'none', background: '#ef4444', color: '#fff', width: '32px', height: '32px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft: '4px' }}
+                              className="animate-btn"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                             </button>
                           </td>
                         </tr>
@@ -328,16 +337,32 @@ export default function MasterDataManagementPage() {
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', fontWeight: 700, color: '#111827', width: '60px' }}>{mach.index}</td>
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }}>{mach.name}</td>
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#9ca3af', textAlign: 'right' }}>
-                            Skills Mapped: <strong style={{ color: '#111827', marginRight: '1rem' }}>{mach.skillsCount}</strong>
-                            | Spares Mapped: <strong style={{ color: '#111827', marginLeft: '4px' }}>{mach.sparesCount}</strong>
+                            {machineSubTab === 'Machines' ? (
+                              <>
+                                Skills Mapped: <strong style={{ color: '#111827', marginRight: '1rem' }}>{mach.skillsCount || 0}</strong>
+                                | Spares Mapped: <strong style={{ color: '#111827', marginLeft: '4px' }}>{mach.sparesCount || 0}</strong>
+                              </>
+                            ) : (
+                              <>
+                                Machines Mapped: <strong style={{ color: '#111827', marginRight: '1rem' }}>{(mach as any).machinesCount || 0}</strong>
+                                | Spares Mapped: <strong style={{ color: '#111827', marginLeft: '4px' }}>{mach.sparesCount || 0}</strong>
+                              </>
+                            )}
                           </td>
-                          <td style={{ padding: '1.25rem 1.5rem', width: '60px', textAlign: 'right' }}>
+                          <td style={{ padding: '1.25rem 1.5rem', width: '100px', textAlign: 'right' }}>
                             <button 
-                              onClick={() => handleEditClick('machine', mach.id)}
+                              onClick={() => handleEditClick(machineSubTab === 'Machines' ? 'machine' : 'machineType', mach.id)}
                               style={{ border: 'none', background: '#111827', color: '#fff', width: '32px', height: '32px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                               className="animate-btn"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteClick(machineSubTab === 'Machines' ? 'machine' : 'machineType', mach.id)}
+                              style={{ border: 'none', background: '#ef4444', color: '#fff', width: '32px', height: '32px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft: '4px' }}
+                              className="animate-btn"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                             </button>
                           </td>
                         </tr>
@@ -429,13 +454,20 @@ export default function MasterDataManagementPage() {
                             | Machines Mapped: <strong style={{ color: '#111827', marginRight: '1rem' }}>{spr.machinesCount}</strong>
                             | Industries Mapped: <strong style={{ color: '#111827', marginLeft: '4px' }}>{spr.industriesCount}</strong>
                           </td>
-                          <td style={{ padding: '1.25rem 1.5rem', width: '60px', textAlign: 'right' }}>
+                          <td style={{ padding: '1.25rem 1.5rem', width: '100px', textAlign: 'right' }}>
                             <button 
                               onClick={() => handleEditClick('spare', spr.id)}
                               style={{ border: 'none', background: '#111827', color: '#fff', width: '32px', height: '32px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                               className="animate-btn"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteClick('spare', spr.id)}
+                              style={{ border: 'none', background: '#ef4444', color: '#fff', width: '32px', height: '32px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft: '4px' }}
+                              className="animate-btn"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                             </button>
                           </td>
                         </tr>
@@ -454,13 +486,20 @@ export default function MasterDataManagementPage() {
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#9ca3af', textAlign: 'right' }}>
                             Spares Mapped: <strong style={{ color: '#111827', marginLeft: '4px' }}>{cat.sparesCount}</strong>
                           </td>
-                          <td style={{ padding: '1.25rem 1.5rem', width: '60px', textAlign: 'right' }}>
+                          <td style={{ padding: '1.25rem 1.5rem', width: '100px', textAlign: 'right' }}>
                             <button 
                               onClick={() => handleEditClick('category', cat.id)}
                               style={{ border: 'none', background: '#111827', color: '#fff', width: '32px', height: '32px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                               className="animate-btn"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteClick('category', cat.id)}
+                              style={{ border: 'none', background: '#ef4444', color: '#fff', width: '32px', height: '32px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft: '4px' }}
+                              className="animate-btn"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                             </button>
                           </td>
                         </tr>
@@ -529,16 +568,24 @@ export default function MasterDataManagementPage() {
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', fontWeight: 700, color: '#111827', width: '60px' }}>{sk.index}</td>
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563' }}>{sk.name}</td>
                           <td style={{ padding: '1.25rem 1.5rem', fontSize: '0.875rem', fontWeight: 500, color: '#9ca3af', textAlign: 'right' }}>
-                            Machines Mapped: <strong style={{ color: '#111827', marginRight: '1rem' }}>{sk.machinesCount}</strong>
+                            Mechanics Mapped: <strong style={{ color: '#111827', marginRight: '1rem' }}>{sk.mechanicsCount || 0}</strong>
+                            | Machines Mapped: <strong style={{ color: '#111827', marginRight: '1rem' }}>{sk.machinesCount}</strong>
                             | Industries Mapped: <strong style={{ color: '#111827', marginLeft: '4px' }}>{sk.industriesCount}</strong>
                           </td>
-                          <td style={{ padding: '1.25rem 1.5rem', width: '60px', textAlign: 'right' }}>
+                          <td style={{ padding: '1.25rem 1.5rem', width: '100px', textAlign: 'right' }}>
                             <button 
                               onClick={() => handleEditClick('skill', sk.id)}
                               style={{ border: 'none', background: '#111827', color: '#fff', width: '32px', height: '32px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
                               className="animate-btn"
                             >
                               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteClick('skill', sk.id)}
+                              style={{ border: 'none', background: '#ef4444', color: '#fff', width: '32px', height: '32px', borderRadius: '4px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', marginLeft: '4px' }}
+                              className="animate-btn"
+                            >
+                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                             </button>
                           </td>
                         </tr>

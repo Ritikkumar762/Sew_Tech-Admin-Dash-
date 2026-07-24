@@ -150,9 +150,11 @@ export default function InventoryPage() {
         if (!backupProd) return;
 
         if (prod.variants && prod.variants.length > 0) {
+          let variantChanged = false;
           prod.variants.forEach((variant) => {
             const backupVar = backupProd.variants.find((b) => b.id === variant.id);
             if (!backupVar || backupVar.stock !== variant.stock || backupVar.price !== variant.price) {
+              variantChanged = true;
               const updateUrl = ENDPOINTS.spares.updateVariant(prod.id, variant.id);
               updatePromises.push(
                 apiClient.patch(updateUrl, {
@@ -162,6 +164,15 @@ export default function InventoryPage() {
               );
             }
           });
+          if (variantChanged || backupProd.stock !== prod.stock || backupProd.price !== prod.price) {
+            const updateUrl = `${ENDPOINTS.spares.inventory}/${prod.id}`;
+            updatePromises.push(
+              apiClient.patch(updateUrl, {
+                stock_quantity: prod.stock,
+                price: prod.price
+              })
+            );
+          }
         } else {
           // Sync parent stock/price if no variants
           if (backupProd.stock !== prod.stock || backupProd.price !== prod.price) {

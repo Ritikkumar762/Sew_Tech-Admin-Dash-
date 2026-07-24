@@ -99,7 +99,7 @@ export default function SpareDetailPage() {
           mappedIndustry: 'General Industry',
           manufacturer: data.brand?.name || 'Unknown Manufacturer',
           warranty: '-',
-          tags: data.tags || [],
+          tags: data.tags?.map((t: any) => (t && typeof t === 'object') ? t.name : String(t)) || [],
           visibility: data.status === 'PUBLISHED' ? 'Live' : 'Draft',
           dimensions: data.specifications?.['Product Dimensions'] || 'N/A',
           itemWeight: data.specifications?.['Item Weight'] || 'N/A',

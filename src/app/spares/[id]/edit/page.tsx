@@ -88,6 +88,7 @@ export default function EditSparePage() {
   const [compatibility, setCompatibility] = useState<string>('Single Needle Lockstitch Machine');
   const [tagsList, setTagsList] = useState<string[]>(['Rotary Hook', 'Spare Part']);
   const [newTagInput, setNewTagInput] = useState<string>('');
+  const [dbTagsList, setDbTagsList] = useState<any[]>([]);
 
   React.useEffect(() => {
     const fetchMasterData = async () => {
@@ -120,6 +121,15 @@ export default function EditSparePage() {
 
         if (cleanBrands.length > 0) {
           setBrandsList(cleanBrands);
+        }
+      } catch { /* Silent fallback */ }
+
+      try {
+        const tagRes = await apiClient.get<any>(ENDPOINTS.mart.tags).catch(() => null);
+        if (Array.isArray(tagRes)) {
+          setDbTagsList(tagRes);
+        } else if (tagRes?.data && Array.isArray(tagRes.data)) {
+          setDbTagsList(tagRes.data);
         }
       } catch { /* Silent fallback */ }
     };
@@ -174,7 +184,16 @@ export default function EditSparePage() {
         if (product.brand_id) setSelectedBrandId(product.brand_id);
         if (product.specifications?.['Material']) setMaterial(product.specifications['Material']);
         if (product.specifications?.['Warranty']) setWarranty(product.specifications['Warranty']);
-        if (product.specifications?.['Tags']) setTagsList(product.specifications['Tags'].split(', ').filter(Boolean));
+        if (product.tags && Array.isArray(product.tags) && product.tags.length > 0) {
+          setTagsList(product.tags.map((t: any) => (t && typeof t === 'object') ? t.name : String(t)));
+        } else if (product.specifications?.['Tags']) {
+          setTagsList(product.specifications['Tags'].split(', ').filter(Boolean));
+        }
+        if (product.compatibility && Array.isArray(product.compatibility) && product.compatibility.length > 0) {
+          setCompatibility(product.compatibility[0]);
+        } else if (product.specifications?.['Compatibility']) {
+          setCompatibility(product.specifications['Compatibility']);
+        }
 
         // Populate variants
         if (product.variants && product.variants.length > 0) {
@@ -233,21 +252,30 @@ export default function EditSparePage() {
       const apiStatus = status === 'Live' ? 'PUBLISHED' : 
                        (status === 'Draft' ? 'DRAFT' : 'PENDING_REVIEW');
       
+      const matchedTagIds = tagsList
+        .map(tagName => dbTagsList.find(t => t.name.toLowerCase() === tagName.toLowerCase())?.tag_id)
+        .filter(Boolean) as number[];
+
+      const tagIdsToSend = matchedTagIds.length > 0 ? matchedTagIds : (dbTagsList.length > 0 ? [dbTagsList[0].tag_id] : []);
+
       const payload: any = {
         name: formData.name || undefined,
         description: formData.description || undefined,
-        price: formData.price ? Number(formData.price) : undefined,
-        discount_price: formData.sale_price ? Number(formData.sale_price) : undefined,
-        stock_quantity: formData.stock_quantity ? Number(formData.stock_quantity) : undefined,
+        price: (formData.price !== '' && !isNaN(Number(formData.price))) ? Number(formData.price) : undefined,
+        discount_price: (formData.sale_price !== '' && !isNaN(Number(formData.sale_price))) ? Number(formData.sale_price) : undefined,
+        stock_quantity: (formData.stock_quantity !== '' && !isNaN(Number(formData.stock_quantity))) ? Number(formData.stock_quantity) : undefined,
         category_id: selectedCategoryId,
         brand_id: selectedBrandId,
+        tag_ids: tagIdsToSend,
+        compatibility: [compatibility],
         specifications: {
           "Product Dimensions": `${formData.length || 0}x${formData.width || 0}x${formData.height || 0}`,
           "Net Quantity": formData.net_quantity || '1 Unit',
           "Item Weight": formData.weight ? `${formData.weight}g` : 'N/A',
           "Material": material,
           "Warranty": warranty,
-          "Tags": tagsList.join(', ')
+          "Tags": tagsList.join(', '),
+          "Compatibility": compatibility
         }
       };
       
@@ -262,11 +290,11 @@ export default function EditSparePage() {
         console.error('Failed to update product status', err);
       }
       
-      if (formData.weight && Number(formData.weight) >= 1) {
+      if (formData.weight !== '' && !isNaN(Number(formData.weight))) {
         payload.weight_grams = Number(formData.weight);
       }
       
-      if (formData.low_stock_threshold && Number(formData.low_stock_threshold) >= 1) {
+      if (formData.low_stock_threshold !== '' && !isNaN(Number(formData.low_stock_threshold))) {
         payload.low_stock_threshold = Number(formData.low_stock_threshold);
       }
       
@@ -281,6 +309,7 @@ export default function EditSparePage() {
              name: v.labelText,
              sku_suffix: `V-${Date.now().toString().slice(-4)}-${Math.floor(Math.random()*1000)}`,
              attributes: { [variantType]: v.value },
+             stock_quantity: Number(formData.stock_quantity) || 0
           };
           if (v.id.startsWith('v-')) {
             try {
@@ -290,7 +319,8 @@ export default function EditSparePage() {
             try {
               await apiClient.patch(ENDPOINTS.spares.updateVariant(String(params.id), v.id), {
                  name: v.labelText,
-                 attributes: { [variantType]: v.value }
+                 attributes: { [variantType]: v.value },
+                 stock_quantity: Number(formData.stock_quantity) || 0
               });
             } catch (err) { console.error('Failed to update variant', err); }
           }
@@ -427,7 +457,7 @@ export default function EditSparePage() {
                 Sewtech Spare • Products Inventory • <span>Edit Spare Details</span>
               </div>
               <h1 className={styles.pageTitle}>
-                High-Speed Rotary Hook Assembly <span className={styles.skuBadge}>STH-RH-2045</span>
+                {formData.name || 'Edit Spare Details'} <span className={styles.skuBadge}>{formData.sku || 'N/A'}</span>
               </h1>
             </div>
             <div className={styles.headerActions}>
