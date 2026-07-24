@@ -116,7 +116,7 @@ export default function ProductsInventoryPage() {
             category: (typeof item.category === 'object' ? item.category?.name : item.category) || 'General',
             compatibleMachines: compCount,
             priceMin: Number(item.price) || 0,
-            priceMax: item.discount_price ? Number(item.discount_price) : 0,
+            priceMax: (item.discount_price && Number(item.discount_price) > 0 && Number(item.discount_price) < Number(item.price)) ? Number(item.discount_price) : 0,
             stock: stock,
             stockStatus: stock > 0 ? 'In-Stock' : 'Out of Stock',
             visibility: visibilityStatus,
@@ -212,6 +212,16 @@ export default function ProductsInventoryPage() {
     });
   }, [data, filters]);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const paginatedData = useMemo(() => {
+    const start = (currentPage - 1) * rowsPerPage;
+    return filteredData.slice(start, start + rowsPerPage);
+  }, [filteredData, currentPage, rowsPerPage]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
+
   // Simulated stats
   const stats = [
     { 
@@ -289,10 +299,16 @@ export default function ProductsInventoryPage() {
               <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading inventory...</div>
             ) : (
               <DataTable 
-                data={filteredData} 
+                data={paginatedData} 
                 selectedIds={selectedIds}
                 onSelect={handleSelect}
                 onSelectAll={handleSelectAll}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                rowsPerPage={rowsPerPage}
+                totalItems={filteredData.length}
+                onPageChange={setCurrentPage}
+                onRowsPerPageChange={(size) => { setRowsPerPage(size); setCurrentPage(1); }}
               />
             )}
           </div>

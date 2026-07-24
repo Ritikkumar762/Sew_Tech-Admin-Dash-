@@ -8,9 +8,19 @@ interface DataTableProps {
   selectedIds: Set<string>;
   onSelect: (id: string) => void;
   onSelectAll: () => void;
+  currentPage?: number;
+  totalPages?: number;
+  rowsPerPage?: number;
+  totalItems?: number;
+  onPageChange?: (page: number) => void;
+  onRowsPerPageChange?: (size: number) => void;
 }
 
-export function DataTable({ data, selectedIds, onSelect, onSelectAll }: DataTableProps) {
+export function DataTable({ data, selectedIds, onSelect, onSelectAll, currentPage = 1, totalPages = 1, rowsPerPage = 10, totalItems = 0, onPageChange, onRowsPerPageChange }: DataTableProps) {
+  const currentTotal = totalItems || data.length;
+  const startCount = currentTotal > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0;
+  const endCount = Math.min(currentPage * rowsPerPage, currentTotal);
+
   return (
     <div className={styles.tableContainer}>
       <table className={styles.table}>
@@ -119,17 +129,37 @@ export function DataTable({ data, selectedIds, onSelect, onSelectAll }: DataTabl
         </tbody>
       </table>
       
-      <div className={styles.pagination}>
-        <div className={styles.pageInfo}>
-          Rows per page: 
-          <select className={styles.pageSelect}>
-            <option>10</option>
+      {/* Pagination controls matching Order Management */}
+      <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '2rem', marginTop: '1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', padding: '0 1.5rem 1rem 1.5rem', flexWrap: 'wrap', borderTop: '1px solid #f3f4f6', paddingTop: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span>Rows per page:</span>
+          <select 
+            value={rowsPerPage} 
+            onChange={(e) => onRowsPerPageChange?.(Number(e.target.value))}
+            style={{ border: 'none', background: 'none', outline: 'none', fontWeight: 700, color: '#111827', cursor: 'pointer' }}
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+            <option value={100}>100</option>
           </select>
-          <span className={styles.pageRange}>1-10 of 165</span>
-          <div className={styles.pageNav}>
-            <button className={styles.pageBtn}>&lt;</button>
-            <button className={styles.pageBtn}>&gt;</button>
-          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span>{startCount}–{endCount} of {currentTotal}</span>
+          <button 
+            disabled={currentPage === 1}
+            onClick={() => onPageChange?.(Math.max(currentPage - 1, 1))}
+            style={{ border: 'none', background: 'none', cursor: currentPage === 1 ? 'default' : 'pointer', fontWeight: 700, color: currentPage === 1 ? '#9ca3af' : '#111827' }}
+          >
+            &lt;
+          </button>
+          <button 
+            disabled={currentPage >= totalPages}
+            onClick={() => onPageChange?.(Math.min(currentPage + 1, totalPages))}
+            style={{ border: 'none', background: 'none', cursor: currentPage >= totalPages ? 'default' : 'pointer', fontWeight: 700, color: currentPage >= totalPages ? '#9ca3af' : '#111827' }}
+          >
+            &gt;
+          </button>
         </div>
       </div>
     </div>

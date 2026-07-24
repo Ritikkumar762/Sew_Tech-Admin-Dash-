@@ -169,7 +169,8 @@ export default function InventoryPage() {
             updatePromises.push(
               apiClient.patch(updateUrl, {
                 stock_quantity: prod.stock,
-                price: prod.price
+                price: prod.price,
+                discount_price: null
               })
             );
           }
@@ -180,7 +181,8 @@ export default function InventoryPage() {
             updatePromises.push(
               apiClient.patch(updateUrl, {
                 stock_quantity: prod.stock,
-                price: prod.price
+                price: prod.price,
+                discount_price: null
               })
             );
           }
@@ -913,25 +915,35 @@ export default function InventoryPage() {
           })}
         </div>
         
-        {/* Pagination Controls */}
-        <div className={styles.paginationContainer}>
-          <button 
-            className={styles.pageBtn} 
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-          >
-            Previous
-          </button>
-          <span className={styles.pageInfo}>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button 
-            className={styles.pageBtn} 
-            disabled={currentPage >= totalPages}
-            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-          >
-            Next
-          </button>
+        {/* Pagination controls matching Order Management */}
+        <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', gap: '2rem', marginTop: '1.5rem', fontSize: '0.75rem', fontWeight: 600, color: '#4b5563', padding: '0 1.5rem 1rem 1.5rem', flexWrap: 'wrap', borderTop: '1px solid #f3f4f6', paddingTop: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>Rows per page:</span>
+            <select 
+              value={PAGE_SIZE} 
+              style={{ border: 'none', background: 'none', outline: 'none', fontWeight: 700, color: '#111827', cursor: 'pointer' }}
+              disabled
+            >
+              <option value={10}>10</option>
+            </select>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span>{filteredProducts.length > 0 ? (currentPage - 1) * PAGE_SIZE + 1 : 0}–{Math.min(currentPage * PAGE_SIZE, totalPages * PAGE_SIZE)} of {totalPages * PAGE_SIZE}</span>
+            <button 
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              style={{ border: 'none', background: 'none', cursor: currentPage === 1 ? 'default' : 'pointer', fontWeight: 700, color: currentPage === 1 ? '#9ca3af' : '#111827' }}
+            >
+              &lt;
+            </button>
+            <button 
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              style={{ border: 'none', background: 'none', cursor: currentPage >= totalPages ? 'default' : 'pointer', fontWeight: 700, color: currentPage >= totalPages ? '#9ca3af' : '#111827' }}
+            >
+              &gt;
+            </button>
+          </div>
         </div>
       </div>
 
