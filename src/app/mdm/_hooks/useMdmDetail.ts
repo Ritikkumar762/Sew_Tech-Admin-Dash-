@@ -5,11 +5,13 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { apiClient as baseApiClient } from '@/lib/api';
 import { ENDPOINTS } from '@/lib/endpoints';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+
 const apiClient = {
-  get: <T>(url: string, opts?: any) => baseApiClient.get<T>(url.startsWith('/api') ? `http://localhost:8000${url}` : url, opts),
-  post: <T>(url: string, body: unknown, opts?: any) => baseApiClient.post<T>(url.startsWith('/api') ? `http://localhost:8000${url}` : url, body, opts),
-  put: <T>(url: string, body: unknown, opts?: any) => baseApiClient.put<T>(url.startsWith('/api') ? `http://localhost:8000${url}` : url, body, opts),
-  delete: <T = void>(url: string, opts?: any) => baseApiClient.delete<T>(url.startsWith('/api') ? `http://localhost:8000${url}` : url, opts),
+  get: <T>(url: string, opts?: any) => baseApiClient.get<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, opts),
+  post: <T>(url: string, body: unknown, opts?: any) => baseApiClient.post<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, body, opts),
+  put: <T>(url: string, body: unknown, opts?: any) => baseApiClient.put<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, body, opts),
+  delete: <T = void>(url: string, opts?: any) => baseApiClient.delete<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, opts),
 };
 
 export interface SelectionItem {

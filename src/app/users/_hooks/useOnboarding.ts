@@ -1,5 +1,7 @@
 import { useCallback } from 'react';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
+
 export function useOnboarding() {
   const getAuthToken = () => {
     let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
@@ -20,7 +22,7 @@ export function useOnboarding() {
       profile_picture_url: null
     };
 
-    const res = await fetch(`http://127.0.0.1:8000/api/v1/onboarding/register/step1`, {
+    const res = await fetch(`${API_BASE}/api/v1/onboarding/register/step1`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -44,7 +46,7 @@ export function useOnboarding() {
       gst_number: data.gstNumber || null
     };
 
-    const res = await fetch(`http://127.0.0.1:8000/api/v1/onboarding/register/step2`, {
+    const res = await fetch(`${API_BASE}/api/v1/onboarding/register/step2`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -65,7 +67,7 @@ export function useOnboarding() {
       industry_ids: industryIds.length > 0 ? industryIds : [1]
     };
 
-    const res = await fetch(`http://127.0.0.1:8000/api/v1/onboarding/register/step3`, {
+    const res = await fetch(`${API_BASE}/api/v1/onboarding/register/step3`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -86,7 +88,7 @@ export function useOnboarding() {
       service_ids: serviceIds.length > 0 ? serviceIds : [1]
     };
 
-    const res = await fetch(`http://127.0.0.1:8000/api/v1/onboarding/register/step4`, {
+    const res = await fetch(`${API_BASE}/api/v1/onboarding/register/step4`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -108,7 +110,7 @@ export function useOnboarding() {
       device_id: "admin"
     };
 
-    const res = await fetch(`http://127.0.0.1:8000/api/v1/onboarding/register/complete`, {
+    const res = await fetch(`${API_BASE}/api/v1/onboarding/register/complete`, {
       method: "POST",
       headers: { "Authorization": `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify(payload)

@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
+
 export interface UserProfile {
   user_id: number;
   full_name: string | null;
@@ -27,7 +29,7 @@ export function useProfile() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/me`, {
+      const response = await fetch(`${API_BASE}/api/v1/users/me`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
@@ -48,7 +50,7 @@ export function useProfile() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/me`, {
+      const response = await fetch(`${API_BASE}/api/v1/users/me`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
@@ -74,7 +76,7 @@ export function useProfile() {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/me/profile-picture`, {
+      const response = await fetch(`${API_BASE}/api/v1/users/me/profile-picture`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,
@@ -98,7 +100,7 @@ export function useProfile() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/users/me/profile-picture`, {
+      const response = await fetch(`${API_BASE}/api/v1/users/me/profile-picture`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${getAuthToken()}`,

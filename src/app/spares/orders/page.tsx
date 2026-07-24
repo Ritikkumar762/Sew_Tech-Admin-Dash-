@@ -68,8 +68,8 @@ export default function SparesOrdersPage() {
         'Accept': 'application/json'
       };
 
-      // Try local/configured backend first
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000';
+      // Try configured backend first
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
       const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
       let res = await fetch(`${cleanBaseUrl}/api/v1/admin/spares/orders`, { headers }).catch(() => null);
 

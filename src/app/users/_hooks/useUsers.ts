@@ -4,8 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { User } from '../../../types';
 
 // ── Backend direct URL (bypasses Next.js proxy redirects) ────────────────────
-const API = 'https://project-sewtech-mart.onrender.com/api/v1/users/';
-const BASE_URL = '/api/v1/';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
+const API = `${API_BASE}/api/v1/users`;
+const BASE_URL = `${API_BASE}/api/v1/`;
 
 // ── Auth token ────────────────────────────────────────────────────────────────
 const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODQyNzc3MzYsImlhdCI6MTc4MzY3MjkzNn0.cj9MgoGPQokWFS-bLt9J2kJAtu_iYQ9C8f3BjqiSzO0';
@@ -83,11 +84,18 @@ export function useUsers({ page = 1, pageSize = 10, search = '' } = {}) {
     try {
       const qs = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
       if (search) qs.set('search', search);
-      const res = await fetch(`${API}?${qs}`, { method: 'GET', headers: authHeaders() });
+
+      let res = await fetch(`${API}?${qs}`, { method: 'GET', headers: authHeaders() }).catch(() => null);
+
+      if (!res || !res.ok) {
+        res = await fetch(`/api/v1/users?${qs}`, { method: 'GET', headers: authHeaders() });
+      }
+
       if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
       const data = await res.json();
-      setUsers((data.users ?? []).map(mapUser));
-      setTotalCount(data.total ?? 0);
+      const userList = data.users || data.data || data.items || (Array.isArray(data) ? data : []);
+      setUsers(userList.map(mapUser));
+      setTotalCount(data.total ?? data.count ?? userList.length);
     } catch (err: any) {
       setError(err?.message ?? 'Failed to load users');
     } finally {
