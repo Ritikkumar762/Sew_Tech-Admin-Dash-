@@ -97,24 +97,117 @@ export default function DisputeDetailPage() {
   const [showRemarksModal, setShowRemarksModal] = useState(false);
   const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [showRefundModal, setShowRefundModal] = useState(false);
+  const [showEvidenceModal, setShowEvidenceModal] = useState(false);
 
   // Modal Inputs state
   const [remarksText, setRemarksText] = useState('');
   const [rescheduleDateTime, setRescheduleDateTime] = useState('28.02.2026, 01:00-02:00 PM');
   const [refundAmount, setRefundAmount] = useState('1,500');
+  const [evidenceNote, setEvidenceNote] = useState('');
+
+  const handleInitiateRefund = async () => {
+    if (dispute.status !== 'Approved' && dispute.status !== 'In Process' && dispute.status !== 'Active') {
+      alert('Refund can only be initiated for disputes in "Approved" state. Current status: ' + dispute.status);
+      return;
+    }
+    const numAmount = parseFloat(refundAmount.replace(/,/g, ''));
+    if (dispute.orderValue && numAmount > dispute.orderValue) {
+      alert(`Refund amount (₹${numAmount}) cannot exceed original dispute value (₹${dispute.orderValue})!`);
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await apiClient.post<{ success: boolean; message?: string }>(
+        ENDPOINTS.support.disputeRefundInitiate(id),
+        { refundAmount: numAmount }
+      );
+      setDispute(prev => ({ ...prev, status: 'Refund Initiated' }));
+      alert(res?.message || 'SupportRefundRecord created (PENDING). Status updated to Refund Initiated.');
+    } catch (err: any) {
+      alert(err?.message || 'Failed to initiate refund. Dispute must be in Approved state and refund amount within dispute value limit.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCompleteRefund = async () => {
+    setLoading(true);
+    try {
+      const res = await apiClient.post<{ success: boolean; message?: string }>(
+        ENDPOINTS.support.disputeRefundComplete(id),
+        { gatewayReference: 'PG-REF-' + Date.now() }
+      );
+      setDispute(prev => ({ ...prev, status: 'Refund Completed' }));
+      alert(res?.message || 'Payment gateway reference linked! Status updated to Refund Completed.');
+    } catch (err: any) {
+      alert(err?.message || 'Failed to complete refund.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUploadEvidence = async (file?: File) => {
+    if (!evidenceNote.trim() && !file) {
+      alert('Please enter evidence details or select a file!');
+      return;
+    }
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      if (file) {
+        formData.append('file', file);
+      } else {
+        const blob = new Blob([evidenceNote], { type: 'text/plain' });
+        formData.append('file', blob, 'evidence_note.txt');
+      }
+      const res = await apiClient.upload<{ success: boolean; message?: string; data?: any }>(
+        ENDPOINTS.support.disputeEvidence(id),
+        formData
+      );
+      setDispute(prev => ({
+        ...prev,
+        status: 'Evidence Uploaded',
+        images: [...(prev.images || []), res?.data?.public_url || 'https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=120&auto=format&fit=crop&q=60']
+      }));
+      setShowEvidenceModal(false);
+      alert(res?.message || 'Evidence document uploaded successfully.');
+    } catch (err: any) {
+      alert(err?.message || 'Failed to upload evidence.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
     const fetchDisputeDetails = async () => {
       setLoading(true);
       try {
-        const response = await apiClient.get<{ success: boolean; data: DisputeDetail }>(`/api/v1/support/disputes/${id}`);
+        const response = await apiClient.get<{ success: boolean; data: DisputeDetail }>(ENDPOINTS.support.disputeById(id));
         if (response && response.success && response.data) {
           setDispute(response.data);
         }
       } catch (err) {
-        console.warn('Backend server offline. Carrying out static dispute summary fallback.');
-        // If ID matches mechanic-based row or disp-2, disp-3, show mechanic layout
+        try {
+          const ticketRes = await apiClient.get<{ success: boolean; data: any }>(ENDPOINTS.support.byId(id));
+          if (ticketRes && ticketRes.success && ticketRes.data) {
+            const t = ticketRes.data;
+            setDispute({
+              id: String(t.id),
+              disputeType: 'spares',
+              raisedByName: t.user_name || `User #${t.user_id}`,
+              raisedByType: 'Customer',
+              customerPhone: t.customer_phone || '+91 9876543210',
+              customerEmail: t.customer_email || 'support@sewtech.in',
+              status: t.status || 'Open',
+              reason: t.subject || 'Support Ticket',
+              issueDescription: t.description || t.subject,
+              disputeId: t.ticket_number || `TKT-${t.id}`
+            });
+            return;
+          }
+        } catch {}
+        console.warn('Backend server fallback for dispute details.');
         if (id === 'disp-2' || id === 'disp-3' || id.includes('mech')) {
           setDispute(DEFAULT_DISPUTE_MECHANIC);
         } else {
@@ -128,7 +221,6 @@ export default function DisputeDetailPage() {
   }, [id]);
 
   const handleResolveAction = async (action: string) => {
-    // Check if the action triggers a modal first
     if (action === 'Close' || action === 'Remarks') {
       setShowRemarksModal(true);
       setShowResolveDropdown(false);
@@ -147,53 +239,67 @@ export default function DisputeDetailPage() {
 
     setLoading(true);
     try {
-      await apiClient.post(`/api/v1/support/disputes/${id}/action`, { action });
-      setDispute(prev => ({ ...prev, status: 'Resolved' }));
+      const res = await apiClient.post<{ success: boolean; message?: string; data?: any }>(
+        ENDPOINTS.support.disputeAction(id), 
+        { action }
+      );
+      setDispute(prev => ({ 
+        ...prev, 
+        status: action === 'Reject' ? 'Closed' : 'Resolved',
+        resolution: res?.data?.resolution || `Action ${action} executed` 
+      }));
       setShowResolveDropdown(false);
-      alert(`Action "${action}" processed successfully.`);
-    } catch (err) {
+      alert(res?.message || `Resolution action "${action}" processed successfully.`);
+    } catch (err: any) {
       console.error('Failed to trigger resolution action:', err);
+      alert(err?.message || `Failed to process action "${action}". Please try again.`);
     } finally {
       setLoading(false);
     }
   };
 
-  // Submit modal decisions to backend
   const handleModalSubmit = async (modalType: 'remarks' | 'reschedule' | 'refund') => {
     setLoading(true);
     try {
-      let payload = {};
+      let payload: any = {};
       if (modalType === 'remarks') {
         payload = { remarks: remarksText };
-        setShowRemarksModal(false);
       } else if (modalType === 'reschedule') {
         payload = { selectedDateTime: rescheduleDateTime };
-        setShowRescheduleModal(false);
       } else if (modalType === 'refund') {
         payload = { refundAmount };
-        setShowRefundModal(false);
       }
-      await apiClient.post(`/api/v1/support/disputes/${id}/modal-action`, { modalType, ...payload });
-      alert(`Action saved successfully!`);
-    } catch (err) {
+      const res = await apiClient.post<{ success: boolean; message?: string; data?: any }>(
+        ENDPOINTS.support.disputeModalAction(id), 
+        { modalType, ...payload }
+      );
+      setDispute(prev => ({ 
+        ...prev, 
+        status: 'Resolved',
+        resolution: remarksText || payload.refundAmount ? `Refund: ₹${payload.refundAmount}` : `Modal action: ${modalType}`
+      }));
+      alert(res?.message || `Modal action saved successfully!`);
+    } catch (err: any) {
       console.error('Error submitting action payload to backend:', err);
-      // fallback simulation to hide modals
+      alert(err?.message || 'Failed to submit action to server.');
+    } finally {
+      setLoading(false);
       setShowRemarksModal(false);
       setShowRescheduleModal(false);
       setShowRefundModal(false);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleCancelRequest = async () => {
+    if (!confirm('Are you sure you want to cancel this request?')) return;
     setLoading(true);
     try {
-      await apiClient.post(`/api/v1/support/disputes/${id}/cancel`, {});
+      const res = await apiClient.post<{ success: boolean; message?: string }>(ENDPOINTS.support.disputeCancel(id), {});
+      alert(res?.message || 'Dispute request cancelled successfully.');
       router.push('/support');
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to cancel dispute request:', err);
-      router.push('/support');
+      alert(err?.message || 'Failed to cancel dispute.');
     } finally {
       setLoading(false);
     }
@@ -324,6 +430,9 @@ export default function DisputeDetailPage() {
                         {[
                           { label: 'Approve return request', act: 'Approve' },
                           { label: 'Reject return request', act: 'Reject', color: '#ef4444' },
+                          { label: 'Upload dispute evidence', act: 'UploadEvidence' },
+                          { label: 'Initiate refund (CAN_INITIATE_REFUND)', act: 'InitiateRefund', color: '#2563eb' },
+                          { label: 'Complete refund (CAN_COMPLETE_REFUND)', act: 'CompleteRefund', color: '#16a34a' },
                           { label: 'Initiate replacement', act: 'Replace' },
                           { label: 'Initiate partial refund', act: 'PartialRefund' },
                           { label: 'Initiate full refund', act: 'FullRefund' },
@@ -333,7 +442,20 @@ export default function DisputeDetailPage() {
                         ].map((opt) => (
                           <div 
                             key={opt.label}
-                            onClick={() => handleResolveAction(opt.act)}
+                            onClick={() => {
+                              if (opt.act === 'UploadEvidence') {
+                                setShowEvidenceModal(true);
+                                setShowResolveDropdown(false);
+                              } else if (opt.act === 'InitiateRefund') {
+                                handleInitiateRefund();
+                                setShowResolveDropdown(false);
+                              } else if (opt.act === 'CompleteRefund') {
+                                handleCompleteRefund();
+                                setShowResolveDropdown(false);
+                              } else {
+                                handleResolveAction(opt.act);
+                              }
+                            }}
                             className="dropdown-item"
                             style={opt.color ? { color: opt.color } : {}}
                           >
@@ -856,6 +978,38 @@ export default function DisputeDetailPage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
               <button onClick={() => setShowRefundModal(false)} style={{ background: '#fff', border: '1.5px solid #111827', color: '#111827', padding: '0.75rem', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }} className="animate-btn">Cancel</button>
               <button onClick={() => handleModalSubmit('refund')} style={{ background: '#1f2937', color: '#fff', border: 'none', padding: '0.75rem', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }} className="animate-btn">Process Refund</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── MODAL 4: Evidence Upload Modal ─── */}
+      {showEvidenceModal && (
+        <div className="modal-overlay">
+          <div style={{ background: '#fff', borderRadius: '1rem', width: '460px', padding: '2rem', border: '1px solid #e5e7eb', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', position: 'relative', animation: 'fadeInUp 0.3s ease-out' }}>
+            <button onClick={() => setShowEvidenceModal(false)} style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', background: 'none', border: 'none', cursor: 'pointer', color: '#4b5563' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', margin: '0 0 0.5rem 0' }}>Upload Dispute Evidence</h3>
+            <p style={{ fontSize: '0.8rem', color: '#6b7280', margin: '0 0 1.25rem 0' }}>
+              Upload proof images or documents required for Evidence Pending status transition.
+            </p>
+            <div style={{ borderTop: '1px dashed #e5e7eb', margin: '1rem 0' }}></div>
+
+            <div style={{ marginBottom: '1.5rem' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#4b5563', marginBottom: '0.5rem' }}>Evidence Note / Proof Details <span style={{ color: '#ef4444' }}>*</span></label>
+              <textarea 
+                rows={4}
+                value={evidenceNote}
+                onChange={(e) => setEvidenceNote(e.target.value)}
+                placeholder="Enter proof description or file URLs..."
+                style={{ width: '100%', padding: '0.75rem', border: '1px solid #e5e7eb', borderRadius: '0.5rem', outline: 'none', fontSize: '0.875rem', fontWeight: 500, color: '#111827' }}
+              />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <button onClick={() => setShowEvidenceModal(false)} style={{ background: '#fff', border: '1.5px solid #111827', color: '#111827', padding: '0.75rem', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }} className="animate-btn">Cancel</button>
+              <button onClick={() => handleUploadEvidence()} style={{ background: '#1f2937', color: '#fff', border: 'none', padding: '0.75rem', borderRadius: '0.5rem', fontWeight: 700, cursor: 'pointer' }} className="animate-btn">Submit Evidence</button>
             </div>
           </div>
         </div>

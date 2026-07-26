@@ -113,6 +113,63 @@ async function request<T>(
   }
 }
 
+async function uploadRequest<T>(
+  url: string,
+  formData: FormData,
+  options: RequestOptions = {}
+): Promise<T> {
+  const { headers = {}, timeout = 45_000, auth = true } = options;
+
+  if (auth) {
+    const token = getAuthToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        ...headers,
+      },
+      body: formData,
+      signal: controller.signal,
+    });
+
+    clearTimeout(timer);
+
+    if (!res.ok) {
+      let message = `Upload failed: ${res.status} ${res.statusText}`;
+      try {
+        const errBody = await res.json();
+        if (errBody?.message) {
+          message = errBody.message;
+        } else if (errBody?.detail) {
+          message = typeof errBody.detail === 'string' ? errBody.detail : JSON.stringify(errBody.detail);
+        }
+      } catch { /* ignore parse error */ }
+      throw new ApiError(res.status, res.statusText, message);
+    }
+
+    const text = await res.text();
+    if (!text) return undefined as T;
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      return text as unknown as T;
+    }
+  } catch (err) {
+    clearTimeout(timer);
+    if ((err as Error).name === 'AbortError') {
+      throw new ApiError(408, 'Request Timeout', `Request to ${url} timed out after ${timeout}ms`);
+    }
+    throw err;
+  }
+}
+
 // ── Public API Client ──────────────────────────────────────────────
 export const apiClient = {
   get: <T>(url: string, opts?: RequestOptions) =>
@@ -129,4 +186,7 @@ export const apiClient = {
 
   delete: <T = void>(url: string, opts?: RequestOptions) =>
     request<T>('DELETE', url, undefined, opts),
+
+  upload: <T>(url: string, formData: FormData, opts?: RequestOptions) =>
+    uploadRequest<T>(url, formData, opts),
 };

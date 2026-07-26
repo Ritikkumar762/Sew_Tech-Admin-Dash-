@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiClient, ENDPOINTS } from '@/lib';
+import { SupportArchitectureDocs } from '@/components/support/SupportArchitectureDocs';
 
 interface Dispute {
   id: string;
@@ -13,7 +14,8 @@ interface Dispute {
   disputeId: string;
   relatedEntity: string; // Order ID or Booking ID
   issueType: string; // 'Payout Issue' | 'Return Request' | etc
-  status: 'Active' | 'Resolved';
+  status: 'Active' | 'Resolved' | 'Closed';
+  disputeType?: string;
 }
 
 const INITIAL_DISPUTES: Dispute[] = [
@@ -65,7 +67,7 @@ const INITIAL_DISPUTES: Dispute[] = [
 
 export default function SupportPage() {
   const router = useRouter();
-  const [activeModuleTab, setActiveModuleTab] = useState<'Sewtech Spare' | 'Sewtech Mechanic'>('Sewtech Spare');
+  const [activeModuleTab, setActiveModuleTab] = useState<'Sewtech Spare' | 'Sewtech Mechanic' | 'System Architecture & APIs'>('Sewtech Spare');
   const [activeStatusTab, setActiveStatusTab] = useState<'Ongoing' | 'Resolved'>('Ongoing');
   
   // Search & Filter State
@@ -79,25 +81,59 @@ export default function SupportPage() {
   const [disputes, setDisputes] = useState<Dispute[]>(INITIAL_DISPUTES);
   const [selectedDisputeIds, setSelectedDisputeIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [analyticsMetrics, setAnalyticsMetrics] = useState<any>(null);
 
-  // Fetch real disputes from local backend API on entry
-  useEffect(() => {
-    const fetchDisputes = async () => {
-      setLoading(true);
-      try {
-        const res = await apiClient.get<{ success: boolean; data: Dispute[] }>('/api/v1/support/disputes');
-        if (res && res.success && Array.isArray(res.data)) {
-          setDisputes(res.data);
+  // Fetch real disputes & analytics metrics from backend API
+  const fetchDisputesAndAnalytics = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      const targetType = activeModuleTab === 'Sewtech Spare' ? 'spares' : (activeModuleTab === 'Sewtech Mechanic' ? 'mechanics' : '');
+      if (targetType) params.append('dispute_type', targetType);
+
+      const url = `${ENDPOINTS.support.disputes}?${params.toString()}`;
+      const res = await apiClient.get<{ success: boolean; data: any }>(url);
+      if (res && res.success && res.data) {
+        const rawItems = Array.isArray(res.data) ? res.data : (res.data.items || []);
+        if (rawItems.length > 0) {
+          const mappedItems: Dispute[] = rawItems.map((item: any) => ({
+            id: String(item.id || item.dispute_number),
+            raisedByName: item.raisedByName || (item.customer_id ? `User #${item.customer_id}` : 'Nishant Kumar'),
+            raisedByType: item.raisedByType || (item.dispute_type === 'mechanics' ? 'Mechanic' : 'Customer'),
+            customerPhone: item.customerPhone || '+91 9876543210',
+            date: item.date || (item.created_at ? new Date(item.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }) : "21 Jan' 26"),
+            disputeId: item.dispute_number || item.disputeId || `DISP-${item.id}`,
+            relatedEntity: item.relatedEntity || (item.order_id ? `Order #${item.order_id}` : (item.booking_id ? `Booking #${item.booking_id}` : 'Order ID')),
+            issueType: item.reason || item.issueType || 'Payout Issue',
+            status: (item.status === 'Resolved' || item.status === 'Closed' || item.status === 'Rejected' || item.status === 'Refund Completed') ? 'Resolved' : 'Active',
+            disputeType: item.dispute_type || (activeModuleTab === 'Sewtech Mechanic' ? 'mechanics' : 'spares')
+          }));
+          setDisputes(mappedItems);
+        } else {
+          setDisputes([]);
         }
-      } catch (err) {
-        console.warn('Backend server offline. Carrying out static disputes timeline history fallback.');
-        setDisputes(INITIAL_DISPUTES);
-      } finally {
-        setLoading(false);
       }
-    };
-    fetchDisputes();
-  }, []);
+    } catch (err) {
+      console.warn('Backend server offline or empty. Carrying out static disputes timeline history fallback.', err);
+      setDisputes(INITIAL_DISPUTES);
+    } finally {
+      setLoading(false);
+    }
+
+    try {
+      const analyticsRes = await apiClient.get<{ success: boolean; data: any }>(ENDPOINTS.support.analyticsDashboard);
+      if (analyticsRes && analyticsRes.success && analyticsRes.data) {
+        setAnalyticsMetrics(analyticsRes.data);
+      }
+    } catch (err) {
+      // Analytics fallback
+    }
+  }, [searchQuery, activeModuleTab]);
+
+  useEffect(() => {
+    fetchDisputesAndAnalytics();
+  }, [fetchDisputesAndAnalytics]);
 
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
@@ -117,8 +153,7 @@ export default function SupportPage() {
 
   const handleApplyFilters = () => {
     setShowFilterPopover(false);
-    // Apply client filter or trigger backend pagination update
-    console.log('Filters Applied:', { filterStatus, filterSeverity, filterSla, filterCreatedRange });
+    fetchDisputesAndAnalytics();
   };
 
   const handleClearFilters = () => {
@@ -126,30 +161,76 @@ export default function SupportPage() {
     setFilterSeverity({ low: false, medium: false, high: false, critical: false });
     setFilterSla({ withinSla: false, nearBreach: false, breached: false });
     setFilterCreatedRange('');
+    setSearchQuery('');
+    fetchDisputesAndAnalytics();
   };
 
-  const handleBulkAction = (action: string) => {
+  const handleBulkAction = async (action: string) => {
     if (selectedDisputeIds.length === 0) {
       alert('Please select disputes first!');
       return;
     }
-    alert(`Triggered ${action} on ${selectedDisputeIds.length} disputes`);
+    if (!confirm(`Are you sure you want to execute "${action}" on ${selectedDisputeIds.length} dispute(s)?`)) return;
+    
+    setLoading(true);
+    let count = 0;
+    for (const id of selectedDisputeIds) {
+      try {
+        await apiClient.post(ENDPOINTS.support.disputeAction(id), { action: 'Close' });
+        count++;
+      } catch (err) {
+        console.error(`Failed bulk action on dispute ${id}`, err);
+      }
+    }
+    alert(`Successfully processed bulk action on ${count} dispute(s).`);
+    setSelectedDisputeIds([]);
+    fetchDisputesAndAnalytics();
   };
 
   const handleExport = async () => {
-    alert('Exporting disputes logs...');
+    try {
+      const headers = ['Dispute ID', 'Raised By', 'Role / Type', 'Date', 'Related Entity', 'Issue Type', 'Status'];
+      const rows = disputes.map(d => [
+        `"${d.disputeId}"`,
+        `"${d.raisedByName}"`,
+        `"${d.raisedByType}"`,
+        `"${d.date}"`,
+        `"${d.relatedEntity}"`,
+        `"${d.issueType}"`,
+        `"${d.status}"`
+      ]);
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `disputes_export_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      alert('Failed to export disputes data.');
+    }
   };
 
-  const filteredDisputes = disputes.filter(disp => {
-    // filter by search or category tab
+  const moduleDisputes = disputes.filter(disp => {
     const matchesSearch = 
       disp.raisedByName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       disp.disputeId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       disp.issueType.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = activeStatusTab === 'Ongoing' ? disp.status === 'Active' : disp.status === 'Resolved';
-    return matchesSearch && matchesStatus;
+
+    const targetType = activeModuleTab === 'Sewtech Spare' ? 'spares' : 'mechanics';
+    const matchesCategory = !disp.disputeType || disp.disputeType.toLowerCase() === targetType;
+    return matchesSearch && matchesCategory;
   });
+
+  const isTerminalState = (s: string) => ['Resolved', 'Closed', 'Rejected', 'Refund Completed'].includes(s);
+
+  const ongoingCount = moduleDisputes.filter(disp => !isTerminalState(disp.status)).length;
+  const resolvedCount = moduleDisputes.filter(disp => isTerminalState(disp.status)).length;
+
+  const filteredDisputes = moduleDisputes.filter(disp => 
+    activeStatusTab === 'Ongoing' ? !isTerminalState(disp.status) : isTerminalState(disp.status)
+  );
 
   return (
     <div style={{ padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
@@ -214,7 +295,7 @@ export default function SupportPage() {
         <div>
           <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>Support & Disputes</h1>
           <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Payments
+            Payments & Resolutions
           </div>
         </div>
         
@@ -231,37 +312,43 @@ export default function SupportPage() {
       {/* KPI Stats Grid Row */}
       <div className="card" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', padding: '1.5rem', flexWrap: 'wrap', gap: '1rem', background: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
         <div style={{ paddingRight: '1rem', borderRight: '1px solid #e5e7eb' }}>
-          <div style={{ color: '#111827', fontSize: '1.5rem', fontWeight: 700 }}>100</div>
+          <div style={{ color: '#111827', fontSize: '1.5rem', fontWeight: 700 }}>
+            {analyticsMetrics ? (analyticsMetrics.total_open_tickets ?? 0) : 100}
+          </div>
           <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', fontWeight: 500 }}>Open Tickets</div>
         </div>
         <div style={{ paddingRight: '1rem', borderRight: '1px solid #e5e7eb', paddingLeft: '1rem' }}>
-          <div style={{ color: '#111827', fontSize: '1.5rem', fontWeight: 700 }}>20</div>
+          <div style={{ color: '#111827', fontSize: '1.5rem', fontWeight: 700 }}>
+            {analyticsMetrics ? (analyticsMetrics.tickets_today ?? 0) : 20}
+          </div>
           <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', fontWeight: 500 }}>New Tickets Today</div>
         </div>
         <div style={{ paddingRight: '1rem', borderRight: '1px solid #e5e7eb', paddingLeft: '1rem' }}>
           <div style={{ color: '#ef4444', fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-            15
+            {analyticsMetrics ? (analyticsMetrics.high_severity_issues ?? 0) : 15}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </div>
           <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', fontWeight: 500 }}>High Severity Issues</div>
         </div>
         <div style={{ paddingRight: '1rem', borderRight: '1px solid #e5e7eb', paddingLeft: '1rem' }}>
           <div style={{ color: '#ef4444', fontSize: '1.5rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '4px' }}>
-            15
+            {analyticsMetrics ? (analyticsMetrics.pending_refunds ?? 0) : 15}
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
           </div>
-          <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', fontWeight: 500 }}>Repeat Offenders</div>
+          <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', fontWeight: 500 }}>Pending Refunds</div>
         </div>
         <div style={{ paddingLeft: '1rem' }}>
-          <div style={{ color: '#111827', fontSize: '1.5rem', fontWeight: 700 }}>3 Days</div>
-          <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', fontWeight: 500 }}>Avg Resolution Time</div>
+          <div style={{ color: '#111827', fontSize: '1.5rem', fontWeight: 700 }}>
+            {analyticsMetrics?.total_refunded_amount !== undefined ? `₹${analyticsMetrics.total_refunded_amount}` : (analyticsMetrics?.avg_resolution_days ? `${analyticsMetrics.avg_resolution_days} Days` : '3 Days')}
+          </div>
+          <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem', fontWeight: 500 }}>{analyticsMetrics?.total_refunded_amount ? 'Total Refunded' : 'Avg Resolution Time'}</div>
         </div>
       </div>
 
-      {/* Module Wise Tabs (Sewtech Spare | Sewtech Mechanic) */}
+      {/* Module Wise Tabs (Sewtech Spare | Sewtech Mechanic | System Architecture & APIs) */}
       <div className="card" style={{ background: '#fff', borderRadius: '0.5rem', border: '1px solid #e5e7eb', padding: '0.5rem 1rem' }}>
         <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid #e5e7eb' }}>
-          {(['Sewtech Spare', 'Sewtech Mechanic'] as const).map((tab) => (
+          {(['Sewtech Spare', 'Sewtech Mechanic', 'System Architecture & APIs'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveModuleTab(tab)}
@@ -277,6 +364,11 @@ export default function SupportPage() {
           ))}
         </div>
       </div>
+
+      {activeModuleTab === 'System Architecture & APIs' ? (
+        <SupportArchitectureDocs />
+      ) : (
+        <>
 
       {/* Filter Controls Row */}
       <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', position: 'relative' }}>
@@ -443,8 +535,8 @@ export default function SupportPage() {
       <div className="card" style={{ background: '#fff', borderRadius: '0.75rem', border: '1px solid #e5e7eb', padding: '1.5rem', overflow: 'hidden' }}>
         <div style={{ display: 'flex', gap: '1.5rem', borderBottom: '1px solid #e5e7eb', marginBottom: '1.5rem' }}>
           {[
-            { label: 'Ongoing', count: filteredDisputes.length },
-            { label: 'Resolved', count: disputes.filter(d => d.status === 'Resolved').length },
+            { label: 'Ongoing', count: ongoingCount },
+            { label: 'Resolved', count: resolvedCount },
           ].map((tab) => (
             <div 
               key={tab.label}
@@ -492,7 +584,7 @@ export default function SupportPage() {
                   />
                 </th>
                 <th style={{ padding: '1rem', fontWeight: 600, color: '#4b5563', fontSize: '0.75rem' }}>Raised By <span style={{ color: '#d1d5db', marginLeft: '4px' }}>↓↑</span></th>
-                <th style={{ padding: '1rem', fontWeight: 600, color: '#4b5563', fontSize: '0.75rem' }}>Raised By <span style={{ color: '#d1d5db', marginLeft: '4px' }}>↓↑</span></th>
+                <th style={{ padding: '1rem', fontWeight: 600, color: '#4b5563', fontSize: '0.75rem' }}>Role / Type <span style={{ color: '#d1d5db', marginLeft: '4px' }}>↓↑</span></th>
                 <th style={{ padding: '1rem', fontWeight: 600, color: '#4b5563', fontSize: '0.75rem', textAlign: 'center' }}>Date <span style={{ color: '#d1d5db', marginLeft: '4px' }}>↓↑</span></th>
                 <th style={{ padding: '1rem', fontWeight: 600, color: '#4b5563', fontSize: '0.75rem', textAlign: 'center' }}>Dispute ID <span style={{ color: '#d1d5db', marginLeft: '4px' }}>↓↑</span></th>
                 <th style={{ padding: '1rem', fontWeight: 600, color: '#4b5563', fontSize: '0.75rem', textAlign: 'center' }}>Related Entity <span style={{ color: '#d1d5db', marginLeft: '4px' }}>↓↑</span></th>
@@ -618,6 +710,8 @@ export default function SupportPage() {
         </div>
 
       </div>
+        </>
+      )}
     </div>
   );
 }

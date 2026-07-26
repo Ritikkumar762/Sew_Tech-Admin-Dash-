@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
+import { apiClient, ENDPOINTS } from '@/lib';
 import { useParams, useRouter, notFound } from 'next/navigation';
 import { useUsers } from '../_hooks/useUsers';
 import Link from 'next/link';
@@ -30,6 +31,42 @@ export default function UserDetailPage() {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isDeactivating, setIsDeactivating] = useState(false);
 
+  // ── Escalations (real disputes from backend) ─────────────────
+  const [escalations, setEscalations] = useState<any[]>([]);
+  const [escLoading, setEscLoading] = useState(false);
+
+  const fetchEscalations = useCallback(async (userId: string) => {
+    setEscLoading(true);
+    try {
+      const qs = new URLSearchParams({ page: '1', pageSize: '50' });
+      // Admin can view all disputes; filter by customer_id for this user
+      const res = await apiClient.get<{ success: boolean; data: any }>(
+        `${ENDPOINTS.support.disputes}?${qs}&customer_id=${userId}`
+      );
+      if (res?.success && res.data) {
+        const items = Array.isArray(res.data) ? res.data : (res.data.items ?? []);
+        setEscalations(items.map((d: any) => ({
+          id:           String(d.id),
+          disputeId:    d.dispute_number ?? `DISP-${d.id}`,
+          mechanicId:   d.mechanic_id ?? null,
+          mechanicName: d.mechanic_name ?? (d.mechanic_id ? `Mechanic #${d.mechanic_id}` : 'N/A'),
+          issueType:    d.reason ?? d.dispute_type ?? 'General',
+          status:       ['Approved', 'Rejected', 'Refund Completed', 'Closed'].includes(d.status)
+                          ? 'Resolved' : 'Active',
+          rawStatus:    d.status,
+          amount:       d.amount,
+          orderId:      d.order_id,
+        })));
+      } else {
+        setEscalations([]);
+      }
+    } catch {
+      setEscalations([]);
+    } finally {
+      setEscLoading(false);
+    }
+  }, []);
+
   // Fetch current user
   useEffect(() => {
     if (id === 'add') return; // Prevent dynamic route from intercepting "add"
@@ -42,6 +79,13 @@ export default function UserDetailPage() {
     };
     loadUser();
   }, [id, fetchUser]);
+
+  // Fetch escalations when tab becomes active
+  useEffect(() => {
+    if (activeTab === 'escalations' && id && id !== 'add') {
+      fetchEscalations(id);
+    }
+  }, [activeTab, id, fetchEscalations]);
 
   if (loading) {
     return (
@@ -593,8 +637,14 @@ export default function UserDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {user.escalations && user.escalations.length > 0 ? (
-                  user.escalations.map((esc) => (
+                {escLoading ? (
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                      Loading disputes...
+                    </td>
+                  </tr>
+                ) : escalations.length > 0 ? (
+                  escalations.map((esc) => (
                     <tr key={esc.id}>
                       <td>
                         <input type="checkbox" className={styles.checkbox} readOnly checked={false} />
@@ -615,7 +665,9 @@ export default function UserDetailPage() {
                       <td>
                         <div className={styles.mechanicCell}>
                           <div className={styles.mechanicAvatar}>
-                            {esc.mechanicName.split(' ').map(n => n[0]).join('')}
+                            {esc.mechanicName !== 'N/A'
+                              ? esc.mechanicName.split(' ').map((n: string) => n[0]).join('')
+                              : '—'}
                           </div>
                           <span>{esc.mechanicName}</span>
                         </div>
@@ -623,20 +675,20 @@ export default function UserDetailPage() {
                       <td>{esc.issueType}</td>
                       <td>
                         <span className={esc.status === 'Resolved' ? styles.statusResolved : styles.statusActive}>
-                          {esc.status}
+                          {esc.rawStatus ?? esc.status}
                         </span>
                       </td>
                       <td>
                         <div className={styles.actionCell}>
                           <button 
                             className={styles.viewBtn}
-                            onClick={() => alert(`Viewing ticket details: ${esc.disputeId}`)}
+                            onClick={() => router.push(`/support?dispute=${esc.id}`)}
                           >
                             View <ExternalLink size={12} style={{ marginLeft: '0.2rem', color: '#64748b' }} />
                           </button>
                           <button 
                             className={styles.moreBtn}
-                            onClick={() => alert('Actions: Escalate, Close')}
+                            onClick={() => alert(`Dispute: ${esc.disputeId}\nOrder: ${esc.orderId ?? 'N/A'}\nAmount: ₹${esc.amount ?? 'N/A'}\nStatus: ${esc.rawStatus}`)}
                             aria-label="Actions"
                           >
                             <MoreVertical size={14} color="#64748b" />
@@ -646,55 +698,11 @@ export default function UserDetailPage() {
                     </tr>
                   ))
                 ) : (
-                  // Hardcoded fallbacks if no escalations present for the mockup
-                  <>
-                    {[1, 2, 3, 4].map((i) => (
-                      <tr key={i}>
-                        <td style={{ textAlign: 'center' }}>
-                          <input type="checkbox" className={styles.checkbox} readOnly checked={false} />
-                        </td>
-                        <td>
-                          <div 
-                            className={styles.disputeIdBadge}
-                            onClick={() => handleCopy('STM834849', 'dispute')}
-                          >
-                            STM834849 <Copy size={10} />
-                          </div>
-                        </td>
-                        <td>
-                          <div className={styles.mechanicCell}>
-                            <div className={styles.mechanicAvatar} style={{ backgroundImage: 'url(https://i.pravatar.cc/100?img=' + (i + 10) + ')', backgroundSize: 'cover', color: 'transparent', border: '2px solid #f59e0b' }}>
-                              NK
-                            </div>
-                            <span style={{ fontWeight: 600 }}>Nishant Kumar</span>
-                          </div>
-                        </td>
-                        <td>Service Related Issue</td>
-                        <td>
-                          <span className={i === 1 ? styles.statusResolved : styles.statusActive}>
-                            {i === 1 ? 'Resolved' : 'Active'}
-                          </span>
-                        </td>
-                        <td>
-                          <div className={styles.actionCell}>
-                            <button 
-                              className={styles.viewBtn}
-                              onClick={() => alert(`Viewing ticket details: STM834849`)}
-                            >
-                              View <ExternalLink size={12} style={{ marginLeft: '0.2rem', color: '#64748b' }} />
-                            </button>
-                            <button 
-                              className={styles.moreBtn}
-                              onClick={() => alert('Actions: Escalate, Close')}
-                              aria-label="Actions"
-                            >
-                              <MoreVertical size={14} color="#64748b" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </>
+                  <tr>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8' }}>
+                      No disputes found for this user.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -708,7 +716,9 @@ export default function UserDetailPage() {
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <span>1-10 of 165</span>
+              <span>
+                {escalations.length > 0 ? `1-${escalations.length} of ${escalations.length}` : '0 of 0'}
+              </span>
               <div style={{ display: 'flex', gap: '0.5rem', color: '#94a3b8' }}>
                 <span style={{ cursor: 'pointer' }}>&lt;</span>
                 <span style={{ cursor: 'pointer' }}>&gt;</span>

@@ -37,14 +37,11 @@ export default function UsersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
-  const { users, totalCount, loading, error, updateStatus } = useUsers({
+  const { users, totalCount, newUsersCount, activeUsersCount, loading, error, updateStatus } = useUsers({
     page: currentPage,
     pageSize: rowsPerPage,
     search: activeSearch
   });
-
-  // Derive real-time stats directly from the loaded data
-  const activeCount = users.filter(u => u.status === 'Active').length;
 
   // ── Role Color Map ──────────────────────────────────────────
   const getRoleStyle = (role: string) => {
@@ -196,7 +193,7 @@ export default function UsersPage() {
               <Image src="/green_up _logo.svg" alt="Trend Up" width={10} height={10} style={{ marginRight: '4px' }} /> 5% (L7D)
             </span>
           </div>
-          <div className={styles.statValue}>{loading ? '—' : '1,000'}</div>
+          <div className={styles.statValue}>{loading ? '—' : (newUsersCount ?? 0).toLocaleString('en-IN')}</div>
         </div>
 
         <div className={styles.statCard}>
@@ -206,7 +203,7 @@ export default function UsersPage() {
             </div>
             <span>Active Users (30D)</span>
           </div>
-          <div className={styles.statValue}>{loading ? '—' : activeCount}</div>
+          <div className={styles.statValue}>{loading ? '—' : (activeUsersCount ?? 0).toLocaleString('en-IN')}</div>
         </div>
       </div>
 

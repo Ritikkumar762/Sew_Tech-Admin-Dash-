@@ -37,8 +37,8 @@ export const ENDPOINTS = {
     create:     `${BASE_URL}/spares`,
     update:     (id: string) => `${BASE_URL}/spares/${id}`,
     delete:     (id: string) => `${BASE_URL}/spares/${id}`,
-    orders:     `${BASE_URL}/v1/admin/spares/orders`,
-    orderById:  (id: string) => `${BASE_URL}/v1/admin/spares/orders/${id}`,
+    orders:     `${BASE_URL}/admin/spares/orders`,
+    orderById:  (id: string) => `${BASE_URL}/admin/spares/orders/${id}`,
     requests:   `${BASE_URL}/spares/requests`,
     inventory:  `${BASE_URL}/admin/products`,
     updateVariant: (productId: string, variantId: string) => `${BASE_URL}/admin/products/${productId}/variants/${variantId}`,
@@ -69,20 +69,44 @@ export const ENDPOINTS = {
     update:       (id: string) => `${BASE_URL}/mechanics/${id}`,
     assignJob:    (id: string) => `${BASE_URL}/mechanics/${id}/assign`,
     // Real API — mechanic applications (care module)
-    applications:    `${BASE_URL}/v1/admin/care/mechanics/applications`,
-    applicationById: (id: string) => `${BASE_URL}/v1/admin/care/mechanics/applications/${id}`,
-    applicationStatus: (id: string) => `${BASE_URL}/v1/admin/care/mechanics/applications/${id}/status`,
-    applicationJobs:   (id: string) => `${BASE_URL}/v1/admin/care/mechanics/applications/${id}/jobs`,
-    applicationPerf:   (id: string) => `${BASE_URL}/v1/admin/care/mechanics/applications/${id}/performance`,
+    applications:    `${BASE_URL}/admin/care/mechanics/applications`,
+    applicationById: (id: string) => `${BASE_URL}/admin/care/mechanics/applications/${id}`,
+    applicationStatus: (id: string) => `${BASE_URL}/admin/care/mechanics/applications/${id}/status`,
+    applicationJobs:   (id: string) => `${BASE_URL}/admin/care/mechanics/applications/${id}/jobs`,
+    applicationPerf:   (id: string) => `${BASE_URL}/admin/care/mechanics/applications/${id}/performance`,
   },
 
-  // ── Support ──────────────────────────────────────────────────
+  // ── Support & Dispute ──────────────────────────────────────────
   support: {
-    tickets:    `${BASE_URL}/support/tickets`,
-    byId:       (id: string) => `${BASE_URL}/support/tickets/${id}`,
-    create:     `${BASE_URL}/support/tickets`,
-    resolve:    (id: string) => `${BASE_URL}/support/tickets/${id}/resolve`,
-    escalate:   (id: string) => `${BASE_URL}/support/tickets/${id}/escalate`,
+    // Ticket Admin APIs
+    tickets:             `${BASE_URL}/support/tickets`,
+    byId:                (id: string) => `${BASE_URL}/support/tickets/${id}`,
+    create:              `${BASE_URL}/support/tickets`,
+    assign:              (id: string) => `${BASE_URL}/support/tickets/${id}/assign`,
+    status:              (id: string) => `${BASE_URL}/support/tickets/${id}/status`,
+    priority:            (id: string) => `${BASE_URL}/support/tickets/${id}/priority`,
+    reply:               (id: string) => `${BASE_URL}/support/tickets/${id}/reply`,
+    close:               (id: string) => `${BASE_URL}/support/tickets/${id}/close`,
+    reopen:              (id: string) => `${BASE_URL}/support/tickets/${id}/reopen`,
+    timeline:            (id: string) => `${BASE_URL}/support/tickets/${id}/timeline`,
+    attachments:         (id: string) => `${BASE_URL}/support/tickets/${id}/attachments`,
+    resolve:             (id: string) => `${BASE_URL}/support/tickets/${id}/resolve`,
+    escalate:            (id: string) => `${BASE_URL}/support/tickets/${id}/escalate`,
+
+    // Dispute & Refund Admin APIs
+    disputes:            `${BASE_URL}/support/disputes`,
+    disputeById:         (id: string) => `${BASE_URL}/support/disputes/${id}`,
+    disputeAction:       (id: string) => `${BASE_URL}/support/disputes/${id}/action`,
+    disputeModalAction:  (id: string) => `${BASE_URL}/support/disputes/${id}/modal-action`,
+    disputeRefundInitiate: (id: string) => `${BASE_URL}/support/disputes/${id}/refund/initiate`,
+    disputeRefundComplete: (id: string) => `${BASE_URL}/support/disputes/${id}/refund/complete`,
+    disputeCancel:       (id: string) => `${BASE_URL}/support/disputes/${id}/cancel`,
+    disputeTimeline:     (id: string) => `${BASE_URL}/support/disputes/${id}/timeline`,
+    disputeEvidence:     (id: string) => `${BASE_URL}/support/disputes/${id}/evidence`,
+
+    // Analytics & Outbox Worker APIs
+    analyticsDashboard:  `${BASE_URL}/support/analytics/dashboard`,
+    outboxStatus:        `${BASE_URL}/support/outbox/status`,
   },
 
   // ── Marketing ────────────────────────────────────────────────

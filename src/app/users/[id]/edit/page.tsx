@@ -48,6 +48,7 @@ export default function EditUserPage() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [dob, setDob] = useState('');
+  const [location, setLocation] = useState('');
   const [languages, setLanguages] = useState<string[]>([]);
   const [role, setRole] = useState('');
   const [userType, setUserType] = useState('');
@@ -89,6 +90,7 @@ export default function EditUserPage() {
       // Clean prefix from phone for display if needed
       setPhone(user.phone.replace('+91 ', ''));
       setDob(parseDobToInputDate(user.dob));
+      setLocation(user.location || (user as any).city || '');
       
       // Parse language string into tags array
       const langArray = user.selectedLanguage 
@@ -183,6 +185,7 @@ export default function EditUserPage() {
         email: email.trim().toLowerCase(),
         phone: formattedPhone,
         dob: formattedDob,
+        location: location.trim(),
         selectedLanguage: languages.join(', '),
         role,
         userType: isCust ? userType : 'Individual',
@@ -331,6 +334,19 @@ export default function EditUserPage() {
               className={styles.input}
               value={dob}
               onChange={(e) => setDob(e.target.value)}
+              disabled={isSaving}
+            />
+          </div>
+
+          {/* Location / City Field */}
+          <div className={styles.fieldGroup}>
+            <label className={styles.label}>Location / City</label>
+            <input 
+              type="text" 
+              className={styles.input}
+              placeholder="e.g. New Delhi, Mumbai"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
               disabled={isSaving}
             />
           </div>
