@@ -88,6 +88,11 @@ export default function InventoryPage() {
           ? variants.reduce((sum: number, v: any) => sum + v.stock, 0)
           : Number(item.stock_quantity || 0);
 
+        const variantPrices = variants.map((v: any) => v.price).filter((p: number) => !isNaN(p) && p > 0);
+        const effectiveParentPrice = item.price_from !== undefined && item.price_from !== null
+          ? Number(item.price_from)
+          : (variantPrices.length > 0 ? Math.min(...variantPrices) : Number(item.price || 0));
+
         return {
           id: String(item.product_id || item.id),
           name: item.name || 'Spare Item',
@@ -95,7 +100,7 @@ export default function InventoryPage() {
           stock: parentStock,
           thumbnailColor: colors[index % colors.length],
           thumbnailLetter: item.name ? item.name.charAt(0).toUpperCase() : 'S',
-          price: Number(item.price || 0),
+          price: effectiveParentPrice,
           variants: variants
         };
       });
@@ -164,13 +169,15 @@ export default function InventoryPage() {
               );
             }
           });
+
+          // Sync parent product stock & price in DB as well
+          const effectivePrice = prod.variants[0]?.price || prod.price;
           if (variantChanged || backupProd.stock !== prod.stock || backupProd.price !== prod.price) {
             const updateUrl = `${ENDPOINTS.spares.inventory}/${prod.id}`;
             updatePromises.push(
               apiClient.patch(updateUrl, {
                 stock_quantity: prod.stock,
-                price: prod.price,
-                discount_price: null
+                price: effectivePrice
               })
             );
           }
@@ -181,8 +188,7 @@ export default function InventoryPage() {
             updatePromises.push(
               apiClient.patch(updateUrl, {
                 stock_quantity: prod.stock,
-                price: prod.price,
-                discount_price: null
+                price: prod.price
               })
             );
           }

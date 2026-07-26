@@ -109,14 +109,22 @@ export default function ProductsInventoryPage() {
           else if (item.status === 'SUSPENDED') visibilityStatus = 'Suspended';
           else if (item.status) visibilityStatus = item.status;
 
+          const variantPrices = variants
+            .map((v: any) => Number(v.effective_price ?? v.price_override))
+            .filter((p: number) => !isNaN(p) && p > 0);
+
+          const effectiveMinPrice = item.price_from !== undefined && item.price_from !== null
+            ? Number(item.price_from)
+            : (variantPrices.length > 0 ? Math.min(...variantPrices) : Number(item.price || 0));
+
           return {
             id: String(item.product_id || item.id),
             sku: item.sku || '',
             name: item.name || '',
             category: (typeof item.category === 'object' ? item.category?.name : item.category) || 'General',
             compatibleMachines: compCount,
-            priceMin: Number(item.price) || 0,
-            priceMax: (item.discount_price && Number(item.discount_price) > 0 && Number(item.discount_price) < Number(item.price)) ? Number(item.discount_price) : 0,
+            priceMin: effectiveMinPrice,
+            priceMax: (item.discount_price && Number(item.discount_price) > 0 && Number(item.discount_price) < effectiveMinPrice) ? Number(item.discount_price) : 0,
             stock: stock,
             stockStatus: stock > 0 ? 'In-Stock' : 'Out of Stock',
             visibility: visibilityStatus,

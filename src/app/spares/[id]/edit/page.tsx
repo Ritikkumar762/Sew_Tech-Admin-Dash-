@@ -18,6 +18,8 @@ export default function EditSparePage() {
     indexText: string;
     labelText: string;
     value: string;
+    price?: string;
+    stock?: string;
     images: string[];
     coverIndex: number;
   }
@@ -29,6 +31,8 @@ export default function EditSparePage() {
       indexText: '01',
       labelText: 'Default Spare Type',
       value: '5 mm',
+      price: '',
+      stock: '',
       images: ['/rotary_hook.png', '/rotary_hook.png', '/rotary_hook.png'],
       coverIndex: 0
     },
@@ -37,11 +41,13 @@ export default function EditSparePage() {
       indexText: '02',
       labelText: 'Variant 1',
       value: '10 mm',
+      price: '',
+      stock: '',
       images: [],
       coverIndex: 0
     }
   ]);
-  
+
   const [singleImages, setSingleImages] = useState<string[]>(['/rotary_hook.png']);
   const [singleCoverIndex, setSingleCoverIndex] = useState(0);
   const [status, setStatus] = useState('Live');
@@ -63,7 +69,7 @@ export default function EditSparePage() {
   ]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -216,8 +222,10 @@ export default function EditSparePage() {
              return {
                 id: String(v.variant_id), // stringified number means existing variant
                 indexText: idxStr,
-                labelText: v.name || `Variant ${index}`,
+                labelText: v.name || `Variant ${index + 1}`,
                 value: val,
+                price: v.price_override !== undefined && v.price_override !== null ? String(v.price_override) : (v.effective_price !== undefined && v.effective_price !== null ? String(v.effective_price) : ''),
+                stock: v.stock_quantity !== undefined && v.stock_quantity !== null ? String(v.stock_quantity) : '',
                 images: [],
                 coverIndex: 0
              };
@@ -231,6 +239,8 @@ export default function EditSparePage() {
               indexText: '01',
               labelText: 'Default Spare Type',
               value: '',
+              price: '',
+              stock: '',
               images: [],
               coverIndex: 0
             }
@@ -305,12 +315,16 @@ export default function EditSparePage() {
       if (isVariantsEnabled) {
         for (const v of variants) {
           if (!v.value) continue; // skip variants without value
-          const variantPayload = {
-             name: v.labelText,
+          const variantPayload: any = {
+             name: v.labelText || `${variantType}: ${v.value}`,
              sku_suffix: `V-${Date.now().toString().slice(-4)}-${Math.floor(Math.random()*1000)}`,
              attributes: { [variantType]: v.value },
-             stock_quantity: Number(formData.stock_quantity) || 0
+             stock_quantity: (v.stock && !isNaN(Number(v.stock))) ? Number(v.stock) : (Number(formData.stock_quantity) || 0)
           };
+          if (v.price && !isNaN(Number(v.price))) {
+            variantPayload.price_override = Number(v.price);
+          }
+
           if (v.id.startsWith('v-')) {
             try {
               await apiClient.post(ENDPOINTS.seller.variants(String(params.id)), variantPayload);
@@ -320,7 +334,8 @@ export default function EditSparePage() {
               await apiClient.patch(ENDPOINTS.spares.updateVariant(String(params.id), v.id), {
                  name: v.labelText,
                  attributes: { [variantType]: v.value },
-                 stock_quantity: Number(formData.stock_quantity) || 0
+                 stock_quantity: (v.stock && !isNaN(Number(v.stock))) ? Number(v.stock) : (Number(formData.stock_quantity) || 0),
+                 price_override: (v.price && !isNaN(Number(v.price))) ? Number(v.price) : undefined
               });
             } catch (err) { console.error('Failed to update variant', err); }
           }
@@ -891,22 +906,52 @@ export default function EditSparePage() {
 
                     {/* Right main form content container */}
                     <div className={styles.variantRightBody}>
-                      <div className={styles.variantHeader}>
-                        <div className={styles.variantFormGroup}>
-                          <label className={styles.variantLabel}>{variant.labelText}<span className={styles.required}>*</span></label>
-                          <input 
-                            type="text" 
-                            className={styles.variantInput} 
-                            value={variant.value} 
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setVariants(prev => prev.map(v => v.id === variant.id ? { ...v, value: val } : v));
-                            }} 
-                          />
+                      <div className={styles.variantHeader} style={{ alignItems: 'flex-start', gap: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.75rem', flex: 1 }}>
+                          <div className={styles.variantFormGroup}>
+                            <label className={styles.variantLabel}>{variant.labelText}<span className={styles.required}>*</span></label>
+                            <input 
+                              type="text" 
+                              className={styles.variantInput} 
+                              value={variant.value} 
+                              placeholder="e.g. 5 mm"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setVariants(prev => prev.map(v => v.id === variant.id ? { ...v, value: val } : v));
+                              }} 
+                            />
+                          </div>
+                          <div className={styles.variantFormGroup}>
+                            <label className={styles.variantLabel}>Variant Price (₹)</label>
+                            <input 
+                              type="number" 
+                              className={styles.variantInput} 
+                              value={variant.price || ''} 
+                              placeholder="Override price"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setVariants(prev => prev.map(v => v.id === variant.id ? { ...v, price: val } : v));
+                              }} 
+                            />
+                          </div>
+                          <div className={styles.variantFormGroup}>
+                            <label className={styles.variantLabel}>Variant Stock</label>
+                            <input 
+                              type="number" 
+                              className={styles.variantInput} 
+                              value={variant.stock || ''} 
+                              placeholder="Stock qty"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setVariants(prev => prev.map(v => v.id === variant.id ? { ...v, stock: val } : v));
+                              }} 
+                            />
+                          </div>
                         </div>
                         <button 
                           type="button" 
                           className={styles.btnOutlineRedSmall}
+                          style={{ marginTop: '1.6rem' }}
                           onClick={() => handleDisableVariant(variant.id)}
                         >
                           Disable Variant

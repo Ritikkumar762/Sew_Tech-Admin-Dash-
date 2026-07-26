@@ -81,6 +81,8 @@ export default function AddSparePage() {
     indexText: string;
     labelText: string;
     value: string;
+    price?: string;
+    stock?: string;
     images: string[];
     coverIndex: number;
   }
@@ -91,6 +93,8 @@ export default function AddSparePage() {
       indexText: '01',
       labelText: 'Default Spare Type',
       value: '',
+      price: '',
+      stock: '',
       images: [],
       coverIndex: 0
     }
@@ -181,10 +185,11 @@ export default function AddSparePage() {
            for (const v of variants) {
               if (!v.value) continue;
               const variantPayload = {
-                 name: v.labelText,
+                 name: v.labelText || `${variantType}: ${v.value}`,
                  sku_suffix: `V-${Date.now().toString().slice(-4)}-${Math.floor(Math.random()*1000)}`,
                  attributes: { [variantType]: v.value },
-                 stock_quantity: 0
+                 price_override: (v.price && !isNaN(Number(v.price))) ? Number(v.price) : (formData.price ? Number(formData.price) : 0),
+                 stock_quantity: (v.stock && !isNaN(Number(v.stock))) ? Number(v.stock) : (formData.stock_quantity ? Number(formData.stock_quantity) : 0)
               };
               try {
                 await apiClient.post(ENDPOINTS.seller.variants(String(newProduct.product_id)), variantPayload);
@@ -775,22 +780,52 @@ export default function AddSparePage() {
 
                   {/* Right main form content container */}
                   <div className={styles.variantRightBody}>
-                    <div className={styles.variantHeader}>
-                      <div className={styles.variantFormGroup}>
-                        <label className={styles.variantLabel}>{variant.labelText}<span className={styles.required}>*</span></label>
-                        <input 
-                          type="text" 
-                          className={styles.variantInput} 
-                          value={variant.value} 
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setVariants(prev => prev.map(v => v.id === variant.id ? { ...v, value: val } : v));
-                          }} 
-                        />
+                    <div className={styles.variantHeader} style={{ alignItems: 'flex-start', gap: '1rem' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '0.75rem', flex: 1 }}>
+                        <div className={styles.variantFormGroup}>
+                          <label className={styles.variantLabel}>{variant.labelText}<span className={styles.required}>*</span></label>
+                          <input 
+                            type="text" 
+                            className={styles.variantInput} 
+                            value={variant.value} 
+                            placeholder="e.g. 5 mm"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setVariants(prev => prev.map(v => v.id === variant.id ? { ...v, value: val } : v));
+                            }} 
+                          />
+                        </div>
+                        <div className={styles.variantFormGroup}>
+                          <label className={styles.variantLabel}>Variant Price (₹)</label>
+                          <input 
+                            type="number" 
+                            className={styles.variantInput} 
+                            value={variant.price || ''} 
+                            placeholder="Override price"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setVariants(prev => prev.map(v => v.id === variant.id ? { ...v, price: val } : v));
+                            }} 
+                          />
+                        </div>
+                        <div className={styles.variantFormGroup}>
+                          <label className={styles.variantLabel}>Variant Stock</label>
+                          <input 
+                            type="number" 
+                            className={styles.variantInput} 
+                            value={variant.stock || ''} 
+                            placeholder="Stock qty"
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setVariants(prev => prev.map(v => v.id === variant.id ? { ...v, stock: val } : v));
+                            }} 
+                          />
+                        </div>
                       </div>
                       <button 
                         type="button" 
                         className={styles.btnOutlineRedSmall}
+                        style={{ marginTop: '1.6rem' }}
                         onClick={() => handleDisableVariant(variant.id)}
                       >
                         Disable Variant

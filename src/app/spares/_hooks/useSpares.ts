@@ -22,12 +22,20 @@ export function useSpares() {
       const mapped: Spare[] = items.map((item: any) => {
         const variants = item.variants || [];
         const totalStock = variants.length > 0
-          ? variants.reduce((sum: number, v: any) => sum + (v.stock_quantity || 0), 0)
+          ? variants.reduce((sum: number, v: any) => sum + Number(v.stock_quantity || 0), 0)
           : Number(item.stock_quantity || 0);
 
         let status: 'In Stock' | 'Low Stock' | 'Out of Stock' = 'In Stock';
         if (totalStock === 0) status = 'Out of Stock';
         else if (totalStock < 15) status = 'Low Stock';
+
+        const variantPrices = variants
+          .map((v: any) => Number(v.effective_price ?? v.price_override))
+          .filter((p: number) => !isNaN(p) && p > 0);
+
+        const displayPrice = item.price_from !== undefined && item.price_from !== null
+          ? Number(item.price_from)
+          : (variantPrices.length > 0 ? Math.min(...variantPrices) : Number(item.price || 0));
 
         return {
           id: String(item.product_id || item.id),
@@ -35,7 +43,7 @@ export function useSpares() {
           sku: item.sku || '',
           category: typeof item.category === 'object' ? item.category?.name : (item.category || 'General'),
           stock: totalStock,
-          price: Number(item.price || 0),
+          price: displayPrice,
           status: status
         };
       });
