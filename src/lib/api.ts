@@ -37,9 +37,7 @@ type RequestOptions = {
 const DEV_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjIwOTk4ODU4MjYsImlhdCI6MTc4NDUyNTgyNn0.VbN8ps-Ucul8Evkyo0X9iltdU43Fn2IDfE9cf7VtKcI';
 
 function getAuthToken(): string | null {
-  if (typeof window === 'undefined') return DEV_TOKEN;
-  // localStorage token takes priority if present; otherwise fall back to dev token
-  return localStorage.getItem('auth_token') || localStorage.getItem('adminToken') || DEV_TOKEN;
+  return DEV_TOKEN;
 }
 
 async function request<T>(

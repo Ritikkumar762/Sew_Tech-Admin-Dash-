@@ -9,7 +9,7 @@ interface AddSpareModalProps {
 }
 
 export function AddSpareModal({ isOpen, onClose, onBulkUpload, onEnterManually }: AddSpareModalProps) {
-  const [selectedOption, setSelectedOption] = useState<'bulk' | 'manual'>('manual');
+  const [selectedOption, setSelectedOption] = useState<'bulk' | 'manual' | null>(null);
 
   if (!isOpen) return null;
 

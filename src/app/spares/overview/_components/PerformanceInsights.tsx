@@ -314,8 +314,6 @@ export default function PerformanceInsights({ perfInsights }: Props) {
                 tickLine={false} 
                 tick={{ fontSize: 11, fill: '#9ca3af' }} 
                 width={40}
-                domain={[0, 10000]}
-                tickCount={11}
                 tickFormatter={(value) => value.toLocaleString('en-IN')}
               />
               <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#f3f4f6', strokeWidth: 1.5 }} />

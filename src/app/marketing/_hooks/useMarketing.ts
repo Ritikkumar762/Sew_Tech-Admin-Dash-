@@ -108,7 +108,7 @@ export function useMarketing() {
     // ── 1. Fetch live banners ────────────────────────────────────────────
     try {
       const res = await apiClient.get<{ success: boolean; data: any[] }>(ENDPOINTS.marketing.banners);
-      if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+      if (res?.success && Array.isArray(res.data)) {
         setCampaigns(res.data.map(mapBackendBannerToCampaign));
       } else {
         setCampaigns(MOCK_CAMPAIGNS);

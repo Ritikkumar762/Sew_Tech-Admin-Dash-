@@ -193,7 +193,6 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'Inter, sans-serif' }} 
-                  domain={[0, 10000]} 
                   tickFormatter={(v) => v.toLocaleString('en-IN')}
                   label={{ 
                     value: 'Orders', 
@@ -236,7 +235,6 @@ export default function PerformanceInsights({ perfDonuts, trendModule, trendUser
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'Inter, sans-serif' }} 
-                  domain={[0, 10000]}
                   tickFormatter={(v) => v.toLocaleString('en-IN')}
                   label={{ 
                     value: 'Orders', 

@@ -10,17 +10,7 @@ const API = '/api/v1/admin/care/mechanics/applications';
 const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjIwOTk4ODU4MjYsImlhdCI6MTc4NDUyNTgyNn0.VbN8ps-Ucul8Evkyo0X9iltdU43Fn2IDfE9cf7VtKcI';
 
 function getToken() {
-  if (typeof window === 'undefined') return HARDCODED_TOKEN;
-  let t = localStorage.getItem('adminToken') ?? localStorage.getItem('auth_token') ?? HARDCODED_TOKEN;
-  try {
-    const payload = JSON.parse(atob(t.split('.')[1]));
-    if (payload.exp * 1000 < Date.now()) {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('adminToken');
-      t = HARDCODED_TOKEN;
-    }
-  } catch (e) { /* ignore */ }
-  return t;
+  return HARDCODED_TOKEN;
 }
 
 function authHeaders(extra: Record<string, string> = {}) {

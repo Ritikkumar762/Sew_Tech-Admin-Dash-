@@ -324,8 +324,6 @@ export default function ViewBannerPage() {
                 tickLine={false} 
                 tick={{ fill: '#6b7280', fontSize: 12, fontWeight: 500 }} 
                 dx={-10}
-                domain={[0, 10000]}
-                ticks={[0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]}
               />
               <Tooltip 
                 contentStyle={{ borderRadius: '0.5rem', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}

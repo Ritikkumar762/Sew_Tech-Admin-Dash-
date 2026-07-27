@@ -162,7 +162,7 @@ export default function AllCreativesPage() {
     setLoading(true);
     try {
       const response = await apiClient.get<{ success: boolean; data: Creative[] }>(ENDPOINTS.marketing.creatives);
-      if (response && response.success && Array.isArray(response.data) && response.data.length > 0) {
+      if (response && response.success && Array.isArray(response.data)) {
         setCreatives(response.data);
       } else {
         setCreatives(INITIAL_CREATIVES);
@@ -219,10 +219,13 @@ export default function AllCreativesPage() {
     }
     setGoLiveLoading(true);
     try {
+      const formatStartDate = (d: string) => d && d.length === 10 ? `${d}T00:00:00` : d;
+      const formatEndDate   = (d: string) => d && d.length === 10 ? `${d}T23:59:59` : d;
+
       const payload = {
         creativeId:     goLiveCreative.id,
-        startDate:      goLiveStart,
-        endDate:        goLiveEnd,
+        startDate:      formatStartDate(goLiveStart),
+        endDate:        formatEndDate(goLiveEnd),
         targetAudience: goLiveAudience,
         status:         'Active',
       };

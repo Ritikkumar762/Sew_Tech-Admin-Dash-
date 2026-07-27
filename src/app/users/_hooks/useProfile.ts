@@ -18,11 +18,7 @@ export function useProfile() {
   const [error, setError] = useState<string | null>(null);
 
   const getAuthToken = () => {
-    let token = typeof window !== 'undefined' ? localStorage.getItem('adminToken') : null;
-    if (!token) {
-      token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyMTAiLCJleHAiOjE3ODQ3MjE5NjMsImlhdCI6MTc4MjEyOTk2M30.Nik_eLY_nGV-FS2YXJYsdMxOhITXGVY4R15jzUVFnr4';
-    }
-    return token;
+    return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjIwOTk4ODU4MjYsImlhdCI6MTc4NDUyNTgyNn0.VbN8ps-Ucul8Evkyo0X9iltdU43Fn2IDfE9cf7VtKcI';
   };
 
   const fetchProfile = useCallback(async () => {

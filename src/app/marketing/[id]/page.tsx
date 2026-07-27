@@ -194,11 +194,14 @@ export default function BannerDetailPage() {
       const isMockId = bannerIdParam.startsWith('banner-');
 
       if (!isMockId) {
+        const formatStartDate = (d: string) => d && d.length === 10 ? `${d}T00:00:00` : d;
+        const formatEndDate   = (d: string) => d && d.length === 10 ? `${d}T23:59:59` : d;
+
         // Real DB banner — update scheduling/targeting fields
         const payload = {
           targetAudience: audience,
-          startDate,
-          endDate,
+          startDate: formatStartDate(startDate),
+          endDate: formatEndDate(endDate),
           carousel,
           linkTo,
           openType,
