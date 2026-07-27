@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
+import path from "path";
 
-const backendUrl = 'https://project-sewtech-mart.onrender.com' 
+const backendUrl = 'https://project-sewtech-mart.onrender.com';
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: path.resolve(__dirname),
+  },
   transpilePackages: ["recharts"],
   async rewrites() {
     return [
