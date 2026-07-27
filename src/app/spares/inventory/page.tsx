@@ -20,6 +20,8 @@ interface Product {
   thumbnailColor: string;
   thumbnailLetter: string;
   price: number;
+  listPrice?: number;
+  discountPrice?: number;
   stock: number;
   variants: Variant[];
 }
@@ -75,12 +77,14 @@ export default function InventoryPage() {
             varName = v.sku || 'Standard Variant';
           }
 
+          const varPrice = Number(v.effective_price ?? v.price_override ?? item.discount_price ?? item.price ?? 0);
+
           return {
             id: String(v.variant_id || v.id),
             name: varName,
             sku: v.sku || item.sku || '',
             stock: Number(v.stock_quantity || 0),
-            price: Number(v.effective_price ?? v.price_override ?? item.price ?? 0)
+            price: varPrice
           };
         });
 
@@ -89,9 +93,16 @@ export default function InventoryPage() {
           : Number(item.stock_quantity || 0);
 
         const variantPrices = variants.map((v: any) => v.price).filter((p: number) => !isNaN(p) && p > 0);
+        const listPrice = Number(item.price || 0);
+        const discountPrice = Number(item.discount_price || 0);
+
+        const itemActivePrice = (discountPrice > 0 && discountPrice < listPrice) 
+          ? discountPrice 
+          : listPrice;
+
         const effectiveParentPrice = item.price_from !== undefined && item.price_from !== null
           ? Number(item.price_from)
-          : (variantPrices.length > 0 ? Math.min(...variantPrices) : Number(item.price || 0));
+          : (variantPrices.length > 0 ? Math.min(...variantPrices) : itemActivePrice);
 
         return {
           id: String(item.product_id || item.id),
@@ -101,6 +112,8 @@ export default function InventoryPage() {
           thumbnailColor: colors[index % colors.length],
           thumbnailLetter: item.name ? item.name.charAt(0).toUpperCase() : 'S',
           price: effectiveParentPrice,
+          listPrice: listPrice > effectiveParentPrice ? listPrice : undefined,
+          discountPrice: discountPrice > 0 ? discountPrice : undefined,
           variants: variants
         };
       });
@@ -177,7 +190,8 @@ export default function InventoryPage() {
             updatePromises.push(
               apiClient.patch(updateUrl, {
                 stock_quantity: prod.stock,
-                price: effectivePrice
+                price: effectivePrice,
+                discount_price: effectivePrice
               })
             );
           }
@@ -188,7 +202,8 @@ export default function InventoryPage() {
             updatePromises.push(
               apiClient.patch(updateUrl, {
                 stock_quantity: prod.stock,
-                price: prod.price
+                price: prod.price,
+                discount_price: prod.price
               })
             );
           }
@@ -757,7 +772,16 @@ export default function InventoryPage() {
                           />
                         </div>
                       ) : (
-                        `₹${product.price.toLocaleString('en-IN')}`
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                          {product.listPrice && product.listPrice > product.price && (
+                            <span style={{ textDecoration: 'line-through', color: '#9ca3af', fontSize: '0.75rem' }}>
+                              ₹{product.listPrice.toLocaleString('en-IN')}
+                            </span>
+                          )}
+                          <span>
+                            ₹{product.price.toLocaleString('en-IN')}
+                          </span>
+                        </div>
                       )}
                     </div>
                   </div>

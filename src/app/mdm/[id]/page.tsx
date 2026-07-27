@@ -313,8 +313,8 @@ function MDMDetailContent() {
                     className="select-picker"
                   >
                     {editType === 'spare' 
-                      ? categoriesList.map(item => <option key={item.category_id} value={item.category_id}>{item.name}</option>)
-                      : machineTypesList.map(item => <option key={item.machine_type_id} value={item.machine_type_id}>{item.name}</option>)
+                      ? categoriesList.map(item => <option key={item.category_id} value={String(item.category_id)}>{item.name}</option>)
+                      : machineTypesList.map(item => <option key={item.machine_type_id} value={String(item.machine_type_id)}>{item.name}</option>)
                     }
                   </select>
                   <svg style={{ position: 'absolute', right: '1rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -330,7 +330,7 @@ function MDMDetailContent() {
                     className="select-picker"
                   >
                     {brandsList.map(item => {
-                      const idVal = item.brand_id || item.machine_brand_id;
+                      const idVal = String(item.brand_id || item.machine_brand_id || item.id);
                       return <option key={idVal} value={idVal}>{item.name}</option>;
                     })}
                   </select>

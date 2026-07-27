@@ -113,9 +113,17 @@ export default function ProductsInventoryPage() {
             .map((v: any) => Number(v.effective_price ?? v.price_override))
             .filter((p: number) => !isNaN(p) && p > 0);
 
+          const itemActivePrice = (item.discount_price && Number(item.discount_price) > 0)
+            ? Number(item.discount_price)
+            : Number(item.price || 0);
+
           const effectiveMinPrice = item.price_from !== undefined && item.price_from !== null
             ? Number(item.price_from)
-            : (variantPrices.length > 0 ? Math.min(...variantPrices) : Number(item.price || 0));
+            : (variantPrices.length > 0 ? Math.min(...variantPrices) : itemActivePrice);
+
+          const isDiscounted = item.discount_price && Number(item.discount_price) > 0 && Number(item.discount_price) < Number(item.price);
+          const displayPriceMax = isDiscounted ? Number(item.discount_price) : 0;
+          const displayPriceMin = isDiscounted ? Number(item.price) : effectiveMinPrice;
 
           return {
             id: String(item.product_id || item.id),
@@ -123,8 +131,8 @@ export default function ProductsInventoryPage() {
             name: item.name || '',
             category: (typeof item.category === 'object' ? item.category?.name : item.category) || 'General',
             compatibleMachines: compCount,
-            priceMin: effectiveMinPrice,
-            priceMax: (item.discount_price && Number(item.discount_price) > 0 && Number(item.discount_price) < effectiveMinPrice) ? Number(item.discount_price) : 0,
+            priceMin: displayPriceMin,
+            priceMax: displayPriceMax,
             stock: stock,
             stockStatus: stock > 0 ? 'In-Stock' : 'Out of Stock',
             visibility: visibilityStatus,

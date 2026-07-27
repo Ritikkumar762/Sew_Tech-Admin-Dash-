@@ -7,11 +7,28 @@ import { ENDPOINTS } from '@/lib/endpoints';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+const formatUrl = (url: string) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (API_BASE) {
+    const cleanBase = API_BASE.replace(/\/+$/, '');
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    if (cleanBase.endsWith('/api/v1') && cleanUrl.startsWith('/api/v1')) {
+      return `${cleanBase}${cleanUrl.substring(7)}`;
+    }
+    if (cleanBase.endsWith('/api') && cleanUrl.startsWith('/api/')) {
+      return `${cleanBase}${cleanUrl.substring(4)}`;
+    }
+    return `${cleanBase}${cleanUrl}`;
+  }
+  return url;
+};
+
 const apiClient = {
-  get: <T>(url: string, opts?: any) => baseApiClient.get<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, opts),
-  post: <T>(url: string, body: unknown, opts?: any) => baseApiClient.post<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, body, opts),
-  put: <T>(url: string, body: unknown, opts?: any) => baseApiClient.put<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, body, opts),
-  delete: <T = void>(url: string, opts?: any) => baseApiClient.delete<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, opts),
+  get: <T>(url: string, opts?: any) => baseApiClient.get<T>(formatUrl(url), opts),
+  post: <T>(url: string, body: unknown, opts?: any) => baseApiClient.post<T>(formatUrl(url), body, opts),
+  put: <T>(url: string, body: unknown, opts?: any) => baseApiClient.put<T>(formatUrl(url), body, opts),
+  delete: <T = void>(url: string, opts?: any) => baseApiClient.delete<T>(formatUrl(url), opts),
 };
 
 export interface IndustryItem {

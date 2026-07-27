@@ -7,11 +7,28 @@ import { ENDPOINTS } from '@/lib/endpoints';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
 
+const formatUrl = (url: string) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  if (API_BASE) {
+    const cleanBase = API_BASE.replace(/\/+$/, '');
+    const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+    if (cleanBase.endsWith('/api/v1') && cleanUrl.startsWith('/api/v1')) {
+      return `${cleanBase}${cleanUrl.substring(7)}`;
+    }
+    if (cleanBase.endsWith('/api') && cleanUrl.startsWith('/api/')) {
+      return `${cleanBase}${cleanUrl.substring(4)}`;
+    }
+    return `${cleanBase}${cleanUrl}`;
+  }
+  return url;
+};
+
 const apiClient = {
-  get: <T>(url: string, opts?: any) => baseApiClient.get<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, opts),
-  post: <T>(url: string, body: unknown, opts?: any) => baseApiClient.post<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, body, opts),
-  put: <T>(url: string, body: unknown, opts?: any) => baseApiClient.put<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, body, opts),
-  delete: <T = void>(url: string, opts?: any) => baseApiClient.delete<T>(url.startsWith('/api') ? `${API_BASE}${url}` : url, opts),
+  get: <T>(url: string, opts?: any) => baseApiClient.get<T>(formatUrl(url), opts),
+  post: <T>(url: string, body: unknown, opts?: any) => baseApiClient.post<T>(formatUrl(url), body, opts),
+  put: <T>(url: string, body: unknown, opts?: any) => baseApiClient.put<T>(formatUrl(url), body, opts),
+  delete: <T = void>(url: string, opts?: any) => baseApiClient.delete<T>(formatUrl(url), opts),
 };
 
 export interface SelectionItem {
@@ -117,10 +134,23 @@ export function useMdmDetail() {
     return {};
   };
 
-  // Helper to find ID by name
+  // Helper to find ID by name safely
   const findIdByName = (name: string, list: any[], idKey: string) => {
+    if (!name) return `new-${Date.now()}`;
     const found = list.find((x: any) => x.name === name);
-    return found ? String(found[idKey]) : `new-${Date.now()}`;
+    if (!found) return `new-${Date.now()}`;
+    return String(
+      found[idKey] ?? 
+      found.id ?? 
+      found.product_id ?? 
+      found.machine_model_id ?? 
+      found.industry_id ?? 
+      found.skill_id ?? 
+      found.category_id ?? 
+      found.machine_type_id ?? 
+      found.brand_id ?? 
+      found.machine_brand_id
+    );
   };
 
   // Load dropdown options on mount
@@ -130,47 +160,60 @@ export function useMdmDetail() {
         const skillsRes = await apiClient.get<any>(ENDPOINTS.mdm.skills);
         const sData = Array.isArray(skillsRes) ? skillsRes : (skillsRes && Array.isArray(skillsRes.data) ? skillsRes.data : []);
         setSkillsList(sData);
-        const sOpts = sData.map((x: any) => x.name).sort();
+        const sOpts = sData.map((x: any) => x.name).filter(Boolean).sort();
         setSkillsOptions(sOpts);
         if (sOpts.length > 0) setSelectedSkillInput(sOpts[0]);
 
-        const sparesRes = await apiClient.get<any>('/api/v1/spares');
+        const sparesRes = await apiClient.get<any>('/api/v1/mdm/spares');
         const spData = Array.isArray(sparesRes) ? sparesRes : (sparesRes && Array.isArray(sparesRes.data) ? sparesRes.data : []);
         setSparesList(spData);
-        const spOpts = spData.map((x: any) => x.name).sort();
+        const spOpts = spData.map((x: any) => x.name).filter(Boolean).sort();
         setSparesOptions(spOpts);
         if (spOpts.length > 0) setSelectedSpareInput(spOpts[0]);
 
         const indRes = await apiClient.get<any>(ENDPOINTS.mdm.industries);
         const iData = Array.isArray(indRes) ? indRes : (indRes && Array.isArray(indRes.data) ? indRes.data : []);
         setIndList(iData);
-        const iOpts = iData.map((x: any) => x.name).sort();
+        const iOpts = iData.map((x: any) => x.name).filter(Boolean).sort();
         setIndOptions(iOpts);
         if (iOpts.length > 0) setSelectedIndInput(iOpts[0]);
 
         const machRes = await apiClient.get<any>(ENDPOINTS.mdm.machines);
         const mData = Array.isArray(machRes) ? machRes : (machRes && Array.isArray(machRes.data) ? machRes.data : []);
         setMachinesList(mData);
-        const mOpts = mData.map((x: any) => x.name).sort();
+        const mOpts = mData.map((x: any) => x.name).filter(Boolean).sort();
         setMachineOptions(mOpts);
         if (mOpts.length > 0) setSelectedMachineInput(mOpts[0]);
 
-        const brandsRes = editType === 'machine'
-          ? await apiClient.get<any>('/api/v1/mdm/machine-brands')
-          : await apiClient.get<any>('/api/v1/mart/brands');
-        const bData = Array.isArray(brandsRes) ? brandsRes : (brandsRes && Array.isArray(brandsRes.data) ? brandsRes.data : []);
-        setBrandsList(bData);
-        setBrandsOptions(bData.map((x: any) => x.name).sort());
+        // Fetch brands from all brand endpoints to ensure complete dropdown
+        const [mbRes, mRes] = await Promise.all([
+          apiClient.get<any>('/api/v1/mdm/machine-brands').catch(() => []),
+          apiClient.get<any>('/api/v1/mart/brands').catch(() => [])
+        ]);
+        const mbData = Array.isArray(mbRes) ? mbRes : (mbRes && Array.isArray(mbRes.data) ? mbRes.data : []);
+        const mDataBrands = Array.isArray(mRes) ? mRes : (mRes && Array.isArray(mRes.data) ? mRes.data : []);
+        
+        const combinedBrands: any[] = [];
+        const seenBrandIds = new Set();
+        [...mbData, ...mDataBrands].forEach((b: any) => {
+          const bId = String(b.brand_id || b.machine_brand_id || b.id);
+          if (bId && !seenBrandIds.has(bId)) {
+            seenBrandIds.add(bId);
+            combinedBrands.push(b);
+          }
+        });
+        setBrandsList(combinedBrands);
+        setBrandsOptions(combinedBrands.map((x: any) => x.name).filter(Boolean).sort());
 
         const typesRes = await apiClient.get<any>('/api/v1/mdm/machine-types');
         const tData = Array.isArray(typesRes) ? typesRes : (typesRes && Array.isArray(typesRes.data) ? typesRes.data : []);
         setMachineTypesList(tData);
-        setMachineTypesOptions(tData.map((x: any) => x.name).sort());
+        setMachineTypesOptions(tData.map((x: any) => x.name).filter(Boolean).sort());
 
         const catsRes = await apiClient.get<any>(ENDPOINTS.mdm.categories);
         const cData = Array.isArray(catsRes) ? catsRes : (catsRes && Array.isArray(catsRes.data) ? catsRes.data : []);
         setCategoriesList(cData);
-        setCategoriesOptions(cData.map((x: any) => x.name).sort());
+        setCategoriesOptions(cData.map((x: any) => x.name).filter(Boolean).sort());
       } catch (err) {
         console.error('Failed to load dropdown options:', err);
       }
@@ -207,6 +250,14 @@ export function useMdmDetail() {
       return;
     }
 
+    const mapItems = (arr: any[], defaultKey: string) => {
+      if (!Array.isArray(arr)) return [];
+      return arr.map((x: any) => ({
+        id: String(x.id ?? x[defaultKey] ?? `item-${Math.random()}`),
+        name: x.name || ''
+      })).filter(x => x.name);
+    };
+
     const fetchMdmDetails = async () => {
       setLoading(true);
       try {
@@ -231,14 +282,14 @@ export function useMdmDetail() {
         if (rawData) {
           if (editType === 'industry') {
             setIndustryName(rawData.name || '');
-            setIndustrySpares(rawData.spares || []);
-            setIndustryMachines(rawData.machines || []);
-            setIndustrySkills(rawData.skills || []);
+            setIndustrySpares(mapItems(rawData.spares, 'product_id'));
+            setIndustryMachines(mapItems(rawData.machines, 'machine_model_id'));
+            setIndustrySkills(mapItems(rawData.skills, 'skill_id'));
           } else if (editType === 'skill') {
             setSkillName(rawData.name || '');
             const rels = parseDescriptionRelations(rawData.description);
-            setSkillMachines(rawData.machines || rels.machines || []);
-            setSkillIndustries(rawData.industries || rels.industries || []);
+            setSkillMachines(mapItems(rawData.machines || rels.machines, 'machine_model_id'));
+            setSkillIndustries(mapItems(rawData.industries || rels.industries, 'industry_id'));
           } else if (editType === 'machineType') {
             setMachineTypeName(rawData.name || '');
             const rels = parseDescriptionRelations(rawData.description);
@@ -258,9 +309,9 @@ export function useMdmDetail() {
               sparesMapped = spData.filter((x: any) => String(x.machine_type_id) === String(id)).map((x: any) => ({ id: String(x.product_id), name: x.name }));
             }
 
-            setMachineTypeMachines(machinesMapped || []);
-            setMachineTypeSpares(sparesMapped || []);
-            setMachineTypeSkills(skillsMapped || []);
+            setMachineTypeMachines(mapItems(machinesMapped, 'machine_model_id'));
+            setMachineTypeSpares(mapItems(sparesMapped, 'product_id'));
+            setMachineTypeSkills(mapItems(skillsMapped, 'skill_id'));
           } else if (editType === 'category') {
             setCategoryName(rawData.name || '');
             let sparesMapped = rawData.spares;
@@ -269,37 +320,39 @@ export function useMdmDetail() {
               const spData = Array.isArray(sparesRes) ? sparesRes : (sparesRes && Array.isArray(sparesRes.data) ? sparesRes.data : []);
               sparesMapped = spData.filter((x: any) => String(x.category_id) === String(id)).map((x: any) => ({ id: String(x.product_id), name: x.name }));
             }
-            setCategorySpares(sparesMapped || []);
+            setCategorySpares(mapItems(sparesMapped, 'product_id'));
           } else if (editType === 'spare') {
             const rels = parseDescriptionRelations(rawData.description);
-            const selectedCat = String(rawData.category_id || (categoriesList.length > 0 ? categoriesList[0].category_id : ''));
-            const selectedBrand = String(rawData.brand_id || (brandsList.length > 0 ? (brandsList[0].brand_id || brandsList[0].machine_brand_id) : ''));
+            const selectedCat = String(rawData.category_id ?? (categoriesList.length > 0 ? categoriesList[0].category_id : ''));
+            const selectedBrand = String(rawData.brand_id ?? (brandsList.length > 0 ? (brandsList[0].brand_id || brandsList[0].machine_brand_id) : ''));
             setMachineData({
               id: String(rawData.product_id),
               name: rawData.name || '',
               machineType: selectedCat,
               brand: selectedBrand,
-              modelName: '',
+              modelName: rawData.description ? rawData.description.split('|||')[0].trim() : '',
               images: rawData.images || [],
-              skills: rawData.skills || rels.skills || [],
-              spares: rawData.spares || rels.spares || [],
-              industries: rawData.industries || rels.industries || []
+              skills: mapItems(rawData.skills || rels.skills, 'skill_id'),
+              spares: mapItems(rawData.spares || rels.spares, 'product_id'),
+              industries: mapItems(rawData.industries || rels.industries, 'industry_id')
             });
           } else {
             // Machine
             const rels = parseDescriptionRelations(rawData.description);
+            const selectedType = String(rawData.machine_type_id ?? (machineTypesList.length > 0 ? machineTypesList[0].machine_type_id : ''));
+            const selectedBrand = String(rawData.brand_id || rawData.machine_brand_id || (brandsList.length > 0 ? (brandsList[0].brand_id || brandsList[0].machine_brand_id) : ''));
             setMachineData({
               id: String(rawData.machine_model_id),
               name: rawData.name || '',
-              machineType: String(rawData.machine_type_id || ''),
-              brand: String(rawData.brand_id || ''),
-              modelName: rawData.description || '',
+              machineType: selectedType,
+              brand: selectedBrand,
+              modelName: rawData.description ? rawData.description.split('|||')[0].trim() : '',
               images: rawData.images || [
                 'https://images.unsplash.com/photo-1585776245991-cf89dd7fc73a?w=120&auto=format&fit=crop&q=60'
               ],
-              skills: rawData.skills || rels.skills || [],
-              spares: rawData.spares || rels.spares || [],
-              industries: rawData.industries || rels.industries || []
+              skills: mapItems(rawData.skills || rels.skills, 'skill_id'),
+              spares: mapItems(rawData.spares || rels.spares, 'product_id'),
+              industries: mapItems(rawData.industries || rels.industries, 'industry_id')
             });
           }
         }
@@ -315,96 +368,120 @@ export function useMdmDetail() {
   const handleAddField = (target: 'skills' | 'spares' | 'industries' | 'indSpares' | 'indMachines' | 'indSkills' | 'machTypeMachines' | 'machTypeSpares' | 'machTypeSkills' | 'categorySpares' | 'skillMachines' | 'skillIndustries') => {
     const newItem = { id: `new-${Date.now()}`, name: '' };
     if (target === 'categorySpares') {
-      newItem.name = selectedSpareInput;
-      newItem.id = findIdByName(selectedSpareInput, sparesList, 'product_id');
+      const selectedName = selectedSpareInput || sparesOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, sparesList, 'product_id');
       setCategorySpares(prev => {
         if (prev.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return [...prev, newItem];
       });
       setShowSpareAddDrop(false);
     } else if (target === 'machTypeMachines') {
-      newItem.name = selectedMachineInput;
-      newItem.id = findIdByName(selectedMachineInput, machinesList, 'machine_model_id');
+      const selectedName = selectedMachineInput || machineOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, machinesList, 'machine_model_id');
       setMachineTypeMachines(prev => {
         if (prev.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return [...prev, newItem];
       });
       setShowMachineAddDrop(false);
     } else if (target === 'machTypeSpares') {
-      newItem.name = selectedSpareInput;
-      newItem.id = findIdByName(selectedSpareInput, sparesList, 'product_id');
+      const selectedName = selectedSpareInput || sparesOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, sparesList, 'product_id');
       setMachineTypeSpares(prev => {
         if (prev.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return [...prev, newItem];
       });
       setShowSpareAddDrop(false);
     } else if (target === 'machTypeSkills') {
-      newItem.name = selectedSkillInput;
-      newItem.id = findIdByName(selectedSkillInput, skillsList, 'skill_id');
+      const selectedName = selectedSkillInput || skillsOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, skillsList, 'skill_id');
       setMachineTypeSkills(prev => {
         if (prev.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return [...prev, newItem];
       });
       setShowSkillAddDrop(false);
     } else if (target === 'indSpares') {
-      newItem.name = selectedSpareInput;
-      newItem.id = findIdByName(selectedSpareInput, sparesList, 'product_id');
+      const selectedName = selectedSpareInput || sparesOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, sparesList, 'product_id');
       setIndustrySpares(prev => {
         if (prev.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return [...prev, newItem];
       });
       setShowSpareAddDrop(false);
     } else if (target === 'indMachines') {
-      newItem.name = selectedMachineInput;
-      newItem.id = findIdByName(selectedMachineInput, machinesList, 'machine_model_id');
+      const selectedName = selectedMachineInput || machineOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, machinesList, 'machine_model_id');
       setIndustryMachines(prev => {
         if (prev.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return [...prev, newItem];
       });
       setShowMachineAddDrop(false);
     } else if (target === 'indSkills') {
-      newItem.name = selectedSkillInput;
-      newItem.id = findIdByName(selectedSkillInput, skillsList, 'skill_id');
+      const selectedName = selectedSkillInput || skillsOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, skillsList, 'skill_id');
       setIndustrySkills(prev => {
         if (prev.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return [...prev, newItem];
       });
       setShowSkillAddDrop(false);
     } else if (target === 'skillMachines') {
-      newItem.name = selectedMachineInput;
-      newItem.id = findIdByName(selectedMachineInput, machinesList, 'machine_model_id');
+      const selectedName = selectedMachineInput || machineOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, machinesList, 'machine_model_id');
       setSkillMachines(prev => {
         if (prev.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return [...prev, newItem];
       });
       setShowMachineAddDrop(false);
     } else if (target === 'skillIndustries') {
-      newItem.name = selectedIndInput;
-      newItem.id = findIdByName(selectedIndInput, indList, 'industry_id');
+      const selectedName = selectedIndInput || indOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, indList, 'industry_id');
       setSkillIndustries(prev => {
         if (prev.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return [...prev, newItem];
       });
       setShowIndAddDrop(false);
     } else if (target === 'skills') {
-      newItem.name = selectedSkillInput;
-      newItem.id = findIdByName(selectedSkillInput, skillsList, 'skill_id');
+      const selectedName = selectedSkillInput || skillsOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, skillsList, 'skill_id');
       setMachineData(prev => {
         if (prev.skills.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return { ...prev, skills: [...prev.skills, newItem] };
       });
       setShowSkillAddDrop(false);
     } else if (target === 'spares') {
-      newItem.name = selectedSpareInput;
-      newItem.id = findIdByName(selectedSpareInput, sparesList, 'product_id');
+      const selectedName = selectedSpareInput || sparesOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, sparesList, 'product_id');
       setMachineData(prev => {
         if (prev.spares.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return { ...prev, spares: [...prev.spares, newItem] };
       });
       setShowSpareAddDrop(false);
     } else if (target === 'industries') {
-      newItem.name = selectedIndInput;
-      newItem.id = findIdByName(selectedIndInput, indList, 'industry_id');
+      const selectedName = selectedIndInput || indOptions[0] || '';
+      if (!selectedName) return;
+      newItem.name = selectedName;
+      newItem.id = findIdByName(selectedName, indList, 'industry_id');
       setMachineData(prev => {
         if (prev.industries.some(x => String(x.id) === String(newItem.id) || x.name === newItem.name)) return prev;
         return { ...prev, industries: [...prev.industries, newItem] };
