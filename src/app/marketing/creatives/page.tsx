@@ -214,13 +214,21 @@ export default function AllCreativesPage() {
   const handleGoLive = async () => {
     if (!goLiveCreative) return;
     if (!goLiveStart || !goLiveEnd) {
-      showToast('Please set both start and end dates.', 'error');
+      showToast('Please set both start and end dates/times.', 'error');
       return;
     }
     setGoLiveLoading(true);
     try {
-      const formatStartDate = (d: string) => d && d.length === 10 ? `${d}T00:00:00` : d;
-      const formatEndDate   = (d: string) => d && d.length === 10 ? `${d}T23:59:59` : d;
+      const formatDateTime = (d: string, isEnd: boolean) => {
+        if (!d) return '';
+        if (d.length === 10) {
+          return isEnd ? `${d}T23:59:59` : `${d}T00:00:00`;
+        }
+        if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(d)) {
+          return `${d}:00`;
+        }
+        return d;
+      };
 
       let realCreativeId = goLiveCreative.id;
 
@@ -257,14 +265,14 @@ export default function AllCreativesPage() {
 
       const payload = {
         creativeId:     realCreativeId,
-        startDate:      formatStartDate(goLiveStart),
-        endDate:        formatEndDate(goLiveEnd),
+        startDate:      formatDateTime(goLiveStart, false),
+        endDate:        formatDateTime(goLiveEnd, true),
         targetAudience: goLiveAudience,
         status:         'Active',
       };
       const res = await apiClient.post<{ success: boolean; data: any }>(ENDPOINTS.marketing.banners, payload);
       if (res?.success) {
-        showToast(`"${goLiveCreative.name}" is now live & stored in BullMQ! 🎉`, 'success');
+        showToast(`"${goLiveCreative.name}" is now live & scheduled in BullMQ! 🎉`, 'success');
       } else {
         showToast(`Failed to activate "${goLiveCreative.name}".`, 'error');
       }
@@ -349,18 +357,18 @@ export default function AllCreativesPage() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#374151', marginBottom: '0.35rem' }}>Start Date</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#374151', marginBottom: '0.35rem' }}>Start Date & Time</label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={goLiveStart}
                   onChange={e => setGoLiveStart(e.target.value)}
                   style={{ width: '100%', padding: '0.6rem 0.75rem', border: '1px solid #d1d5db', borderRadius: '0.5rem', fontSize: '0.875rem', outline: 'none', boxSizing: 'border-box' }}
                 />
               </div>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#374151', marginBottom: '0.35rem' }}>End Date</label>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: '#374151', marginBottom: '0.35rem' }}>End Date & Time</label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   value={goLiveEnd}
                   onChange={e => setGoLiveEnd(e.target.value)}
                   min={goLiveStart}
