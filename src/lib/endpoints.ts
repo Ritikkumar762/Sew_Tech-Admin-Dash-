@@ -44,6 +44,12 @@ export const ENDPOINTS = {
     updateVariant: (productId: string, variantId: string) => `${BASE_URL}/admin/products/${productId}/variants/${variantId}`,
   },
 
+  // ── Orders & Invoices ─────────────────────────────────────────
+  orders: {
+    invoice:     (id: string) => `${BASE_URL}/admin/orders/${id}/invoice`,
+    invoiceData: (id: string) => `${BASE_URL}/admin/orders/${id}/invoice-data`,
+  },
+
   // ── Users ────────────────────────────────────────────────────
   users: {
     list:       `${BASE_URL}/users`,

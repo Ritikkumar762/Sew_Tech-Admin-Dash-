@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { downloadOrderInvoice } from '@/lib/api';
 import AssignMechanicModal, { type Mechanic } from './AssignMechanicModal';
 import CancelRequestModal from './CancelRequestModal';
 
@@ -263,7 +264,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const [isPaymentExpanded, setIsPaymentExpanded] = useState(true);
 
   const handleInvoiceClick = () => {
-    window.open(`https://project-sewtech-mart.onrender.com/api/v1/mart/orders/${orderId}/invoice`, '_blank');
+    downloadOrderInvoice(orderId);
   };
 
   // Dynamic Fetch of Booking Detail from Database

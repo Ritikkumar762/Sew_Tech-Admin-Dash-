@@ -188,3 +188,39 @@ export const apiClient = {
   upload: <T>(url: string, formData: FormData, opts?: RequestOptions) =>
     uploadRequest<T>(url, formData, opts),
 };
+
+export async function downloadOrderInvoice(orderId: string) {
+  const numericId = orderId.replace(/\D/g, '');
+  if (!numericId) return;
+
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://project-sewtech-mart.onrender.com/api/v1';
+  const url = `${baseUrl}/admin/orders/${numericId}/invoice`;
+  const token = getAuthToken();
+
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+    });
+
+    if (!res.ok) {
+      window.open(url, '_blank');
+      return;
+    }
+
+    const blob = await res.blob();
+    const blobUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = `Invoice_Order_${numericId}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(blobUrl);
+  } catch (err) {
+    console.error('Invoice download failed:', err);
+    window.open(url, '_blank');
+  }
+}

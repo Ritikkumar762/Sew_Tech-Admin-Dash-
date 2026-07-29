@@ -13,6 +13,8 @@ import {
   X
 } from 'lucide-react';
 
+import { downloadOrderInvoice } from '@/lib/api';
+
 interface RequestDetailProps {
   request: {
     id: string;
@@ -188,10 +190,7 @@ export default function RequestDetailReplacement({
           {/* Action buttons */}
           <div style={{ display: 'flex', gap: '0.75rem', position: 'relative', alignItems: 'center' }}>
             <button 
-              onClick={() => {
-                const numericId = request.id.endsWith('6') ? '6' : '5';
-                window.open(`https://project-sewtech-mart.onrender.com/api/v1/mart/orders/${numericId}/invoice`, '_blank');
-              }}
+              onClick={() => downloadOrderInvoice(request.id)}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',

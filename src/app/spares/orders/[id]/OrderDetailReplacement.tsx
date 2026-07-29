@@ -11,6 +11,8 @@ import {
   X
 } from 'lucide-react';
 
+import { downloadOrderInvoice } from '@/lib/api';
+
 interface OrderDetailProps {
   order: {
     id: string;
@@ -103,8 +105,7 @@ export default function OrderDetailReplacement({
   ];
 
   const handleInvoiceClick = () => {
-    const numericId = order.id.endsWith('6') ? '6' : '5';
-    window.open(`https://project-sewtech-mart.onrender.com/api/v1/mart/orders/${numericId}/invoice`, '_blank');
+    downloadOrderInvoice(order.id);
   };
 
   const renderActionButtons = () => {
