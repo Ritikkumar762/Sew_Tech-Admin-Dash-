@@ -21,7 +21,7 @@ export default function FiltersDrawer({ isOpen, onClose, onApply }: FiltersDrawe
   });
 
   // Selected Categories
-  const [selectedCategories, setSelectedCategories] = useState(['Hookset', 'Needles', 'Knives']);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   
   // Category input dropdown selected
   const [categoryInput, setCategoryInput] = useState('');
@@ -31,8 +31,8 @@ export default function FiltersDrawer({ isOpen, onClose, onApply }: FiltersDrawe
   const [compatibleMachineType, setCompatibleMachineType] = useState('');
 
   // Price range
-  const [minPrice, setMinPrice] = useState('1,500');
-  const [maxPrice, setMaxPrice] = useState('1,500');
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
 
   // Smart Filters
   const [smartFilter, setSmartFilter] = useState('');

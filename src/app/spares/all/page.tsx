@@ -36,6 +36,9 @@ export default function ProductsInventoryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  const [categoriesList, setCategoriesList] = useState<string[]>([]);
+  const [brandsList, setBrandsList] = useState<string[]>([]);
+
   const fetchSpares = async () => {
     setIsLoading(true);
       try {
@@ -79,6 +82,17 @@ export default function ProductsInventoryPage() {
         }
 
         if (items.length > 0) {
+          const extractedCategories = items.map((item: any) => 
+            typeof item.category === 'object' ? item.category?.name : item.category
+          ).filter(Boolean);
+
+          const extractedBrands = items.map((item: any) => 
+            typeof item.brand === 'object' ? item.brand?.name : item.brand
+          ).filter(Boolean);
+
+          setCategoriesList(prev => Array.from(new Set([...prev, ...extractedCategories])));
+          setBrandsList(prev => Array.from(new Set([...prev, ...extractedBrands])));
+
           setData(items.map((item: any) => {
           const variants = item.variants || [];
           const tags = item.tags || [];
@@ -130,6 +144,7 @@ export default function ProductsInventoryPage() {
             sku: item.sku || '',
             name: item.name || '',
             category: (typeof item.category === 'object' ? item.category?.name : item.category) || 'General',
+            brand: (typeof item.brand === 'object' ? item.brand?.name : item.brand) || '',
             compatibleMachines: compCount,
             priceMin: displayPriceMin,
             priceMax: displayPriceMax,
@@ -165,6 +180,27 @@ export default function ProductsInventoryPage() {
 
   React.useEffect(() => {
     fetchDashboardStats();
+
+    // Fetch dynamic categories and brands from backend
+    apiClient.get<any>(`${ENDPOINTS.mart.categories}?root_only=false`)
+      .then(res => {
+        const catItems = res?.data || res?.items || (Array.isArray(res) ? res : []);
+        if (Array.isArray(catItems) && catItems.length > 0) {
+          const names = catItems.map((c: any) => c.name || c.category_name).filter(Boolean);
+          setCategoriesList(prev => Array.from(new Set([...prev, ...names])));
+        }
+      })
+      .catch(e => console.warn('Categories API fetch error:', e));
+
+    apiClient.get<any>(ENDPOINTS.mart.brands)
+      .then(res => {
+        const brandItems = res?.data || res?.items || (Array.isArray(res) ? res : []);
+        if (Array.isArray(brandItems) && brandItems.length > 0) {
+          const names = brandItems.map((b: any) => b.name || b.brand_name).filter(Boolean);
+          setBrandsList(prev => Array.from(new Set([...prev, ...names])));
+        }
+      })
+      .catch(e => console.warn('Brands API fetch error:', e));
   }, []);
 
   const handleSelect = (id: string) => {
@@ -212,18 +248,49 @@ export default function ProductsInventoryPage() {
 
   const filteredData = useMemo(() => {
     return data.filter(item => {
-      if (filters.categories.length > 0 && !filters.categories.includes(item.category)) {
-        return false;
+      // Category Filter
+      if (filters.categories.length > 0) {
+        const matchCat = filters.categories.some(c => 
+          c.toLowerCase() === item.category.toLowerCase() ||
+          item.category.toLowerCase().includes(c.toLowerCase()) ||
+          c.toLowerCase().includes(item.category.toLowerCase())
+        );
+        if (!matchCat) return false;
       }
+
+      // Visibility Filter
       if (filters.visibility.length > 0 && !filters.visibility.includes(item.visibility)) {
         return false;
       }
-      if (filters.priceMin && item.priceMin < Number(filters.priceMin)) {
-        return false;
+
+      // Stock Status Filter
+      if (filters.stockStatus.length > 0) {
+        const matchStock = filters.stockStatus.some(st => {
+          if (st === 'In-Stock') return item.stock > 0;
+          if (st === 'Out-of-Stock' || st === 'Out of Stock') return item.stock === 0;
+          if (st === 'Low Stock' || st === 'Low Stock (<5)') return item.stock > 0 && item.stock < 5;
+          if (st === 'Dead Stock' || st === 'Dead Stock (Idle > 6 Months)') return item.stockStatus === 'Dead Stock' || item.stock === 0;
+          return true;
+        });
+        if (!matchStock) return false;
       }
-      if (filters.priceMax && item.priceMin > Number(filters.priceMax)) {
-        return false;
+
+      // Compatible Brand Filter
+      if (filters.compatibilityBrand && filters.compatibilityBrand.trim() !== '') {
+        const b = filters.compatibilityBrand.toLowerCase();
+        const matchBrand = (item.brand && item.brand.toLowerCase().includes(b)) ||
+                           (item.name && item.name.toLowerCase().includes(b));
+        if (!matchBrand) return false;
       }
+
+      // Price Range Filter
+      if (filters.priceMin && !isNaN(Number(filters.priceMin))) {
+        if (item.priceMin < Number(filters.priceMin)) return false;
+      }
+      if (filters.priceMax && !isNaN(Number(filters.priceMax))) {
+        if (item.priceMin > Number(filters.priceMax)) return false;
+      }
+
       return true;
     });
   }, [data, filters]);
@@ -336,6 +403,8 @@ export default function ProductsInventoryPage() {
             setFilters={setFilters} 
             onClear={handleClearFilters} 
             onClose={() => setIsFilterOpen(false)}
+            categoriesList={categoriesList}
+            brandsList={brandsList}
           />
         )}
       </div>

@@ -3,6 +3,7 @@ export interface SpareProduct {
   sku: string;
   name: string;
   category: string;
+  brand?: string;
   compatibleMachines: number;
   priceMin: number;
   priceMax: number;

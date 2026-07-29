@@ -92,17 +92,12 @@ export default function InventoryPage() {
           ? variants.reduce((sum: number, v: any) => sum + v.stock, 0)
           : Number(item.stock_quantity || 0);
 
-        const variantPrices = variants.map((v: any) => v.price).filter((p: number) => !isNaN(p) && p > 0);
         const listPrice = Number(item.price || 0);
         const discountPrice = Number(item.discount_price || 0);
 
-        const itemActivePrice = (discountPrice > 0 && discountPrice < listPrice) 
-          ? discountPrice 
-          : listPrice;
-
-        const effectiveParentPrice = item.price_from !== undefined && item.price_from !== null
-          ? Number(item.price_from)
-          : (variantPrices.length > 0 ? Math.min(...variantPrices) : itemActivePrice);
+        const isDiscounted = discountPrice > 0 && discountPrice < listPrice;
+        const activeProductPrice = isDiscounted ? discountPrice : listPrice;
+        const displayListPrice = isDiscounted ? listPrice : undefined;
 
         return {
           id: String(item.product_id || item.id),
@@ -111,8 +106,8 @@ export default function InventoryPage() {
           stock: parentStock,
           thumbnailColor: colors[index % colors.length],
           thumbnailLetter: item.name ? item.name.charAt(0).toUpperCase() : 'S',
-          price: effectiveParentPrice,
-          listPrice: listPrice > effectiveParentPrice ? listPrice : undefined,
+          price: activeProductPrice,
+          listPrice: displayListPrice,
           discountPrice: discountPrice > 0 ? discountPrice : undefined,
           variants: variants
         };

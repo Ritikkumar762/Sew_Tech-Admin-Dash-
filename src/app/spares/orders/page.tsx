@@ -277,20 +277,14 @@ export default function SparesOrdersPage() {
     setTimeout(() => setCopiedId(null), 1500);
   };
 
+  const [appliedDrawerFilters, setAppliedDrawerFilters] = useState<any>(null);
+
   const handleApplyFilters = (filters: any) => {
     console.log('Filters applied:', filters);
-    // In a real application, we would filter data here.
-    // For demo purposes, let's simulate a quick filter effect:
-    if (filters.categories.length > 0) {
-      // Just as a placeholder for frontend filtering
-      setOrders(prev => prev.slice(0, 3));
-    } else {
-      // We should just re-fetch orders or clear frontend filters
-      fetchOrders();
-    }
+    setAppliedDrawerFilters(filters);
   };
 
-  // Filter orders based on Tab and Search Query
+  // Filter orders based on Tab, Search Query, Status Pills, and Drawer Filters
   const filteredOrders = orders.filter(order => {
     // Search filter
     const matchesSearch = order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -300,11 +294,9 @@ export default function SparesOrdersPage() {
     if (!matchesSearch) return false;
 
     // Tab filter
-    if (activeTab === 'All') return true;
     if (activeTab === 'Ordered') {
       if (order.type !== 'order') return false;
-    }
-    if (activeTab === 'Return') {
+    } else if (activeTab === 'Return') {
       if (order.type !== 'return') return false;
     } else if (activeTab === 'Replacement') {
       if (order.type !== 'replacement') return false;
@@ -315,13 +307,65 @@ export default function SparesOrdersPage() {
     // Active Status Pills filter (Only for tabs other than 'All')
     const pills = activePills[activeTab] || [];
     if (pills.length > 0) {
-      // Filter list to only match the selected pill(s)!
       const matchesPill = pills.some(pill => {
         const p = pill.toLowerCase();
         const s = order.status.toLowerCase();
         return s === p || s.includes(p) || p.includes(s) || (p === 'return requested' && s === 'requested') || (p === 'cancellation accepted' && s.includes('completed'));
       });
       if (!matchesPill) return false;
+    }
+
+    // Applied Drawer Filters
+    if (appliedDrawerFilters) {
+      // 1. Categories Filter
+      if (appliedDrawerFilters.categories && Array.isArray(appliedDrawerFilters.categories) && appliedDrawerFilters.categories.length > 0) {
+        const matchCat = appliedDrawerFilters.categories.some((cat: string) => {
+          const c = cat.toLowerCase();
+          return (
+            (order.category && order.category.toLowerCase().includes(c)) ||
+            (order.reason && order.reason.toLowerCase().includes(c)) ||
+            (order.items && Array.isArray(order.items) && order.items.some((i: any) => (i.category?.toLowerCase() || '').includes(c) || (i.name?.toLowerCase() || '').includes(c)))
+          );
+        });
+        if (!matchCat) return false;
+      }
+
+      // 2. Compatible Brand Filter
+      if (appliedDrawerFilters.brand && typeof appliedDrawerFilters.brand === 'string' && appliedDrawerFilters.brand.trim() !== '') {
+        const brand = appliedDrawerFilters.brand.toLowerCase();
+        const matchBrand = (order.brand && order.brand.toLowerCase().includes(brand)) ||
+                           (order.compatibility && (
+                             Array.isArray(order.compatibility) 
+                               ? order.compatibility.some((c: string) => c.toLowerCase().includes(brand))
+                               : order.compatibility.toLowerCase().includes(brand)
+                           ));
+        if (!matchBrand) return false;
+      }
+
+      // 3. Compatible Machine Type Filter
+      if (appliedDrawerFilters.machineType && typeof appliedDrawerFilters.machineType === 'string' && appliedDrawerFilters.machineType.trim() !== '') {
+        const mType = appliedDrawerFilters.machineType.toLowerCase();
+        const matchMachine = (order.machineType && order.machineType.toLowerCase().includes(mType)) ||
+                             (order.compatibility && (
+                               Array.isArray(order.compatibility)
+                                 ? order.compatibility.some((c: string) => c.toLowerCase().includes(mType))
+                                 : order.compatibility.toLowerCase().includes(mType)
+                             ));
+        if (!matchMachine) return false;
+      }
+
+      // 4. Price Range Filter (Min & Max)
+      if (appliedDrawerFilters.price) {
+        const minVal = parseFloat(String(appliedDrawerFilters.price.min || '').replace(/[^0-9.]/g, ''));
+        const maxVal = parseFloat(String(appliedDrawerFilters.price.max || '').replace(/[^0-9.]/g, ''));
+
+        if (!isNaN(minVal) && minVal > 0) {
+          if (order.orderValue < minVal) return false;
+        }
+        if (!isNaN(maxVal) && maxVal > 0) {
+          if (order.orderValue < maxVal) return false;
+        }
+      }
     }
 
     return true;

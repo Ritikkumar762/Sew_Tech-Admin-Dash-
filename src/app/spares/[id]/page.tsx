@@ -68,20 +68,22 @@ export default function SpareDetailPage() {
       try {
         let data: any = null;
         try {
-          // Try the public endpoint first (works for PUBLISHED)
-          const res = await apiClient.get<any>(`${BASE_URL}/mart/products/${params.id}`);
-          data = res.data || res;
-        } catch (err: any) {
-          // If 404 (draft), fetch the seller's product list and find it
-          if (err.status === 404) {
+          // Try admin product endpoint first
+          const adminRes = await apiClient.get<any>(`${ENDPOINTS.spares.inventory}/${params.id}`);
+          data = adminRes.data || adminRes;
+        } catch (adminErr: any) {
+          try {
+            // Try public mart product endpoint next
+            const publicRes = await apiClient.get<any>(`${BASE_URL}/mart/products/${params.id}`);
+            data = publicRes.data || publicRes;
+          } catch (pubErr: any) {
+            // Fallback to inventory list scan
             const listRes = await apiClient.get<any>(`${ENDPOINTS.spares.inventory}?skip=0&limit=100`);
             const items = listRes.data?.items || listRes.items || listRes.data || listRes;
             if (Array.isArray(items)) {
               data = items.find((item: any) => String(item.product_id || item.id) === String(params.id));
             }
-            if (!data) throw new Error("Product not found in drafts either");
-          } else {
-            throw err;
+            if (!data) throw new Error("Product not found in backend");
           }
         }
         

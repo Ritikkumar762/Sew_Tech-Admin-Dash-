@@ -7,9 +7,23 @@ interface FilterSidebarProps {
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   onClear: () => void;
   onClose?: () => void;
+  categoriesList?: string[];
+  brandsList?: string[];
 }
 
-export function FilterSidebar({ filters, setFilters, onClear, onClose }: FilterSidebarProps) {
+export function FilterSidebar({ filters, setFilters, onClear, onClose, categoriesList = [], brandsList = [] }: FilterSidebarProps) {
+  const categoryOptions = React.useMemo(() => {
+    const defaults = ['Electronics', 'Lubrication Oils', 'Fabrics', 'Belts & Gears', 'Needles', 'Rotary Hook', 'Hookset', 'Knives'];
+    const merged = Array.from(new Set([...defaults, ...categoriesList])).filter(Boolean);
+    return merged.sort();
+  }, [categoriesList]);
+
+  const brandOptions = React.useMemo(() => {
+    const defaults = ['Samsung', 'Apple', 'Bosch', 'Juki', 'Singer', 'Brother'];
+    const merged = Array.from(new Set([...defaults, ...brandsList])).filter(Boolean);
+    return merged.sort();
+  }, [brandsList]);
+
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     if (value && value !== 'Select Category' && !filters.categories.includes(value)) {
@@ -80,12 +94,11 @@ export function FilterSidebar({ filters, setFilters, onClear, onClose }: FilterS
         <div className={styles.sectionTitle}>
           Category <span className={styles.chevron}>▼</span>
         </div>
-        <select className={styles.filterSelect} onChange={handleCategoryChange} defaultValue="Select Category">
+        <select className={styles.filterSelect} onChange={handleCategoryChange} value="Select Category">
           <option value="Select Category">Select Category</option>
-          <option value="Needles">Needles</option>
-          <option value="Rotary Hook">Rotary Hook</option>
-          <option value="Hookset">Hookset</option>
-          <option value="Knives">Knives</option>
+          {categoryOptions.map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
         </select>
         <div className={styles.pills}>
           {filters.categories.map(cat => (
@@ -130,9 +143,9 @@ export function FilterSidebar({ filters, setFilters, onClear, onClose }: FilterS
           onChange={(e) => setFilters(prev => ({ ...prev, compatibilityBrand: e.target.value }))}
         >
           <option value="">Compatible Brand</option>
-          <option value="Juki">Juki</option>
-          <option value="Brother">Brother</option>
-          <option value="Singer">Singer</option>
+          {brandOptions.map(brand => (
+            <option key={brand} value={brand}>{brand}</option>
+          ))}
         </select>
         <select
           className={styles.filterSelect}

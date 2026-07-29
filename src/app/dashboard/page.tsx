@@ -114,7 +114,7 @@ export default function DashboardPage() {
       <div className={styles.dashboardHeader}>
         <div>
           <h1 className={styles.dashboardTitle}>
-            {activeTab === 'performance' ? 'Smart View Dashboard' : 'Dashboard'}
+            Smart View Dashboard
           </h1>
           <div className={styles.dashboardSubtitle}>
             Sewtech Spare <span style={{ margin: '0 0.5rem', color: '#d1d5db' }}>•</span> Order Management
@@ -134,7 +134,7 @@ export default function DashboardPage() {
 
       {/* Top Metrics Row */}
       <div className={styles.metricsGrid}>
-        {(activeTab === 'performance' ? performanceTopMetrics : topMetrics).map((m) => (
+        {performanceTopMetrics.map((m) => (
           <div key={m.label} className={styles.metricCard}>
             <div className={styles.metricLabel}>
               <span className={styles.metricIcon} style={{ color: m.iconColor, background: m.iconBg ?? `${m.iconColor}15` }}>{m.icon}</span>
