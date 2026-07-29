@@ -153,8 +153,11 @@ export default function BannerDetailPage() {
       setExternalLink(mockData.externalLink || '');
     }
 
-    // For mock IDs skip API fetch — mock data is already populated above
-    if (bannerIdParam.startsWith('banner-')) {
+    const rawId = bannerIdParam.replace('banner-', '');
+    const isRealDbBanner = /^\d+$/.test(rawId);
+
+    // For non-numeric mock IDs skip API fetch — mock data is already populated above
+    if (!isRealDbBanner) {
       return;
     }
 
@@ -166,15 +169,17 @@ export default function BannerDetailPage() {
         if (response && response.success && response.data) {
           const c = response.data;
           setAudience(c.targetAudience || 'Gold Members');
-          setStartDate(c.startDate || '28.02.2026, 01:00-02:00 PM');
-          setEndDate(c.endDate || '28.02.2026, 01:00-02:00 PM');
+          setStartDate(c.startDate || '');
+          setEndDate(c.endDate || '');
           setCarousel(c.carousel || false);
-          setLinkTo(c.linkTo || 'ST Spares');
-          setOpenType(c.openType || 'Spare');
-          setSpareId(c.spareId || 'ST Spares');
-          setCategoryId(c.categoryId || 'Sewing Machine Spares');
-          setMachineId(c.machineId || 'Lockstitch Machine');
-          setExternalLink(c.externalLink || '');
+          if (c.creative) {
+            setLinkTo(c.creative.linkTo || 'ST Spares');
+            setOpenType(c.creative.openType || 'Spare');
+            setSpareId(c.creative.spareId || '');
+            setCategoryId(c.creative.categoryId || '');
+            setMachineId(c.creative.machineId || '');
+            setExternalLink(c.creative.externalLink || '');
+          }
           setCreativeDetails(c);
         }
       } catch (err) {
@@ -191,9 +196,10 @@ export default function BannerDetailPage() {
   const handlePublish = async () => {
     setLoading(true);
     try {
-      const isMockId = bannerIdParam.startsWith('banner-');
+      const rawId = bannerIdParam.replace('banner-', '');
+      const isRealDbBanner = /^\d+$/.test(rawId);
 
-      if (!isMockId) {
+      if (isRealDbBanner) {
         const formatStartDate = (d: string) => d && d.length === 10 ? `${d}T00:00:00` : d;
         const formatEndDate   = (d: string) => d && d.length === 10 ? `${d}T23:59:59` : d;
 

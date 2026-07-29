@@ -5,7 +5,7 @@
  */
 
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
-export const MARKETING_BASE_URL = '';
+export const MARKETING_BASE_URL = BASE_URL;
 // Alerts backend — change this URL once deployed; everything else uses BASE_URL
 export const ALERTS_BASE_URL = BASE_URL;
 
@@ -112,17 +112,17 @@ export const ENDPOINTS = {
   // ── Marketing ────────────────────────────────────────────────
   marketing: {
     // Campaign & Banner Management
-    stats:        `${MARKETING_BASE_URL}/api/v1/marketing/stats`,            // GET - Metrics & Performance summary
-    banners:      `${MARKETING_BASE_URL}/api/v1/marketing/banners`,          // GET, POST - Active/Live Banners List
-    bannerById:   (id: string) => `${MARKETING_BASE_URL}/api/v1/marketing/banners/${id}`, // GET, PUT, DELETE - Banner Wizard
+    stats:        `${BASE_URL}/marketing/stats`,            // GET - Metrics & Performance summary
+    banners:      `${BASE_URL}/marketing/banners`,          // GET, POST - Active/Live Banners List
+    bannerById:   (id: string) => `${BASE_URL}/marketing/banners/${id}`, // GET, PUT, DELETE - Banner Wizard
 
     // Saved Creative Assets Library
-    creatives:    `${MARKETING_BASE_URL}/api/v1/marketing/creatives`,        // GET, POST - Assets Grid
-    creativeById: (id: string) => `${MARKETING_BASE_URL}/api/v1/marketing/creatives/${id}`, // GET, PUT, DELETE
-    creativeCopy: (id: string) => `${MARKETING_BASE_URL}/api/v1/marketing/creatives/${id}/copy`, // POST - Duplication Node
+    creatives:    `${BASE_URL}/marketing/creatives`,        // GET, POST - Assets Grid
+    creativeById: (id: string) => `${BASE_URL}/marketing/creatives/${id}`, // GET, PUT, DELETE
+    creativeCopy: (id: string) => `${BASE_URL}/marketing/creatives/${id}/copy`, // POST - Duplication Node
     
     // Media Upload Node
-    upload:       `${MARKETING_BASE_URL}/api/v1/marketing/upload`,           // POST (multipart/form-data)
+    upload:       `${BASE_URL}/marketing/upload`,           // POST (multipart/form-data)
   },
 
   // ── Exchange ─────────────────────────────────────────────────

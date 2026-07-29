@@ -222,18 +222,55 @@ export default function AllCreativesPage() {
       const formatStartDate = (d: string) => d && d.length === 10 ? `${d}T00:00:00` : d;
       const formatEndDate   = (d: string) => d && d.length === 10 ? `${d}T23:59:59` : d;
 
+      let realCreativeId = goLiveCreative.id;
+
+      // If creative ID is non-numeric or starts with creative- (mock/static), ensure creative exists in DB first
+      const rawId = realCreativeId.replace('creative-', '');
+      const isNumeric = /^\d+$/.test(rawId);
+
+      if (!isNumeric) {
+        try {
+          const creativePayload = {
+            name: goLiveCreative.name || 'Marketing Banner Creative',
+            bannerType: goLiveCreative.bannerType || 'Hero Banner',
+            title: goLiveCreative.title || 'Creative Title',
+            subheader: goLiveCreative.subheader || '',
+            body: goLiveCreative.body || '',
+            imageUrl: goLiveCreative.imageUrl || '',
+            label: goLiveCreative.label || null,
+            linkTo: goLiveCreative.linkTo || 'ST Spares',
+            openType: goLiveCreative.openType || 'Spare',
+      
+            spareId: goLiveCreative.spareId || null,
+            categoryId: goLiveCreative.categoryId || null,
+            machineId: goLiveCreative.machineId || null,
+            externalLink: goLiveCreative.externalLink || null
+          };
+          const cRes = await apiClient.post<{ success: boolean; data: any }>(ENDPOINTS.marketing.creatives, creativePayload);
+          if (cRes?.success && cRes.data?.id) {
+            realCreativeId = cRes.data.id;
+          }
+        } catch (cErr) {
+          console.warn('Could not auto-create creative in DB first:', cErr);
+        }
+      }
+
       const payload = {
-        creativeId:     goLiveCreative.id,
+        creativeId:     realCreativeId,
         startDate:      formatStartDate(goLiveStart),
         endDate:        formatEndDate(goLiveEnd),
         targetAudience: goLiveAudience,
         status:         'Active',
       };
-      await apiClient.post<{ success: boolean; data: any }>(ENDPOINTS.marketing.banners, payload);
-      showToast(`"${goLiveCreative.name}" is now live! 🎉`, 'success');
-    } catch (err) {
+      const res = await apiClient.post<{ success: boolean; data: any }>(ENDPOINTS.marketing.banners, payload);
+      if (res?.success) {
+        showToast(`"${goLiveCreative.name}" is now live & stored in BullMQ! 🎉`, 'success');
+      } else {
+        showToast(`Failed to activate "${goLiveCreative.name}".`, 'error');
+      }
+    } catch (err: any) {
       console.error('Failed to go live:', err);
-      showToast(`"${goLiveCreative.name}" queued for activation.`, 'success');
+      showToast(`Error going live: ${err?.message || 'Server request failed'}`, 'error');
     } finally {
       setGoLiveLoading(false);
       setGoLiveCreative(null);

@@ -45,7 +45,10 @@ export default function ViewBannerPage() {
       setBannerName('ST Spares Banner 1');
     }
 
-    if (bannerId.startsWith('banner-')) {
+    const rawId = bannerId.replace('banner-', '');
+    const isRealDbBanner = /^\d+$/.test(rawId);
+
+    if (!isRealDbBanner) {
       return;
     }
 
