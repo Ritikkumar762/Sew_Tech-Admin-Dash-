@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useMechanics } from '../_hooks/useMechanics';
 import { useRouter } from 'next/navigation';
 import PageHeader from '@/components/ui/PageHeader';
@@ -24,9 +24,16 @@ export default function MechanicPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  // Filter drawer states
+  const [selectedCities, setSelectedCities] = useState<string[]>([]);
+  const [citySearchQuery, setCitySearchQuery] = useState('');
+  const [selectedRatings, setSelectedRatings] = useState<string[]>([]);
+  const [selectedJobRanges, setSelectedJobRanges] = useState<string[]>([]);
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, statusFilter]);
+  }, [search, statusFilter, selectedCities, selectedRatings, selectedJobRanges, selectedStatuses]);
 
   const { mechanics, loading, error, refetch, updateMechanicStatus, metrics } = useMechanics();
   const router = useRouter();
@@ -76,8 +83,62 @@ export default function MechanicPage() {
     return () => clearTimeout(timer);
   }, [search, statusFilter, refetch]);
 
+  const availableCities = useMemo(() => {
+    const defaults = ['Delhi NCR', 'Bangalore', 'Gujarat', 'Mumbai', 'Hyderabad', 'Chennai', 'Kolkata', 'Pune', 'Ahmedabad', 'Jaipur', 'Surat', 'Lucknow'];
+    const extracted = mechanics.map((m: any) => m.location || m.city).filter(Boolean);
+    return Array.from(new Set([...defaults, ...extracted])).sort();
+  }, [mechanics]);
 
-  const displayMechanics = mechanics;
+  const filteredCities = useMemo(() => {
+    if (!citySearchQuery) return availableCities;
+    return availableCities.filter(c => c.toLowerCase().includes(citySearchQuery.toLowerCase()));
+  }, [availableCities, citySearchQuery]);
+
+  const filteredMechanics = useMemo(() => {
+    return mechanics.filter(m => {
+      // 1. City Filter
+      if (selectedCities.length > 0) {
+        const city = (m.location || (m as any).city || '').toLowerCase();
+        const matchCity = selectedCities.some(sc => city.includes(sc.toLowerCase()) || sc.toLowerCase().includes(city));
+        if (!matchCity) return false;
+      }
+
+      // 2. Rating Filter
+      if (selectedRatings.length > 0) {
+        const rating = Number(m.rating ?? 4.5);
+        const matchRating = selectedRatings.some(r => {
+          if (r === '> 2') return rating > 2;
+          if (r === '3-5') return rating >= 3 && rating <= 5;
+          if (r === '> 4') return rating > 4;
+          return true;
+        });
+        if (!matchRating) return false;
+      }
+
+      // 3. Jobs Completed Filter
+      if (selectedJobRanges.length > 0) {
+        const jobs = Number((m as any).completedJobs ?? (m as any).jobsCount ?? (m as any).experienceYears ?? 15);
+        const matchJobs = selectedJobRanges.some(j => {
+          if (j === '< 10') return jobs < 10;
+          if (j === '10-50') return jobs >= 10 && jobs <= 50;
+          if (j === '> 50') return jobs > 50;
+          return true;
+        });
+        if (!matchJobs) return false;
+      }
+
+      // 4. Status Filter
+      if (selectedStatuses.length > 0) {
+        const status = (m.status || '').toLowerCase().replace(/_/g, ' ');
+        const matchStatus = selectedStatuses.some(s => status.includes(s.toLowerCase()));
+        if (!matchStatus) return false;
+      }
+
+      return true;
+    });
+  }, [mechanics, selectedCities, selectedRatings, selectedJobRanges, selectedStatuses]);
+
+  const displayMechanics = filteredMechanics;
   const totalPages = Math.ceil(displayMechanics.length / rowsPerPage);
   const displayedMechanics = displayMechanics.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
@@ -735,6 +796,11 @@ export default function MechanicPage() {
                   cursor: 'pointer'
                 }}
                 onClick={() => {
+                  setSelectedCities([]);
+                  setCitySearchQuery('');
+                  setSelectedRatings([]);
+                  setSelectedJobRanges([]);
+                  setSelectedStatuses([]);
                   setStatusFilter('');
                   setSearch('');
                   setIsFilterOpen(false);
@@ -754,15 +820,63 @@ export default function MechanicPage() {
                   <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937' }}>City</span>
                   <ChevronDown size={14} color="#6b7280" />
                 </div>
-                <div style={{ position: 'relative', marginBottom: '1rem' }}>
-                  <select style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', appearance: 'none', outline: 'none', color: '#6b7280', fontSize: '0.8125rem', backgroundColor: 'white' }}>
-                    <option>Select City</option>
+                
+                {/* Searchable City Input */}
+                <div style={{ position: 'relative', marginBottom: '0.5rem' }}>
+                  <input
+                    type="text"
+                    placeholder="Search city..."
+                    value={citySearchQuery}
+                    onChange={(e) => setCitySearchQuery(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.4rem 0.75rem',
+                      borderRadius: '0.375rem',
+                      border: '1px solid #e5e7eb',
+                      fontSize: '0.8125rem',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div style={{ position: 'relative', marginBottom: '0.75rem' }}>
+                  <select 
+                    value="" 
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val && !selectedCities.includes(val)) {
+                        setSelectedCities(prev => [...prev, val]);
+                      }
+                    }}
+                    style={{ 
+                      width: '100%', 
+                      padding: '0.5rem 0.75rem', 
+                      borderRadius: '0.5rem', 
+                      border: '1px solid #e5e7eb', 
+                      appearance: 'none', 
+                      outline: 'none', 
+                      color: '#374151', 
+                      fontSize: '0.8125rem', 
+                      backgroundColor: 'white',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <option value="">Select City ({filteredCities.length} available)</option>
+                    {filteredCities.map(city => (
+                      <option key={city} value={city}>{city}</option>
+                    ))}
                   </select>
                   <ChevronDown size={14} color="#6b7280" style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
                 </div>
+
+                {/* Selected City Pills */}
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {['Delhi NCR', 'Bangalore', 'Gujarat'].map(city => (
-                    <div key={city} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', border: '1px solid #bfdbfe', borderRadius: '1rem', fontSize: '0.75rem', color: '#3b82f6', backgroundColor: '#eff6ff' }}>
+                  {selectedCities.map(city => (
+                    <div 
+                      key={city} 
+                      onClick={() => setSelectedCities(prev => prev.filter(c => c !== city))}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', border: '1px solid #bfdbfe', borderRadius: '1rem', fontSize: '0.75rem', color: '#3b82f6', backgroundColor: '#eff6ff', cursor: 'pointer' }}
+                    >
                       {city}
                       <XCircle size={12} />
                     </div>
@@ -779,7 +893,14 @@ export default function MechanicPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                   {['> 2', '3-5', '> 4'].map(rating => (
                     <label key={rating} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#4b5563', cursor: 'pointer' }}>
-                      <input type="checkbox" style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }} />
+                      <input 
+                        type="checkbox" 
+                        checked={selectedRatings.includes(rating)}
+                        onChange={() => {
+                          setSelectedRatings(prev => prev.includes(rating) ? prev.filter(r => r !== rating) : [...prev, rating]);
+                        }}
+                        style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }} 
+                      />
                       {rating}
                     </label>
                   ))}
@@ -795,7 +916,14 @@ export default function MechanicPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                   {['< 10', '10-50', '> 50'].map(jobs => (
                     <label key={jobs} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#4b5563', cursor: 'pointer' }}>
-                      <input type="checkbox" style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }} />
+                      <input 
+                        type="checkbox" 
+                        checked={selectedJobRanges.includes(jobs)}
+                        onChange={() => {
+                          setSelectedJobRanges(prev => prev.includes(jobs) ? prev.filter(j => j !== jobs) : [...prev, jobs]);
+                        }}
+                        style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }} 
+                      />
                       {jobs}
                     </label>
                   ))}
@@ -809,13 +937,14 @@ export default function MechanicPage() {
                   <ChevronDown size={14} color="#6b7280" />
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {['Bid Live', 'Under Review', 'Services Paused', 'Suspended'].map(status => (
-                    <label key={status} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8125rem', color: '#4b5563', cursor: 'pointer', padding: '0.25rem 0.5rem', border: '1px solid #e5e7eb', borderRadius: '0.375rem', backgroundColor: statusFilter === status ? '#eff6ff' : 'white' }}>
+                  {['Active', 'Under Review', 'Services Paused', 'Suspended'].map(status => (
+                    <label key={status} style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8125rem', color: '#4b5563', cursor: 'pointer', padding: '0.25rem 0.5rem', border: selectedStatuses.includes(status) ? '1px solid #3b82f6' : '1px solid #e5e7eb', borderRadius: '0.375rem', backgroundColor: selectedStatuses.includes(status) ? '#eff6ff' : 'white' }}>
                       <input 
-                        type="radio" 
-                        name="filter_status" 
-                        checked={statusFilter === status}
-                        onChange={() => setStatusFilter(statusFilter === status ? '' : status)}
+                        type="checkbox" 
+                        checked={selectedStatuses.includes(status)}
+                        onChange={() => {
+                          setSelectedStatuses(prev => prev.includes(status) ? prev.filter(s => s !== status) : [...prev, status]);
+                        }}
                         style={{ accentColor: '#3b82f6', width: '14px', height: '14px' }} 
                       />
                       {status}
@@ -824,28 +953,26 @@ export default function MechanicPage() {
                 </div>
               </div>
 
-              {/* Last Active Filter */}
-              <div style={{ backgroundColor: '#f9fafb', borderRadius: '0.75rem', padding: '1.25rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                  <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937' }}>Last Active</span>
-                  <ChevronDown size={14} color="#6b7280" />
-                </div>
-                <div style={{ position: 'relative', marginBottom: '1rem' }}>
-                  <select style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb', appearance: 'none', outline: 'none', color: '#6b7280', fontSize: '0.8125rem', backgroundColor: 'white' }}>
-                    <option>Select City</option>
-                  </select>
-                  <ChevronDown size={14} color="#6b7280" style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} />
-                </div>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {['Delhi NCR', 'Bangalore', 'Gujarat'].map(city => (
-                    <div key={city} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem 0.5rem', border: '1px solid #bfdbfe', borderRadius: '1rem', fontSize: '0.75rem', color: '#3b82f6', backgroundColor: '#eff6ff' }}>
-                      {city}
-                      <XCircle size={12} />
-                    </div>
-                  ))}
-                </div>
-              </div>
+            </div>
 
+            {/* Drawer Footer / Apply Button */}
+            <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #f3f4f6', backgroundColor: '#ffffff', display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => setIsFilterOpen(false)}
+                style={{
+                  flex: 1,
+                  padding: '0.625rem',
+                  backgroundColor: '#0f172a',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '0.5rem',
+                  fontWeight: 600,
+                  fontSize: '0.875rem',
+                  cursor: 'pointer'
+                }}
+              >
+                Apply Filters
+              </button>
             </div>
           </div>
           <style>{`

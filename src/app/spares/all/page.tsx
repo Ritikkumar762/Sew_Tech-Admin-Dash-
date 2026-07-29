@@ -9,7 +9,7 @@ import { SpareProduct, FilterState } from '@/components/products-inventory/Types
 import { AddSpareModal } from '@/components/products-inventory/AddSpareModal';
 import { BulkUploadFlow } from '@/components/products-inventory/BulkUploadFlow';
 import { useRouter } from 'next/navigation';
-import { apiClient } from '@/lib/api';
+import { apiClient, exportToCSV } from '@/lib/api';
 import { ENDPOINTS } from '@/lib/endpoints';
 
 const INITIAL_FILTERS: FilterState = {
@@ -182,25 +182,57 @@ export default function ProductsInventoryPage() {
     fetchDashboardStats();
 
     // Fetch dynamic categories and brands from backend
-    apiClient.get<any>(`${ENDPOINTS.mart.categories}?root_only=false`)
-      .then(res => {
-        const catItems = res?.data || res?.items || (Array.isArray(res) ? res : []);
-        if (Array.isArray(catItems) && catItems.length > 0) {
-          const names = catItems.map((c: any) => c.name || c.category_name).filter(Boolean);
-          setCategoriesList(prev => Array.from(new Set([...prev, ...names])));
-        }
-      })
-      .catch(e => console.warn('Categories API fetch error:', e));
+    const loadAllCategoriesAndBrands = async () => {
+      const extractedCatNames = new Set<string>();
+      const extractedBrandNames = new Set<string>();
 
-    apiClient.get<any>(ENDPOINTS.mart.brands)
-      .then(res => {
-        const brandItems = res?.data || res?.items || (Array.isArray(res) ? res : []);
-        if (Array.isArray(brandItems) && brandItems.length > 0) {
-          const names = brandItems.map((b: any) => b.name || b.brand_name).filter(Boolean);
-          setBrandsList(prev => Array.from(new Set([...prev, ...names])));
+      const addCategoryName = (c: any) => {
+        if (!c) return;
+        if (typeof c === 'string' && c.trim()) extractedCatNames.add(c.trim());
+        if (typeof c === 'object') {
+          if (c.name && typeof c.name === 'string') extractedCatNames.add(c.name.trim());
+          if (c.category_name && typeof c.category_name === 'string') extractedCatNames.add(c.category_name.trim());
+          if (Array.isArray(c.children)) c.children.forEach(addCategoryName);
+          if (Array.isArray(c.subcategories)) c.subcategories.forEach(addCategoryName);
         }
-      })
-      .catch(e => console.warn('Brands API fetch error:', e));
+      };
+
+      const addBrandName = (b: any) => {
+        if (!b) return;
+        if (typeof b === 'string' && b.trim()) extractedBrandNames.add(b.trim());
+        if (typeof b === 'object') {
+          if (b.name && typeof b.name === 'string') extractedBrandNames.add(b.name.trim());
+          if (b.brand_name && typeof b.brand_name === 'string') extractedBrandNames.add(b.brand_name.trim());
+        }
+      };
+
+      try {
+        const resMart = await apiClient.get<any>(`${ENDPOINTS.mart.categories}?root_only=false`).catch(() => null);
+        const martCats = resMart?.data || resMart?.items || (Array.isArray(resMart) ? resMart : []);
+        if (Array.isArray(martCats)) martCats.forEach(addCategoryName);
+      } catch (e) { console.warn('Mart categories fetch error:', e); }
+
+      try {
+        const resMdm = await apiClient.get<any>(ENDPOINTS.mdm.categories).catch(() => null);
+        const mdmCats = resMdm?.data || resMdm?.items || (Array.isArray(resMdm) ? resMdm : []);
+        if (Array.isArray(mdmCats)) mdmCats.forEach(addCategoryName);
+      } catch (e) { console.warn('Mdm categories fetch error:', e); }
+
+      try {
+        const resBrands = await apiClient.get<any>(ENDPOINTS.mart.brands).catch(() => null);
+        const brandItems = resBrands?.data || resBrands?.items || (Array.isArray(resBrands) ? resBrands : []);
+        if (Array.isArray(brandItems)) brandItems.forEach(addBrandName);
+      } catch (e) { console.warn('Brands API fetch error:', e); }
+
+      if (extractedCatNames.size > 0) {
+        setCategoriesList(prev => Array.from(new Set([...prev, ...Array.from(extractedCatNames)])));
+      }
+      if (extractedBrandNames.size > 0) {
+        setBrandsList(prev => Array.from(new Set([...prev, ...Array.from(extractedBrandNames)])));
+      }
+    };
+
+    loadAllCategoriesAndBrands();
   }, []);
 
   const handleSelect = (id: string) => {
@@ -330,6 +362,76 @@ export default function ProductsInventoryPage() {
     },
   ];
 
+  const handleExportExcel = async () => {
+    try {
+      const res = await apiClient.get<any>(`${ENDPOINTS.spares.inventory}?skip=0&limit=1000`);
+      let items: any[] = [];
+      if (res?.data?.items && Array.isArray(res.data.items)) {
+        items = res.data.items;
+      } else if (res?.items && Array.isArray(res.items)) {
+        items = res.items;
+      } else if (res?.data && Array.isArray(res.data)) {
+        items = res.data;
+      } else if (Array.isArray(res)) {
+        items = res;
+      } else {
+        items = data;
+      }
+
+      if (!items || items.length === 0) {
+        alert("No product data available to export.");
+        return;
+      }
+
+      const exportRows = items.map((item: any) => {
+        const variants = item.variants || [];
+        const stock = variants.length > 0
+          ? variants.reduce((sum: number, v: any) => sum + Number(v.stock_quantity || 0), 0)
+          : Number(item.stock_quantity || 0);
+
+        const listPrice = Number(item.price || 0);
+        const sellingPrice = (item.discount_price && Number(item.discount_price) > 0)
+          ? Number(item.discount_price)
+          : listPrice;
+
+        return {
+          "Product ID": item.product_id || item.id || '',
+          "SKU": item.sku || '',
+          "Spare Name": item.name || '',
+          "Category": (typeof item.category === 'object' ? item.category?.name : item.category) || 'General',
+          "Brand": (typeof item.brand === 'object' ? item.brand?.name : item.brand) || '',
+          "Selling Price (₹)": sellingPrice,
+          "List Price (₹)": listPrice,
+          "Stock Quantity": stock,
+          "Stock Status": stock > 0 ? 'In-Stock' : 'Out of Stock',
+          "Visibility Status": item.status || 'DRAFT',
+          "Description": item.description || ''
+        };
+      });
+
+      const fileName = `spares_inventory_export_${new Date().toISOString().slice(0, 10)}`;
+      exportToCSV(fileName, exportRows);
+    } catch (err) {
+      console.error("Export failed, falling back to local data:", err);
+      if (data.length > 0) {
+        const fallbackRows = data.map(item => ({
+          "Product ID": item.id,
+          "SKU": item.sku,
+          "Spare Name": item.name,
+          "Category": item.category,
+          "Brand": item.brand || '',
+          "Price (₹)": item.priceMin,
+          "Stock": item.stock,
+          "Stock Status": item.stockStatus,
+          "Visibility": item.visibility
+        }));
+        exportToCSV(`spares_inventory_export_${new Date().toISOString().slice(0, 10)}`, fallbackRows);
+      } else {
+        alert("Failed to export products data.");
+      }
+    }
+  };
+
   return (
     <>
       <div className={styles.pageContainer}>
@@ -363,7 +465,13 @@ export default function ProductsInventoryPage() {
                 </svg>
                 Add Spare
               </button>
-              <button style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+              <button 
+                onClick={handleExportExcel}
+                title="Export all products data to Excel"
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', transition: 'transform 0.2s' }}
+                onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.03)'}
+                onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+              >
                 <img src="/Export button _logo.svg" alt="Export" style={{ width: '112px', height: '40px', display: 'block' }} />
               </button>
             </div>

@@ -65,8 +65,32 @@ const INITIAL_DISPUTES: Dispute[] = [
   }
 ];
 
+const exportToCSV = (filename: string, rows: Record<string, unknown>[]) => {
+  if (!rows || rows.length === 0) return;
+  const headers = Object.keys(rows[0]);
+  const csvRows = [
+    headers.join(','),
+    ...rows.map(row => headers.map(header => {
+      const value = row[header];
+      const text = value === null || value === undefined ? '' : String(value);
+      return `"${text.replace(/"/g, '""')}"`;
+    }).join(','))
+  ];
+  const blob = new Blob([csvRows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', `${filename}.csv`);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 export default function SupportPage() {
   const router = useRouter();
+  const showUnderProgressOnly = false;
   const [activeModuleTab, setActiveModuleTab] = useState<'Sewtech Spare' | 'Sewtech Mechanic' | 'System Architecture & APIs'>('Sewtech Spare');
   const [activeStatusTab, setActiveStatusTab] = useState<'Ongoing' | 'Resolved'>('Ongoing');
   
@@ -189,24 +213,16 @@ export default function SupportPage() {
 
   const handleExport = async () => {
     try {
-      const headers = ['Dispute ID', 'Raised By', 'Role / Type', 'Date', 'Related Entity', 'Issue Type', 'Status'];
-      const rows = disputes.map(d => [
-        `"${d.disputeId}"`,
-        `"${d.raisedByName}"`,
-        `"${d.raisedByType}"`,
-        `"${d.date}"`,
-        `"${d.relatedEntity}"`,
-        `"${d.issueType}"`,
-        `"${d.status}"`
-      ]);
-      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-      const encodedUri = encodeURI(csvContent);
-      const link = document.createElement('a');
-      link.setAttribute('href', encodedUri);
-      link.setAttribute('download', `disputes_export_${Date.now()}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      const rows = disputes.map(d => ({
+        'Dispute ID': d.disputeId,
+        'Raised By': d.raisedByName,
+        'Role / Type': d.raisedByType,
+        'Date': d.date,
+        'Related Entity': d.relatedEntity,
+        'Issue Type': d.issueType,
+        'Status': d.status
+      }));
+      exportToCSV(`disputes_export_${Date.now()}`, rows);
     } catch (err) {
       alert('Failed to export disputes data.');
     }
@@ -231,6 +247,90 @@ export default function SupportPage() {
   const filteredDisputes = moduleDisputes.filter(disp => 
     activeStatusTab === 'Ongoing' ? !isTerminalState(disp.status) : isTerminalState(disp.status)
   );
+
+  if (showUnderProgressOnly) {
+    return (
+      <div style={{ padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        <style>{`
+          .animate-btn { transition: all 0.2s ease; }
+          .animate-btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
+          .animate-btn:active { transform: translateY(1px); }
+        `}</style>
+
+        {/* Top Header Row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>Support & Disputes</h1>
+              <span style={{
+                background: '#fef3c7',
+                color: '#d97706',
+                border: '1px solid #fde68a',
+                padding: '3px 10px',
+                borderRadius: '9999px',
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}>
+                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#d97706', display: 'inline-block' }}></span>
+                Under Progress
+              </span>
+            </div>
+            <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem' }}>
+              Payments & Resolutions
+            </div>
+          </div>
+          
+          <button 
+            onClick={handleExport}
+            style={{ background: '#111827', color: '#fff', border: 'none', padding: '0.6rem 1.4rem', borderRadius: '0.5rem', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+            className="animate-btn"
+          >
+            Export
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          </button>
+        </div>
+
+        {/* Under Progress Banner */}
+        <div style={{
+          background: 'linear-gradient(135deg, #fffbe0 0%, #fef9c3 100%)',
+          border: '1px solid #fde047',
+          borderRadius: '0.75rem',
+          padding: '0.875rem 1.25rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.875rem',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+        }}>
+          <div style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '50%',
+            background: '#fef08a',
+            color: '#a16207',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontSize: '0.925rem', fontWeight: 700, color: '#854d0e', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              Support & Dispute Page — Under Progress
+            </div>
+            <div style={{ fontSize: '0.825rem', color: '#a16207', marginTop: '2px' }}>
+              This page is currently under development. All features and data shown below are preview mode.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ padding: '0.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', animation: 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}>
@@ -293,7 +393,24 @@ export default function SupportPage() {
       {/* Top Header Row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>Support & Disputes</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>Support & Disputes</h1>
+            <span style={{
+              background: '#fef3c7',
+              color: '#d97706',
+              border: '1px solid #fde68a',
+              padding: '3px 10px',
+              borderRadius: '9999px',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#d97706', display: 'inline-block' }}></span>
+              Under Progress
+            </span>
+          </div>
           <div style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '0.25rem' }}>
             Payments & Resolutions
           </div>
@@ -307,6 +424,42 @@ export default function SupportPage() {
           Export
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </button>
+      </div>
+
+      {/* Under Progress Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #fffbe0 0%, #fef9c3 100%)',
+        border: '1px solid #fde047',
+        borderRadius: '0.75rem',
+        padding: '0.875rem 1.25rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.875rem',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.03)'
+      }}>
+        <div style={{
+          width: '36px',
+          height: '36px',
+          borderRadius: '50%',
+          background: '#fef08a',
+          color: '#a16207',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0
+        }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+          </svg>
+        </div>
+        <div>
+          <div style={{ fontSize: '0.925rem', fontWeight: 700, color: '#854d0e', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            Support & Dispute Page — Under Progress
+          </div>
+          <div style={{ fontSize: '0.825rem', color: '#a16207', marginTop: '2px' }}>
+            This page is currently under development. All features and data shown below are preview mode.
+          </div>
+        </div>
       </div>
 
       {/* KPI Stats Grid Row */}
@@ -710,8 +863,10 @@ export default function SupportPage() {
         </div>
 
       </div>
-        </>
-      )}
-    </div>
+    </>
+  )}
+</div>
   );
 }
+
+
