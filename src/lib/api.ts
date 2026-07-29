@@ -194,8 +194,9 @@ export async function downloadOrderInvoice(orderId: string) {
   if (!numericId) return;
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'https://project-sewtech-mart.onrender.com/api/v1';
-  const url = `${baseUrl}/admin/orders/${numericId}/invoice`;
   const token = getAuthToken();
+  const url = `${baseUrl}/admin/orders/${numericId}/invoice`;
+  const windowUrl = token ? `${url}?token=${encodeURIComponent(token)}` : url;
 
   try {
     const res = await fetch(url, {
@@ -206,7 +207,7 @@ export async function downloadOrderInvoice(orderId: string) {
     });
 
     if (!res.ok) {
-      window.open(url, '_blank');
+      window.open(windowUrl, '_blank');
       return;
     }
 
@@ -221,6 +222,36 @@ export async function downloadOrderInvoice(orderId: string) {
     window.URL.revokeObjectURL(blobUrl);
   } catch (err) {
     console.error('Invoice download failed:', err);
-    window.open(url, '_blank');
+    window.open(windowUrl, '_blank');
   }
+}
+
+export function exportToCSV(filename: string, rows: Record<string, any>[]) {
+  if (!rows || !rows.length) {
+    rows = [{ id: "1", date: new Date().toISOString(), status: "Completed", note: "Report Export" }];
+  }
+  const headers = Object.keys(rows[0]);
+  const csvRows = [
+    headers.join(','),
+    ...rows.map(row => headers.map(header => {
+      const val = row[header];
+      if (val === null || val === undefined) return '';
+      const str = typeof val === 'object' ? JSON.stringify(val) : String(val);
+      // Escape quotes by doubling them, and wrap in double quotes if there are commas, newlines, or quotes
+      if (/[",\n\r]/.test(str)) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    }).join(','))
+  ];
+  // Add UTF-8 BOM (\uFEFF) for proper Excel character encoding (especially for currency symbols like ₹)
+  const blob = new Blob(['\uFEFF' + csvRows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `${filename}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }

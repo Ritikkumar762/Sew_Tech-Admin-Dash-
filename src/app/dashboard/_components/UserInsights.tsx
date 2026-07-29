@@ -99,54 +99,52 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
           >
             <h3 className={styles.cardTitle}>{donut.label}</h3>
             
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1, flexWrap: 'wrap', gap: '10px' }}>
-              <div className={styles.userDonutContainerBox}>
-                <div className={styles.userDonutWrapper} style={{ width: 151, height: 151 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie 
-                        data={donut.data} 
-                        cx="50%" 
-                        cy="50%" 
-                        innerRadius={36} 
-                        outerRadius={56} 
-                        dataKey="value" 
-                        startAngle={90} 
-                        endAngle={-270}
-                        label={renderCustomizedLabel}
-                        labelLine={false}
-                        stroke="none"
-                      >
-                        {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#ffffff', 
-                          border: '1px solid #e5e7eb', 
-                          borderRadius: '8px', 
-                          boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                          fontSize: '12px',
-                          padding: '6px 10px'
-                        }}
-                        itemStyle={{
-                          color: '#1f2937',
-                          fontWeight: 500
-                        }}
-                        wrapperStyle={{ zIndex: 1000 }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div className={styles.donutCenter}>
-                    <div className={styles.donutTotal} style={{ fontSize: '0.9rem', fontWeight: 800 }}>{donut.centerValue}</div>
-                    <div className={styles.donutSub} style={{ fontSize: '0.6rem' }}>{donut.centerLabel}</div>
-                  </div>
+            <div className={styles.userDonutContainerBox}>
+              <div className={styles.userDonutWrapper} style={{ width: 140, height: 140, flexShrink: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie 
+                      data={donut.data} 
+                      cx="50%" 
+                      cy="50%" 
+                      innerRadius={36} 
+                      outerRadius={56} 
+                      dataKey="value" 
+                      startAngle={90} 
+                      endAngle={-270}
+                      label={renderCustomizedLabel}
+                      labelLine={false}
+                      stroke="none"
+                    >
+                      {donut.data.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#ffffff', 
+                        border: '1px solid #e5e7eb', 
+                        borderRadius: '8px', 
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                        fontSize: '12px',
+                        padding: '6px 10px'
+                      }}
+                      itemStyle={{
+                        color: '#1f2937',
+                        fontWeight: 500
+                      }}
+                      wrapperStyle={{ zIndex: 1000 }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className={styles.donutCenter}>
+                  <div className={styles.donutTotal} style={{ fontSize: '0.9rem', fontWeight: 800 }}>{donut.centerValue}</div>
+                  <div className={styles.donutSub} style={{ fontSize: '0.6rem' }}>{donut.centerLabel}</div>
                 </div>
               </div>
               
               {/* Custom Legend */}
-              <div style={{ flexShrink: 0, minWidth: '118px', paddingLeft: '21.49px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.4rem', paddingLeft: '4px' }}>
                 {donut.data.map(d => (
-                  <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#4b5563', whiteSpace: 'nowrap' }}>
+                  <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: '#4b5563', whiteSpace: 'nowrap' }}>
                     <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
                     {d.name}
                   </div>

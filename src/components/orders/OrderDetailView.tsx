@@ -1294,7 +1294,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         {/* ══════════════════════════════════
             QUOTES TAB
         ══════════════════════════════════ */}
-        {activeTab === 'quotes' && (
+        {activeTab === 'quotes' && isInviteQuote && (
           <div style={{ padding: '1.5rem', animation: 'odFade .3s ease' }}>
             {/* Search Quote Bar */}
             <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem' }}>

@@ -177,6 +177,7 @@ export const ENDPOINTS = {
     sellers: `${BASE_URL}/admin/sellers`,
     products: `${BASE_URL}/admin/products`,
     productStatus: (id: string) => `${BASE_URL}/admin/products/${id}/status`,
+    productTags: (id: string) => `${BASE_URL}/admin/products/${id}/tags`,
   },
   
   seller: {

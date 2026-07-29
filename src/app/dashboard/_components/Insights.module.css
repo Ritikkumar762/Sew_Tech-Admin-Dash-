@@ -20,11 +20,13 @@
   position: relative;
   background-color: rgba(242, 243, 247, 0.8);
   border-radius: 13.79px;
-  width: 151.01px;
-  height: 151.01px;
+  width: 100%;
+  height: 190px;
   display: flex;
-  justify-content: center;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
+  padding: 10px 14px;
   box-sizing: border-box;
 }
 .userDonutWrapper {

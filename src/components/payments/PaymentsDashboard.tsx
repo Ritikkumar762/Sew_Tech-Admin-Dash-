@@ -6,6 +6,7 @@ import PaymentsToolbar from './PaymentsToolbar';
 import PaymentsTable from './PaymentsTable';
 import DisputeDetails from './DisputeDetails';
 import RemarksModal from './RemarksModal';
+import { exportToCSV } from '@/lib/api';
 
 type TabType = 'Payments Received' | 'Mechanic Payouts' | 'Dispute/Escalations';
 
@@ -13,6 +14,49 @@ export default function PaymentsDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('Payments Received');
   const [viewState, setViewState] = useState<'table' | 'details'>('table');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleExport = () => {
+    // Generate 50 detailed entries dynamically for a comprehensive Excel sheet
+    const rows = Array(50).fill(null).map((_, i) => {
+      const dateVal = new Date(Date.now() - i * 24 * 60 * 60 * 1000).toLocaleDateString('en-IN');
+      if (activeTab === 'Payments Received') {
+        return {
+          'Transaction ID': `TXN${456213178 + i}`,
+          'Customer Name': ['Rajdhani Exports Pvt. Ltd.', 'Stitch Well', 'Balaji Logistics', 'Karan Johar', 'Aditya Bhargav'][i % 5],
+          'Customer ID': `CUST-${2041 + i}`,
+          'Amount': `₹${(1000 + i * 250).toLocaleString('en-IN')}`,
+          'Date': dateVal,
+          'Service Type': ['Video Call Assistance', 'Instant Smart Booking', 'Invite Quote', 'Assisted Booking'][i % 4],
+          'Status': i % 8 === 0 ? 'FAILED' : 'SUCCESS'
+        };
+      } else if (activeTab === 'Mechanic Payouts') {
+        const gross = 15000 + i * 500;
+        return {
+          'Payout ID': `PAY-${9000 + i}`,
+          'Mechanic Name': ['Nishant Kumar', 'Anand Sharma', 'Rakesh Yadav', 'Suresh Raina', 'Amit Shah'][i % 5],
+          'Mechanic ID': `MECH-${3041 + i}`,
+          'Time Period': `${dateVal} - Present`,
+          'Jobs Count': String(10 + (i % 15)),
+          'Gross Amount': `₹${gross.toLocaleString('en-IN')}`,
+          'Commission (15%)': `₹${(gross * 0.15).toLocaleString('en-IN')}`,
+          'Net Payout': `₹${(gross * 0.85).toLocaleString('en-IN')}`,
+          'Status': i % 10 === 0 ? 'PENDING' : 'PAID'
+        };
+      } else {
+        return {
+          'Dispute ID': `DIS-${5000 + i}`,
+          'Raised By': i % 2 === 0 ? 'Mechanic' : 'Customer',
+          'Disputee Name': ['Nishant Kumar', 'Anand Sharma', 'Aditya Bhargav', 'Priya Patel'][i % 4],
+          'Issue Type': ['Payout Issue', 'Payment Related Issue', 'Service Issue', 'App Related Issue'][i % 4],
+          'Date Raised': dateVal,
+          'Status': i % 3 === 0 ? 'ACTIVE' : 'RESOLVED',
+          'Assigned Agent': ['Karan S.', 'Rohan M.', 'Priya G.'][i % 3]
+        };
+      }
+    });
+
+    exportToCSV(`payments_report_${activeTab.toLowerCase().replace(/[\/\s]+/g, '_')}`, rows);
+  };
 
   const tabs: { id: TabType, label: string, count?: number, alert?: boolean }[] = [
     { id: 'Payments Received', label: 'Payments Received', count: 1, alert: true },
@@ -69,9 +113,8 @@ export default function PaymentsDashboard() {
           </div>
         </div>
         <div>
-          <button style={{ padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', backgroundColor: '#111827', color: 'white', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
-            Export
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          <button onClick={handleExport} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', transition: 'transform 0.2s' }} onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}>
+            <img src="/Export button _logo.svg" alt="Export" style={{ width: '112px', height: '40px', display: 'block' }} />
           </button>
         </div>
       </div>

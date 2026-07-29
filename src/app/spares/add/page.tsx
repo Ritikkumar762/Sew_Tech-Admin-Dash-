@@ -5,6 +5,46 @@ import { useRouter } from 'next/navigation';
 import { apiClient } from '@/lib/api';
 import { ENDPOINTS } from '@/lib/endpoints';
 
+const DEFAULT_CATEGORIES = [
+  { category_id: 1, name: 'Rotary Hook' },
+  { category_id: 2, name: 'Needles' },
+  { category_id: 3, name: 'Hookset' },
+  { category_id: 4, name: 'Knives' },
+  { category_id: 5, name: 'Presser Feet' },
+  { category_id: 6, name: 'Bobbins' },
+  { category_id: 7, name: 'Sewing Machines' },
+  { category_id: 8, name: 'Motors & Drives' },
+  { category_id: 9, name: 'Needles & Pins' },
+  { category_id: 10, name: 'Maintenance Kits' },
+  { category_id: 11, name: 'Servo Motors' },
+  { category_id: 12, name: 'Electronics' },
+  { category_id: 13, name: 'Leather Needles' },
+  { category_id: 14, name: 'Home Appliances' },
+  { category_id: 15, name: 'Industrial Sewing' },
+  { category_id: 16, name: 'Car Spares' },
+  { category_id: 17, name: 'Clutch Motors' },
+  { category_id: 18, name: 'Thread & Yarn' },
+  { category_id: 19, name: 'Threads' },
+  { category_id: 20, name: 'Bobbins & Cases' },
+  { category_id: 21, name: 'Lubrication Oils' },
+];
+
+const DEFAULT_TAGS = [
+  { tag_id: 1, name: 'Rotary Hook' },
+  { tag_id: 2, name: 'Spare Part' },
+  { tag_id: 3, name: 'Lockstitch' },
+  { tag_id: 4, name: 'Heavy Duty' },
+  { tag_id: 5, name: 'Needle' },
+  { tag_id: 6, name: 'Bobbin' },
+  { tag_id: 7, name: 'Hookset' },
+  { tag_id: 8, name: 'Motor' },
+  { tag_id: 9, name: 'Knife' },
+  { tag_id: 10, name: 'Presser Foot' },
+  { tag_id: 11, name: 'Industrial' },
+  { tag_id: 12, name: 'Titanium' },
+  { tag_id: 13, name: 'Precision' },
+];
+
 export default function AddSparePage() {
   const router = useRouter();
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -18,25 +58,61 @@ export default function AddSparePage() {
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [brandsList, setBrandsList] = useState<any[]>([]);
   const [dbTagsList, setDbTagsList] = useState<any[]>([]);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(1);
+  const [selectedCategories, setSelectedCategories] = useState<{ category_id: number; name: string }[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<number>(5004);
-  const [material, setMaterial] = useState<string>('High-Carbon Steel');
+  const [material, setMaterial] = useState<string>('');
+  const [materialInput, setMaterialInput] = useState<string>('');
   const [warranty, setWarranty] = useState<string>('1 Yr');
   const [compatibility, setCompatibility] = useState<string>('Single Needle Lockstitch Machine');
-  const [tagsList, setTagsList] = useState<string[]>(['Rotary Hook', 'Spare Part']);
+  const [tagsList, setTagsList] = useState<string[]>([]);
   const [selectedTagIds, setSelectedTagIds] = useState<number[]>([]);
   const [newTagInput, setNewTagInput] = useState<string>('');
+  const [categorySearchInput, setCategorySearchInput] = useState<string>('');
+  const [isCategoryOpen, setIsCategoryOpen] = useState<boolean>(false);
+  const [isTagOpen, setIsTagOpen] = useState<boolean>(false);
+
+  const handleAddTag = async (tagName: string) => {
+    if (!tagName.trim() || tagsList.includes(tagName.trim())) return;
+    const cleanName = tagName.trim();
+    const allTags = dbTagsList.length > 0 ? dbTagsList : DEFAULT_TAGS;
+    const existing = allTags.find(
+      t => t.name.toLowerCase() === cleanName.toLowerCase()
+    );
+    
+    if (existing && existing.tag_id) {
+      setTagsList(prev => [...prev, existing.name]);
+      if (!selectedTagIds.includes(existing.tag_id)) {
+        setSelectedTagIds(prev => [...prev, existing.tag_id]);
+      }
+    } else {
+      try {
+        const res = await apiClient.post<any>(ENDPOINTS.mart.tags, {
+          name: cleanName,
+          tag_type: 'characteristic'
+        }).catch(() => null);
+        
+        const newTagObj = (res as any)?.data || res;
+        if (newTagObj && newTagObj.tag_id) {
+          setDbTagsList(prev => [...prev, newTagObj]);
+          setTagsList(prev => [...prev, newTagObj.name]);
+          setSelectedTagIds(prev => [...prev, newTagObj.tag_id]);
+        } else {
+          setTagsList(prev => [...prev, cleanName]);
+        }
+      } catch {
+        setTagsList(prev => [...prev, cleanName]);
+      }
+    }
+  };
 
   React.useEffect(() => {
     const fetchMasterData = async () => {
       try {
         const catRes = await apiClient.get<any>(`${ENDPOINTS.mart.categories}?root_only=false`).catch(() => null);
-        if (Array.isArray(catRes)) {
+        if (Array.isArray(catRes) && catRes.length > 0) {
           setCategoriesList(catRes);
-          if (catRes.length > 0) setSelectedCategoryId(catRes[0].category_id);
-        } else if (catRes?.data && Array.isArray(catRes.data)) {
+        } else if (catRes?.data && Array.isArray(catRes.data) && catRes.data.length > 0) {
           setCategoriesList(catRes.data);
-          if (catRes.data.length > 0) setSelectedCategoryId(catRes.data[0].category_id);
         }
       } catch { /* Silent fallback */ }
 
@@ -140,7 +216,7 @@ export default function AddSparePage() {
           price: Number(formData.price) || 1, // default to 1 to avoid <=0 errors
           discount_price: formData.sale_price ? Number(formData.sale_price) : undefined,
           stock_quantity: Number(formData.stock_quantity) || 0,
-          category_id: selectedCategoryId || 1,
+          category_id: selectedCategories.length > 0 ? selectedCategories[0].category_id : 1,
           brand_id: selectedBrandId || 5004,
           tag_ids: selectedTagIds.length > 0 ? selectedTagIds : (dbTagsList.length > 0 ? [dbTagsList[0].tag_id] : []),
           compatibility: [compatibility],
@@ -152,6 +228,7 @@ export default function AddSparePage() {
             "Item Weight": formData.weight ? `${formData.weight}g` : 'N/A',
             "Material": material,
             "Warranty": warranty,
+            "Category": selectedCategories.map(c => c.name).join(', '),
             "Tags": tagsList.join(', ')
           },
           images: uploadedImages.map((file, i) => ({
@@ -428,28 +505,92 @@ export default function AddSparePage() {
               </div>
             </div>
 
-            <div className={styles.formGroup}>
+            <div className={styles.formGroup} style={{ position: 'relative' }}>
               <label className={styles.label}>Category<span className={styles.required}>*</span></label>
-              <select 
-                className={styles.select}
-                value={selectedCategoryId}
-                onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
+              <div 
+                className={styles.tagsContainer} 
+                style={{ flexWrap: 'wrap', gap: '6px', minHeight: '42px', padding: '6px 12px', alignItems: 'center', cursor: 'text' }}
+                onClick={() => setIsCategoryOpen(true)}
               >
-                {categoriesList.length > 0 ? (
-                  categoriesList.map(cat => (
-                    <option key={cat.category_id} value={cat.category_id}>{cat.name}</option>
-                  ))
-                ) : (
-                  <>
-                    <option value={1}>Rotary Hook</option>
-                    <option value={2}>Needles</option>
-                    <option value={3}>Hookset</option>
-                    <option value={4}>Knives</option>
-                    <option value={5}>Presser Feet</option>
-                    <option value={6}>Bobbins</option>
-                  </>
-                )}
-              </select>
+                {selectedCategories.map((cat) => (
+                  <span key={cat.category_id} className={styles.tagPill}>
+                    {cat.name} 
+                    <span 
+                      className={styles.tagClose} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedCategories(selectedCategories.filter(c => c.category_id !== cat.category_id));
+                      }}
+                    >
+                      ×
+                    </span>
+                  </span>
+                ))}
+                
+                <input 
+                  type="text"
+                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.85rem', flex: 1, minWidth: '120px' }}
+                  placeholder={selectedCategories.length > 0 ? "+ Add category..." : "Search/select category..."}
+                  value={categorySearchInput}
+                  onChange={(e) => {
+                    setCategorySearchInput(e.target.value);
+                    setIsCategoryOpen(true);
+                  }}
+                  onFocus={() => setIsCategoryOpen(true)}
+                  onBlur={() => setTimeout(() => setIsCategoryOpen(false), 200)}
+                />
+              </div>
+
+              {isCategoryOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  zIndex: 1000,
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  marginTop: '4px'
+                }}>
+                  {(categoriesList.length > 0 ? categoriesList : DEFAULT_CATEGORIES)
+                    .filter(c => !selectedCategories.some(sc => Number(sc.category_id) === Number(c.category_id)))
+                    .filter(c => c.name.toLowerCase().includes(categorySearchInput.toLowerCase()))
+                    .map(cat => (
+                      <div
+                        key={cat.category_id}
+                        style={{
+                          padding: '8px 12px',
+                          fontSize: '0.85rem',
+                          color: '#374151',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #f3f4f6'
+                        }}
+                        onMouseDown={() => {
+                          setSelectedCategories([...selectedCategories, { category_id: Number(cat.category_id), name: cat.name }]);
+                          setCategorySearchInput('');
+                          setIsCategoryOpen(false);
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                      >
+                        {cat.name}
+                      </div>
+                    ))
+                  }
+                  {(categoriesList.length > 0 ? categoriesList : DEFAULT_CATEGORIES)
+                    .filter(c => !selectedCategories.some(sc => Number(sc.category_id) === Number(c.category_id)))
+                    .filter(c => c.name.toLowerCase().includes(categorySearchInput.toLowerCase())).length === 0 && (
+                      <div style={{ padding: '10px 12px', fontSize: '0.85rem', color: '#9ca3af', textAlign: 'center' }}>
+                        No matching categories
+                      </div>
+                    )
+                  }
+                </div>
+              )}
             </div>
 
             <div className={styles.formGroup} style={{ visibility: 'hidden' }}></div> {/* Spacer for grid layout */}
@@ -467,18 +608,13 @@ export default function AddSparePage() {
 
             <div className={styles.formGroup}>
               <label className={styles.label}>Material<span className={styles.required}>*</span></label>
-              <div className={styles.tagsContainer}>
-                {material ? (
-                  <span className={styles.tagPill}>{material} <span className={styles.tagClose} onClick={() => setMaterial('')}>×</span></span>
-                ) : null}
-                <input 
-                  type="text"
-                  style={{ border: 'none', outline: 'none', fontSize: '0.85rem', flex: 1, minWidth: '80px' }}
-                  placeholder="Enter material (e.g. High-Carbon Steel)..."
-                  value={material}
-                  onChange={(e) => setMaterial(e.target.value)}
-                />
-              </div>
+              <input 
+                type="text" 
+                className={styles.input}
+                value={material}
+                onChange={(e) => setMaterial(e.target.value)}
+                placeholder="High-Carbon Steel"
+              />
             </div>
 
             <div className={styles.formGroup}>
@@ -517,29 +653,110 @@ export default function AddSparePage() {
               </select>
             </div>
 
-            <div className={styles.formGroup}>
+            <div className={styles.formGroup} style={{ position: 'relative' }}>
               <label className={styles.label}>Tags</label>
-              <div className={styles.tagsContainer} style={{ flexWrap: 'wrap', gap: '6px' }}>
+              <div 
+                className={styles.tagsContainer} 
+                style={{ flexWrap: 'wrap', gap: '6px', minHeight: '42px', padding: '6px 12px', alignItems: 'center', cursor: 'text' }}
+                onClick={() => setIsTagOpen(true)}
+              >
                 {tagsList.map((tag, idx) => (
                   <span key={idx} className={styles.tagPill}>
-                    {tag} <span className={styles.tagClose} onClick={() => setTagsList(tagsList.filter((_, i) => i !== idx))}>×</span>
+                    {tag} 
+                    <span 
+                      className={styles.tagClose} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTagsList(tagsList.filter((_, i) => i !== idx));
+                      }}
+                    >
+                      ×
+                    </span>
                   </span>
                 ))}
+                
                 <input 
                   type="text"
-                  style={{ border: 'none', outline: 'none', fontSize: '0.85rem', width: '100px' }}
-                  placeholder="+ Add tag"
+                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.85rem', flex: 1, minWidth: '110px' }}
+                  placeholder={tagsList.length > 0 ? "+ Search/add tag..." : "Search or enter tag..."}
                   value={newTagInput}
-                  onChange={(e) => setNewTagInput(e.target.value)}
+                  onChange={(e) => {
+                    setNewTagInput(e.target.value);
+                    setIsTagOpen(true);
+                  }}
+                  onFocus={() => setIsTagOpen(true)}
+                  onBlur={() => setTimeout(() => setIsTagOpen(false), 200)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newTagInput.trim()) {
                       e.preventDefault();
-                      setTagsList([...tagsList, newTagInput.trim()]);
+                      handleAddTag(newTagInput);
                       setNewTagInput('');
+                      setIsTagOpen(false);
                     }
                   }}
                 />
               </div>
+
+              {isTagOpen && (
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: 0,
+                  right: 0,
+                  zIndex: 1000,
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '8px',
+                  boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05)',
+                  maxHeight: '200px',
+                  overflowY: 'auto',
+                  marginTop: '4px'
+                }}>
+                  {(dbTagsList.length > 0 ? dbTagsList : DEFAULT_TAGS)
+                    .filter(t => !tagsList.includes(t.name))
+                    .filter(t => t.name.toLowerCase().includes(newTagInput.toLowerCase()))
+                    .map(tagObj => (
+                      <div
+                        key={tagObj.tag_id || tagObj.name}
+                        style={{
+                          padding: '8px 12px',
+                          fontSize: '0.85rem',
+                          color: '#374151',
+                          cursor: 'pointer',
+                          borderBottom: '1px solid #f3f4f6'
+                        }}
+                        onMouseDown={() => {
+                          handleAddTag(tagObj.name);
+                          setNewTagInput('');
+                          setIsTagOpen(false);
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
+                      >
+                        {tagObj.name}
+                      </div>
+                    ))
+                  }
+                  {newTagInput.trim() && !(dbTagsList.length > 0 ? dbTagsList : DEFAULT_TAGS).some(t => t.name.toLowerCase() === newTagInput.trim().toLowerCase()) && (
+                    <div
+                      style={{
+                        padding: '8px 12px',
+                        fontSize: '0.85rem',
+                        color: '#2563eb',
+                        fontWeight: 600,
+                        cursor: 'pointer'
+                      }}
+                      onMouseDown={() => {
+                        handleAddTag(newTagInput);
+                        setNewTagInput('');
+                        setIsTagOpen(false);
+                      }}
+                    >
+                      + Add custom tag &quot;{newTagInput.trim()}&quot;
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>
