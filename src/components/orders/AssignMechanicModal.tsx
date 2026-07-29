@@ -58,6 +58,100 @@ function ratingColor(r: number) {
   return { bg: '#fee2e2', color: '#dc2626' };
 }
 
+// ─── Filters ────────────────────────────────────────────────────────
+interface MechanicFilters {
+  jobs: string[];
+  flags: string[];
+  lastActivity: string;
+  modifiedOn: string;
+}
+
+const EMPTY_FILTERS: MechanicFilters = { jobs: [], flags: [], lastActivity: '', modifiedOn: '' };
+
+const JOBS_OPTIONS = [
+  { key: '0-50',    label: '0-50' },
+  { key: '100-150', label: '100-150' },
+  { key: '50-100',  label: '50-100' },
+  { key: '>150',    label: '> 150' },
+];
+
+const FLAGS_OPTIONS = [
+  { key: 'none', label: 'No Flags' },
+  { key: '<=1',  label: '≤ 1' },
+  { key: '<=3',  label: '≤ 3' },
+  { key: '<=5',  label: '≤ 5' },
+];
+
+const ACTIVITY_OPTIONS = [
+  { key: '7',   label: 'Last 7 Days' },
+  { key: '14',  label: 'Last 14 Days' },
+  { key: '30',  label: 'Last 30 Days' },
+  { key: '180', label: 'Last 6 Months' },
+];
+
+const MODIFIED_OPTIONS = [
+  { key: '5',   label: '5' },
+  { key: '>4',  label: '> 4' },
+  { key: '3-5', label: '3-5' },
+  { key: '2-4', label: '2-4' },
+];
+
+function jobsInRange(jobs: number, key: string): boolean {
+  switch (key) {
+    case '0-50':    return jobs >= 0 && jobs <= 50;
+    case '50-100':  return jobs > 50 && jobs <= 100;
+    case '100-150': return jobs > 100 && jobs <= 150;
+    case '>150':    return jobs > 150;
+    default:        return true;
+  }
+}
+
+function flagsInRange(flags: number, key: string): boolean {
+  switch (key) {
+    case 'none': return flags === 0;
+    case '<=1':  return flags <= 1;
+    case '<=3':  return flags <= 3;
+    case '<=5':  return flags <= 5;
+    default:     return true;
+  }
+}
+
+function activityWithinDays(text: string, maxDays: number): boolean {
+  const t = (text || '').toLowerCase();
+  if (t.includes('yesterday') || t.includes('today')) return maxDays >= 1;
+  const days = t.match(/(\d+)\s*day/);
+  if (days) return parseInt(days[1], 10) <= maxDays;
+  const weeks = t.match(/(\d+)\s*week/);
+  if (weeks) return parseInt(weeks[1], 10) * 7 <= maxDays;
+  const months = t.match(/(\d+)\s*month/);
+  if (months) return parseInt(months[1], 10) * 30 <= maxDays;
+  return false;
+}
+
+function ratingInRange(rating: number, key: string): boolean {
+  switch (key) {
+    case '5':   return rating === 5;
+    case '>4':  return rating > 4;
+    case '3-5': return rating >= 3 && rating <= 5;
+    case '2-4': return rating >= 2 && rating <= 4;
+    default:    return true;
+  }
+}
+
+function matchesFilters(m: Mechanic, filters: MechanicFilters): boolean {
+  const jobs = m.jobsCompleted ?? m.totalJobs ?? 0;
+  const flags = m.flags ?? 0;
+  const rating = m.rating ?? 0;
+  const activity = m.lastActivity ?? m.lastLogin ?? '';
+
+  if (filters.jobs.length > 0 && !filters.jobs.some(k => jobsInRange(jobs, k))) return false;
+  if (filters.flags.length > 0 && !filters.flags.some(k => flagsInRange(flags, k))) return false;
+  if (filters.lastActivity && !activityWithinDays(activity, parseInt(filters.lastActivity, 10))) return false;
+  if (filters.modifiedOn && !ratingInRange(rating, filters.modifiedOn)) return false;
+
+  return true;
+}
+
 const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
 
 const getToken = () => {
@@ -93,11 +187,33 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
   const [page, setPage]           = useState(1);
   const PER_PAGE = 10;
 
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters]         = useState<MechanicFilters>(EMPTY_FILTERS);
+
+  const activeFilterCount = filters.jobs.length + filters.flags.length + (filters.lastActivity ? 1 : 0) + (filters.modifiedOn ? 1 : 0);
+
+  const toggleJobsFilter = (key: string) => setFilters(prev => ({
+    ...prev,
+    jobs: prev.jobs.includes(key) ? prev.jobs.filter(k => k !== key) : [...prev.jobs, key],
+  }));
+
+  const toggleFlagsFilter = (key: string) => setFilters(prev => ({
+    ...prev,
+    flags: prev.flags.includes(key) ? prev.flags.filter(k => k !== key) : [...prev.flags, key],
+  }));
+
+  const setLastActivityFilter = (key: string) => setFilters(prev => ({ ...prev, lastActivity: prev.lastActivity === key ? '' : key }));
+  const setModifiedOnFilter   = (key: string) => setFilters(prev => ({ ...prev, modifiedOn: prev.modifiedOn === key ? '' : key }));
+  const clearAllFilters       = () => setFilters(EMPTY_FILTERS);
+
   // ── Debounce search ──────────────────────────────────────────
   useEffect(() => {
     const t = setTimeout(() => { setDebouncedSearch(search); setPage(1); }, 400);
     return () => clearTimeout(t);
   }, [search]);
+
+  // ── Reset to page 1 whenever filters change ──────────────────
+  useEffect(() => { setPage(1); }, [filters]);
 
   // ── Fetch mechanics ──────────────────────────────────────────
   const fetchMechanics = useCallback(async () => {
@@ -137,9 +253,9 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
         };
       });
 
-      const filtered = debouncedSearch
-        ? mapped.filter(m => m.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
-        : mapped;
+      const filtered = mapped
+        .filter(m => !debouncedSearch || m.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+        .filter(m => matchesFilters(m, filters));
 
       const start = (page - 1) * PER_PAGE;
       setMechanics(filtered.slice(start, start + PER_PAGE));
@@ -147,9 +263,9 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
     } catch (err) {
       console.error('Error fetching mechanics:', err);
       // Fallback to mock data when backend not available
-      const filtered = debouncedSearch
-        ? MOCK_MECHANICS.filter(m => m.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
-        : MOCK_MECHANICS;
+      const filtered = MOCK_MECHANICS
+        .filter(m => !debouncedSearch || m.name.toLowerCase().includes(debouncedSearch.toLowerCase()))
+        .filter(m => matchesFilters(m, filters));
       const start = (page - 1) * PER_PAGE;
       setMechanics(filtered.slice(start, start + PER_PAGE));
       setTotal(filtered.length);
@@ -157,7 +273,7 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
     } finally {
       setLoading(false);
     }
-  }, [page, debouncedSearch]);
+  }, [page, debouncedSearch, filters]);
 
   useEffect(() => { fetchMechanics(); }, [fetchMechanics]);
 
@@ -210,7 +326,7 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
           </div>
 
           {/* Search + Filters */}
-          <div style={{ padding: '0.875rem 1.5rem', display: 'flex', gap: '10px', borderBottom: '1px solid #f3f4f6' }}>
+          <div style={{ padding: '0.875rem 1.5rem', display: 'flex', gap: '10px', borderBottom: '1px solid #f3f4f6', position: 'relative' }}>
             <div style={{ flex: 1, position: 'relative' }}>
               <svg style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
               <input
@@ -221,10 +337,99 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
                 style={{ width: '100%', padding: '8px 12px 8px 34px', border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '0.875rem', color: '#111827', background: '#fff', transition: 'border-color .15s, box-shadow .15s', boxSizing: 'border-box' }}
               />
             </div>
-            <button style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>
+            <button
+              onClick={() => setShowFilters(v => !v)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '8px 16px', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+            >
               Apply Filters
+              {activeFilterCount > 0 && (
+                <span style={{ background: '#2563eb', color: '#fff', borderRadius: '999px', fontSize: '0.6875rem', fontWeight: 700, padding: '1px 6px', minWidth: '16px', textAlign: 'center' }}>
+                  {activeFilterCount}
+                </span>
+              )}
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
             </button>
+
+            {showFilters && (
+              <>
+                <div onClick={() => setShowFilters(false)} style={{ position: 'fixed', inset: 0, zIndex: 1001, background: 'rgba(15,23,42,0.35)' }} />
+                <div
+                  onClick={e => e.stopPropagation()}
+                  style={{ position: 'absolute', top: 'calc(100% + 10px)', right: '1.5rem', width: '340px', maxHeight: '70vh', overflowY: 'auto', background: '#fff', borderRadius: '14px', boxShadow: '0 20px 48px rgba(0,0,0,0.22)', zIndex: 1002, padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}
+                >
+                  {/* Popover Header */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '1rem', fontWeight: 700, color: '#111827' }}>Filters</span>
+                    <button
+                      onClick={clearAllFilters}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', border: 'none', background: '#fef2f2', color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', padding: '5px 10px', borderRadius: '999px' }}
+                    >
+                      Clear Filters
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
+
+                  {/* Jobs Completed */}
+                  <div style={{ background: '#f9fafb', borderRadius: '0.75rem', padding: '1rem' }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937', marginBottom: '0.75rem' }}>Jobs Completed</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem' }}>
+                      {JOBS_OPTIONS.map(opt => (
+                        <label key={opt.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#374151', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={filters.jobs.includes(opt.key)} onChange={() => toggleJobsFilter(opt.key)} style={{ width: '14px', height: '14px', accentColor: '#2563eb', cursor: 'pointer' }} />
+                          {opt.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Flags */}
+                  <div style={{ background: '#f9fafb', borderRadius: '0.75rem', padding: '1rem' }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937', marginBottom: '0.75rem' }}>Flags</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem' }}>
+                      {FLAGS_OPTIONS.map(opt => (
+                        <label key={opt.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#374151', cursor: 'pointer' }}>
+                          <input type="checkbox" checked={filters.flags.includes(opt.key)} onChange={() => toggleFlagsFilter(opt.key)} style={{ width: '14px', height: '14px', accentColor: '#2563eb', cursor: 'pointer' }} />
+                          {opt.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Last Activity */}
+                  <div style={{ background: '#f9fafb', borderRadius: '0.75rem', padding: '1rem' }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937', marginBottom: '0.75rem' }}>Last Activity</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem' }}>
+                      {ACTIVITY_OPTIONS.map(opt => (
+                        <label key={opt.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#374151', cursor: 'pointer' }}>
+                          <input type="radio" name="am-last-activity" checked={filters.lastActivity === opt.key} onChange={() => setLastActivityFilter(opt.key)} style={{ width: '14px', height: '14px', accentColor: '#2563eb', cursor: 'pointer' }} />
+                          {opt.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Modified On */}
+                  <div style={{ background: '#f9fafb', borderRadius: '0.75rem', padding: '1rem' }}>
+                    <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#1f2937', marginBottom: '0.75rem' }}>Modified On</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem' }}>
+                      {MODIFIED_OPTIONS.map(opt => (
+                        <label key={opt.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.8125rem', color: '#374151', cursor: 'pointer' }}>
+                          <input type="radio" name="am-modified-on" checked={filters.modifiedOn === opt.key} onChange={() => setModifiedOnFilter(opt.key)} style={{ width: '14px', height: '14px', accentColor: '#2563eb', cursor: 'pointer' }} />
+                          {opt.label}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setShowFilters(false)}
+                    style={{ padding: '0.625rem', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Apply
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Table Area */}

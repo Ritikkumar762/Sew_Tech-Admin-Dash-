@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import AssignMechanicModal, { type Mechanic } from './AssignMechanicModal';
 import CancelRequestModal from './CancelRequestModal';
-import { useMechanics } from '@/app/mechanic/_hooks/useMechanics';
 
 interface OrderDetailViewProps {
   orderId: string;
@@ -36,6 +35,99 @@ const SewingMachineIcon = () => (
   </svg>
 );
 
+// Machine-complaint voice-note player — real playback of fault_voice_url with a Figma-style waveform
+function AudioNotePlayer({ src }: { src?: string | null }) {
+  const audioRef = React.useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  const fmt = (s: number) => {
+    if (!isFinite(s) || s < 0) s = 0;
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${String(sec).padStart(2, '0')}`;
+  };
+
+  const togglePlay = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) audioRef.current.pause();
+    else audioRef.current.play();
+  };
+
+  const skip = (secs: number) => {
+    if (!audioRef.current) return;
+    audioRef.current.currentTime = Math.max(0, Math.min(duration || audioRef.current.duration || 0, audioRef.current.currentTime + secs));
+  };
+
+  const handleDownload = () => {
+    if (!src) return;
+    const a = document.createElement('a');
+    a.href = src;
+    a.download = '';
+    a.click();
+  };
+
+  const progress = duration > 0 ? currentTime / duration : 0;
+  const iconBtnStyle: React.CSSProperties = { width: '30px', height: '30px', borderRadius: '50%', border: 'none', background: 'none', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: src ? 'pointer' : 'default', opacity: src ? 1 : 0.4 };
+
+  return (
+    <div style={{ flex: '1.2 1 380px', border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px' }}>
+      <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '10px' }}>Audio Note</div>
+      {src && (
+        <audio
+          ref={audioRef}
+          src={src}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onEnded={() => setIsPlaying(false)}
+          onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+          onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+        />
+      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span style={{ fontSize: '0.7rem', color: '#3b82f6', fontWeight: 600, minWidth: '30px' }}>{fmt(currentTime)}</span>
+        <div style={{ flex: 1, height: '28px', display: 'flex', alignItems: 'center', gap: '2px', overflow: 'hidden' }}>
+          {Array.from({ length: 40 }).map((_, i) => {
+            const barProgress = i / 40;
+            const played = barProgress <= progress;
+            const h = 6 + Math.abs(Math.sin(i * 1.3)) * 18;
+            return <div key={i} style={{ width: '2px', height: `${h}px`, borderRadius: '1px', background: played ? '#3b82f6' : '#bfdbfe', flexShrink: 0 }} />;
+          })}
+        </div>
+        <span style={{ fontSize: '0.7rem', color: '#9ca3af', fontWeight: 600, minWidth: '30px' }}>{duration ? fmt(duration) : '1:20'}</span>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px', marginTop: '10px' }}>
+        <button type="button" disabled={!src} style={iconBtnStyle} aria-label="Volume">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+        <button type="button" onClick={() => skip(-10)} disabled={!src} style={iconBtnStyle} aria-label="Back 10 seconds">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+        </button>
+        <button
+          type="button"
+          onClick={togglePlay}
+          disabled={!src}
+          style={{ width: '38px', height: '38px', borderRadius: '50%', border: 'none', background: '#2563eb', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: src ? 'pointer' : 'default', opacity: src ? 1 : 0.5 }}
+          aria-label={isPlaying ? 'Pause' : 'Play'}
+        >
+          {isPlaying ? (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+          ) : (
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 4 20 12 6 20 6 4"/></svg>
+          )}
+        </button>
+        <button type="button" onClick={() => skip(10)} disabled={!src} style={iconBtnStyle} aria-label="Forward 10 seconds">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </button>
+        <button type="button" onClick={handleDownload} disabled={!src} style={iconBtnStyle} aria-label="Download">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export type OrderStatus = 
   | 'Booked' 
   | 'Requested' 
@@ -52,14 +144,32 @@ export type OrderStatus =
 
 const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
 
+function formatQuoteDate(iso: string | null | undefined): string {
+  if (!iso) return '–';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '–';
+  const time = d.toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true });
+  const day = d.getDate();
+  const month = d.toLocaleDateString('en-IN', { month: 'short' });
+  const year = String(d.getFullYear()).slice(-2);
+  return `${time}, ${day} ${month}' ${year}`;
+}
+
 export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const cleanOrderId = orderId.replace(/^[a-zA-Z]+/, '');
 
-  const getMappedStatus = (statusStr: string | null): OrderStatus => {
+  const getMappedStatus = (statusStr: string | null, bookingTypeStr?: string | null): OrderStatus => {
     if (!statusStr) return 'Booked';
     const s = statusStr.toUpperCase();
+    const isInviteQuoteType = bookingTypeStr === 'Invite Quote';
+    // Invite Quote bookings run a bidding flow: PENDING = bids open, CONFIRMED = a bid was accepted/mechanic selected
+    if (isInviteQuoteType) {
+      if (s === 'PENDING' || s === 'REQUESTED' || s === 'BID_LIVE' || s === 'BID LIVE' || s === 'BIDLIVE') return 'BidLive';
+      if (s === 'BID_ENDED' || s === 'BID ENDED' || s === 'BIDENDED') return 'BidEnded';
+      if (s === 'CONFIRMED' || s === 'MATCHED' || s === 'MECHANIC SELECTED' || s === 'MECHANICSELECTED' || s === 'MECHANIC ALLOTTED' || s === 'MECHANICALLOTED') return 'MechanicSelected';
+    }
     if (s === 'PENDING' || s === 'REQUESTED') return 'Requested';
     if (s === 'ASSIGNED' || s === 'MECHANIC ASSIGNED' || s === 'MECHANICASSIGNED') return 'MechanicAssigned';
     if (s === 'CONFIRMED' || s === 'MECHANIC ALLOTTED' || s === 'MECHANICALLOTED') return 'MechanicAlloted';
@@ -77,6 +187,12 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const [bookingDetail, setBookingDetail] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  const bookingType: string = bookingDetail?.booking_type || searchParams?.get('serviceType') || 'Instant Smart Booking';
+  const isVideo = bookingType === 'Video Call Assistance';
+  const isAssisted = bookingType === 'Assisted Booking';
+  const isInviteQuote = bookingType === 'Invite Quote';
+  const isCallRequested = isAssisted && bookingDetail?.raw_status === 'AWAITING_CALLBACK';
 
   const [orderStatus, setOrderStatus] = useState<OrderStatus>('Booked');
   const [isDiagnosisFlow, setIsDiagnosisFlow] = useState<boolean>(false);
@@ -140,7 +256,6 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const [quotes, setQuotes] = useState<any[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   
-  const { mechanics: apiMechanics, loading: loadingMechanics } = useMechanics();
   const [assignedMechanic, setAssignedMechanic] = useState<Mechanic | null>(null);
   const [showCancel, setShowCancel] = useState(false);
   const [isCancelled, setIsCancelled] = useState(false);
@@ -172,7 +287,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         setBookingDetail(item);
         
         // Sync order status
-        const statusMap = getMappedStatus(item.status);
+        const statusMap = getMappedStatus(item.status, item.booking_type);
         setOrderStatus(statusMap);
         setIsCancelled(item.status === 'CANCELLED');
         setIsDiagnosisFlow(item.status === 'DIAGNOSIS_AVAILABLE' || item.isDiag || false);
@@ -239,7 +354,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         }
       };
       setBookingDetail(fallbackItem);
-      setOrderStatus(getMappedStatus(fallbackItem.status));
+      setOrderStatus(getMappedStatus(fallbackItem.status, fallbackItem.booking_type));
       setIsCancelled(fallbackItem.status === 'CANCELLED');
       setIsDiagnosisFlow(fallbackItem.status === 'DIAGNOSIS_AVAILABLE');
 
@@ -264,21 +379,55 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     fetchBookingDetail();
   }, [fetchBookingDetail]);
 
-  // Seeding Quote Data from Mechanics API
-  React.useEffect(() => {
-    if (!loadingMechanics && apiMechanics.length > 0) {
-      const formattedQuotes = apiMechanics.map((m, idx) => ({
-        id: m.id || `MECH-${2040 + idx}`,
-        name: m.name || 'Unknown Mechanic',
-        price: 250 + (idx * 50),
-        proximity: m.location ? `${m.location}` : '5 km away',
-        submitted: "10:30 PM, 21 Jan' 26",
-        available: "10:30 PM, 21 Jan' 26",
-        status: idx === 0 ? 'accepted' : 'pending'
-      }));
+  // Fetch real bids placed on this Invite Quote booking.
+  // There is no admin-prefixed list endpoint for this — the real one is the
+  // "Care — Invite Quote Bidding" bids endpoint (BidWithMechanicResponse[]).
+  const fetchQuotes = React.useCallback(async () => {
+    try {
+      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/bids`, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) {
+        // 403 = booking not owned by the caller (backend ownership check on this
+        // customer-scoped endpoint), 404 = no bids yet — both are expected, non-error states
+        setQuotes([]);
+        return;
+      }
+      const items: any[] = await res.json();
+
+      const BID_STATUS_MAP: Record<string, string> = {
+        SUBMITTED: 'pending',
+        SELECTED: 'accepted',
+        REJECTED: 'rejected',
+        WITHDRAWN: 'withdrawn',
+      };
+
+      const formattedQuotes = items
+        .filter((q) => q.status !== 'WITHDRAWN')
+        .map((q) => ({
+          id: String(q.bid_id),
+          name: q.mechanic_name || 'Unknown Mechanic',
+          price: q.amount ? Number(q.amount) : 0,
+          proximity: q.mechanic_rating ? `${q.mechanic_rating}★ rated` : '–',
+          submitted: formatQuoteDate(q.created_at),
+          available: formatQuoteDate(q.earliest_available_date),
+          status: BID_STATUS_MAP[q.status] || 'pending',
+        }));
       setQuotes(formattedQuotes);
+    } catch (err) {
+      console.error('Error fetching quotes:', err);
+      setQuotes([]);
     }
-  }, [apiMechanics, loadingMechanics]);
+  }, [cleanOrderId]);
+
+  React.useEffect(() => {
+    fetchQuotes();
+  }, [fetchQuotes]);
 
   // Assign Mechanic Action (Sync with DB & Backend)
   const handleAssignMechanic = async (mechanicId: string, mechanicObj?: any) => {
@@ -372,11 +521,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         body: JSON.stringify({ status: 'accepted' })
       });
       if (res.ok) {
-        setQuotes(prev => prev.map(q => {
-          if (q.id === quoteId) return { ...q, status: 'accepted' };
-          if (q.status === 'accepted') return { ...q, status: 'pending' };
-          return q;
-        }));
+        fetchQuotes();
         fetchBookingDetail();
       }
     } catch (err) {
@@ -398,7 +543,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         body: JSON.stringify({ status: 'rejected' })
       });
       if (res.ok) {
-        setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'rejected' } : q));
+        fetchQuotes();
       }
     } catch (err) {
       console.error('Error rejecting quote:', err);
@@ -419,7 +564,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         body: JSON.stringify({ status: 'pending' })
       });
       if (res.ok) {
-        setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'pending' } : q));
+        fetchQuotes();
       }
     } catch (err) {
       console.error('Error resetting quote:', err);
@@ -440,7 +585,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         body: JSON.stringify({ status: 'pending' })
       });
       if (res.ok) {
-        setQuotes(prev => prev.map(q => q.id === quoteId ? { ...q, status: 'pending' } : q));
+        fetchQuotes();
         setAssignedMechanic(null);
       }
     } catch (err) {
@@ -533,9 +678,19 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               {bookingDetail.customer?.name || 'Customer Name'}
             </span>
 
-            {/* Order ID */}
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem', fontWeight: 500, color: '#3b82f6', border: '1.5px dashed #93c5fd', borderRadius: '5px', padding: '3px 7px', cursor: 'pointer', userSelect: 'none' }}>
-              {bookingDetail.booking_reference || `REQ-${bookingDetail.booking_id}`}
+            {/* Order/Request ID — click copies the real reference to clipboard */}
+            <span
+              onClick={() => {
+                const ref = bookingDetail.booking_reference || `REQ-${bookingDetail.booking_id}`;
+                if (typeof navigator !== 'undefined' && navigator.clipboard) {
+                  navigator.clipboard.writeText(ref);
+                  showToastMsg(`${ref} copied to clipboard!`, 'success');
+                }
+              }}
+              title={bookingDetail.booking_reference || `REQ-${bookingDetail.booking_id}`}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.7rem', fontWeight: 500, color: '#3b82f6', border: '1.5px dashed #93c5fd', borderRadius: '5px', padding: '3px 7px', cursor: 'pointer', userSelect: 'none' }}
+            >
+              {(isVideo || isAssisted) ? 'Request ID' : 'Order ID'}
               <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
             </span>
 
@@ -555,13 +710,19 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             </button>
 
-            <button
-              className="od-hov"
-              onClick={() => setShowCancel(true)}
-              style={{ padding: '6px 14px', border: isCancelled ? 'none' : '1.5px solid #fca5a5', borderRadius: '8px', background: isCancelled ? '#fee2e2' : '#fff', color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', transition: 'background .2s' }}
-            >
-              {isCancelled ? '✕ Cancelled' : 'Cancel Request'}
-            </button>
+            {!isVideo && (() => {
+              const pastAllotment = !['Booked', 'Requested', 'BidLive', 'BidEnded'].includes(orderStatus);
+              const cancelLabel = isCancelled ? '✕ Cancelled' : (pastAllotment ? 'Cancel Order' : 'Cancel Request');
+              return (
+                <button
+                  className="od-hov"
+                  onClick={() => setShowCancel(true)}
+                  style={{ padding: '6px 14px', border: isCancelled ? 'none' : '1.5px solid #fca5a5', borderRadius: '8px', background: isCancelled ? '#fee2e2' : '#fff', color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', transition: 'background .2s' }}
+                >
+                  {cancelLabel}
+                </button>
+              );
+            })()}
             <div style={{ position: 'relative', display: 'inline-block' }}>
               <button 
                 className="od-hov" 
@@ -661,8 +822,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
             { label: 'Email ID:',        value: bookingDetail.customer?.email || 'demoemail@gmail.com',   type: 'text'  },
             { label: 'Phone Number:',    value: bookingDetail.customer?.phone || '+91 9876543210',        type: 'phone' },
             { label: 'Payment Method:',  value: bookingDetail.payment_method || 'UPI',                   type: 'text'  },
-            ...((orderStatus === 'BidLive' || orderStatus === 'BidEnded') ? [
-              { label: 'Bid Ends:',      value: bookingDetail.bid_ends || '28.02.2026 | 02:00 PM', type: 'text' }
+            ...(isInviteQuote && ['Booked', 'BidLive', 'BidEnded', 'MechanicSelected'].includes(orderStatus) ? [
+              { label: orderStatus === 'BidLive' || orderStatus === 'Booked' ? 'Bid Ends:' : 'Bid Ended:', value: bookingDetail.bid_ends || '28.02.2026 | 02:00 PM', type: 'text' }
             ] : [
               { label: 'Order Value:',   value: bookingDetail.order_value ? `₹${bookingDetail.order_value.toLocaleString('en-IN')}` : '₹1,600', type: 'text' }
             ]),
@@ -724,7 +885,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               ['summary', 'Order Summary']
             ];
             
-            if (['BidLive', 'BidEnded'].includes(orderStatus)) {
+            if (isInviteQuote && ['Booked', 'BidLive', 'BidEnded', 'MechanicSelected'].includes(orderStatus)) {
               tabs.push(['quotes', 'Quotes']);
             }
             
@@ -760,48 +921,108 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         {activeTab === 'summary' && (
           <div style={{ padding: '1.5rem', animation: 'odFade .3s ease' }}>
 
-            {/* Service Details heading row */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827' }}>Service Details</span>
-              {!assignedMechanic && (
-                <button
-                  className="od-hov"
-                  onClick={() => setShowAssign(true)}
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 16px', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', transition: 'background .2s' }}
-                >
-                  Assign Mechanic
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-                </button>
-              )}
-            </div>
-            <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.25rem' }} />
-
-            {/* Service pill */}
-            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px', marginBottom: '1.5rem' }}>
-              <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1d4ed8' }}>Service : {bookingDetail.machine?.issue || 'Machine checkup'}</span>
-            </div>
-
-            {/* Date + Address row */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
-              {/* Left */}
-              <div>
-                <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>Selected Date &amp; Time:</div>
-                <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '1.125rem' }}>
-                  {bookingDetail.created_at ? new Date(bookingDetail.created_at).toLocaleString('en-US', {
-                    hour: 'numeric', minute: 'numeric', hour12: true, day: 'numeric', month: 'short', year: 'numeric'
-                  }) : '28.02.2026 | 01:00 – 02:00 PM'}
-                </div>
-                <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>Language Preference:</div>
-                <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{bookingDetail.language_preference || 'Hindi'}</div>
+            {isCallRequested ? (
+              /* ── Assisted Booking: pre-details "Call Requested" wizard ── */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {[
+                  { label: 'Enter Service Details', height: '180px' },
+                  { label: 'Enter Machine Details', height: '180px' },
+                  { label: 'Enter Machine Complaint', height: '150px' },
+                ].map((panel) => (
+                  <div key={panel.label} style={{ border: '1.5px dashed #93c5fd', background: '#eff6ff', borderRadius: '8px', minHeight: panel.height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button
+                      className="od-hov"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '8px', background: '#2563eb', color: '#fff', fontSize: '0.9375rem', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      {panel.label}
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  </div>
+                ))}
               </div>
-              {/* Right */}
-              <div>
-                <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '6px' }}>Address</div>
-                <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px 14px', fontSize: '0.875rem', color: '#374151', lineHeight: 1.75 }}>
-                  {bookingDetail.location || 'Connaught Place, New Delhi – 110001\nDELHI, INDIA'}
+            ) : (
+              <>
+                {/* Service Details heading row */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                  <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827' }}>Service Details</span>
+                  {!assignedMechanic && !isInviteQuote && (
+                    <button
+                      className="od-hov"
+                      onClick={() => setShowAssign(true)}
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 16px', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', transition: 'background .2s' }}
+                    >
+                      Assign Mechanic
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                  )}
                 </div>
-              </div>
-            </div>
+                <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.25rem' }} />
+
+                {/* Service pill — Instant/Assisted only */}
+                {!isVideo && (
+                  <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', padding: '10px 14px', marginBottom: '1.5rem' }}>
+                    <span style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1d4ed8' }}>Service : {bookingDetail.machine?.issue || 'Machine checkup'}</span>
+                  </div>
+                )}
+
+                {/* Date + Address/Language row */}
+                {(() => {
+                  const fmtDT = (d: Date) => d.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true, day: 'numeric', month: 'short', year: 'numeric' });
+                  const baseDate = bookingDetail.created_at ? new Date(bookingDetail.created_at) : null;
+                  const startDateTimeStr = baseDate ? fmtDT(baseDate) : '28.02.2026 | 01:00 – 02:00 PM';
+                  const endDateTimeStr = bookingDetail.completed_at
+                    ? fmtDT(new Date(bookingDetail.completed_at))
+                    : (baseDate ? fmtDT(new Date(baseDate.getTime() + 2 * 60 * 60 * 1000)) : '28.02.2026 | 03:00 – 04:00 PM');
+                  const dateLabelMode: 'selected' | 'start' | 'startEnd' =
+                    orderStatus === 'Ongoing' ? 'start' :
+                    ['Completed', 'DiagnosisAvailable', 'PickUp'].includes(orderStatus) ? 'startEnd' : 'selected';
+                  const languagePref = bookingDetail.language || bookingDetail.language_preference || 'Hindi';
+
+                  return (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginBottom: '2rem' }}>
+                      {/* Left */}
+                      <div>
+                        {dateLabelMode === 'startEnd' ? (
+                          <>
+                            <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>Service Start Date &amp; Time:</div>
+                            <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '1.125rem' }}>{startDateTimeStr}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>Service End Date &amp; Time:</div>
+                            <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: isVideo ? 0 : '1.125rem' }}>{endDateTimeStr}</div>
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>{dateLabelMode === 'start' ? 'Service Start Date & Time:' : 'Selected Date & Time:'}</div>
+                            <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: isVideo ? 0 : '1.125rem' }}>{startDateTimeStr}</div>
+                          </>
+                        )}
+                        {!isVideo && (
+                          <>
+                            <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>Language Preference:</div>
+                            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{languagePref}</div>
+                          </>
+                        )}
+                      </div>
+                      {/* Right */}
+                      <div>
+                        {isVideo ? (
+                          <>
+                            <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>Language Preference:</div>
+                            <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{languagePref}</div>
+                          </>
+                        ) : (
+                          <>
+                            <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '6px' }}>Address</div>
+                            <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '12px 14px', fontSize: '0.875rem', color: '#374151', lineHeight: 1.75 }}>
+                              {bookingDetail.location || 'Connaught Place, New Delhi – 110001\nDELHI, INDIA'}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
+              </>
+            )}
 
             {/* Mechanic Details Card — shown after assignment */}
             {assignedMechanic && (() => {
@@ -894,7 +1115,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                             </div>
                           ) : (
                             <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              {['Ongoing', 'DiagnosisAvailable'].includes(orderStatus) ? 'Service End OTP- ' : 'Service Start OTP- '}
+                              {orderStatus === 'DiagnosisAvailable' ? 'Service Extend OTP- ' : orderStatus === 'Ongoing' ? 'Service End OTP- ' : 'Service Start OTP- '}
                               <span style={{ color: '#3b82f6', fontWeight: 700, fontSize: '0.85rem' }}>{mechanicOtp}</span>
                               <svg 
                                 onClick={(e) => {
@@ -926,8 +1147,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                     </div>
 
                     {['Completed', 'PickUp'].includes(orderStatus) ? (
-                      <div style={{ fontSize: '0.8125rem', color: '#64748b', lineHeight: 1.6, marginTop: '4px' }}>
-                        Service completed successfully by mechanic. Inspection logs & client confirmation attached.
+                      <div style={{ background: '#fff', border: '1px solid #dbeafe', borderRadius: '8px', padding: '12px 14px', fontSize: '0.8125rem', color: '#64748b', lineHeight: 1.6, marginTop: '4px' }}>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut et massa mi. Aliquam in hendrerit urna. Pellentesque sit amet sapien fringilla, mattis ligula consectetur, ultrices mauris. Maecenas vitae mattis tellus. Nullam quis imperdiet augue. Vestibulum auctor ornare leo, non suscipit magna interdum eu.
                       </div>
                     ) : (
                       <div style={{ display: 'flex', gap: '8px', marginTop: '6px', flexWrap: 'wrap' }}>
@@ -984,74 +1205,88 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
               );
             })()}
 
-            {/* Machine Details */}
-            <div style={{ marginBottom: '2rem' }}>
-              <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Machine Details</div>
-              <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.125rem' }} />
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem' }}>
-                {[
-                  ['Machine Type:', bookingDetail.machine?.type || 'Industrial Lockstitch'],
-                  ['Machine Brand:', bookingDetail.machine?.brand || 'Juki'],
-                  ['Model Number:', bookingDetail.machine?.model || 'DDL-8700'],
-                  ['Serial Number:', bookingDetail.machine?.serial || `JUK-DDL8700-IN-${bookingDetail.booking_id}`],
-                ].map(([lbl, val], i) => (
-                  <div key={i}>
-                    <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>{lbl}</div>
-                    <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{val}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Machine Complaint */}
-            <div>
-              <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Machine Complaint</div>
-              <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.125rem' }} />
-
-              {/* Description + Error Code */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.25rem' }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '5px' }}>Description:</div>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#374151', lineHeight: 1.7 }}>
-                    {bookingDetail.machine?.description || 'Machine fault description will come here.'}
-                  </p>
-                </div>
-                <span style={{ flexShrink: 0, background: '#fee2e2', color: '#dc2626', fontSize: '0.75rem', fontWeight: 700, padding: '4px 10px', borderRadius: '6px', whiteSpace: 'nowrap' }}>
-                  Error Code : {bookingDetail.machine?.error_code || '178'}
-                </span>
-              </div>
-
-              {/* Supporting Media + Audio Note */}
-              <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', width: '100%' }}>
-
-                {/* Supporting Media */}
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px', flex: '1 1 300px' }}>
-                  <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '10px' }}>Supporting Media</div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    {[0, 1, 2].map(i => (
-                      <div key={i} className="od-thumb" style={{ position: 'relative', width: '80px', height: '80px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <img src="/item_image.svg" alt="Supporting Media" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
-                        {/* expand icon top-left */}
-                        <div style={{ position: 'absolute', top: '5px', left: '5px', background: 'rgba(255,255,255,0.82)', borderRadius: '4px', padding: '3px' }}>
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.2">
-                            <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
-                            <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
-                          </svg>
-                        </div>
+            {!isCallRequested && (
+              <>
+                {/* Machine Details */}
+                <div style={{ marginBottom: '2rem' }}>
+                  <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Machine Details</div>
+                  <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.125rem' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem' }}>
+                    {[
+                      ['Machine Type:', bookingDetail.machine?.type || 'Industrial Lockstitch'],
+                      ['Machine Brand:', bookingDetail.machine?.brand || 'Juki'],
+                      ['Model Number:', bookingDetail.machine?.model || 'DDL-8700'],
+                      ['Serial Number:', bookingDetail.machine?.serial || `JUK-DDL8700-IN-${bookingDetail.booking_id}`],
+                    ].map(([lbl, val], i) => (
+                      <div key={i}>
+                        <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px' }}>{lbl}</div>
+                        <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{val}</div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Audio Note */}
-                {/* 
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: '1.2 1 380px' }}>
-                  <img src="/recording.svg" alt="Audio Note" style={{ width: '100%', maxWidth: '440px', display: 'block' }} />
-                </div>
-                */}
+                {/* Machine Complaint */}
+                <div>
+                  <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Machine Complaint</div>
+                  <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.125rem' }} />
 
-              </div>
-            </div>
+                  {isVideo ? (
+                    /* Video Call Assistance: single complaint-tags line, no description/media/audio */
+                    <div>
+                      <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '5px' }}>Complaint Selected :</div>
+                      <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827' }}>
+                        {(bookingDetail.complaints && bookingDetail.complaints.length > 0)
+                          ? bookingDetail.complaints.join(', ')
+                          : 'Installation, Guided Repair Service'}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Description + Error Code */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.25rem' }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: '0.72rem', color: '#9ca3af', marginBottom: '5px' }}>Description:</div>
+                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#374151', lineHeight: 1.7 }}>
+                            {bookingDetail.machine?.description || 'Machine fault description will come here.'}
+                          </p>
+                        </div>
+                        <span style={{ flexShrink: 0, background: '#fee2e2', color: '#dc2626', fontSize: '0.75rem', fontWeight: 700, padding: '4px 10px', borderRadius: '6px', whiteSpace: 'nowrap' }}>
+                          Error Code : {bookingDetail.machine?.error_code || '178'}
+                        </span>
+                      </div>
+
+                      {/* Supporting Media + Audio Note */}
+                      <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', width: '100%' }}>
+
+                        {/* Supporting Media */}
+                        <div style={{ border: '1px solid #e5e7eb', borderRadius: '10px', padding: '14px', flex: '1 1 300px' }}>
+                          <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '10px' }}>Supporting Media</div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {[0, 1, 2].map(i => (
+                              <div key={i} className="od-thumb" style={{ position: 'relative', width: '80px', height: '80px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e5e7eb', overflow: 'hidden', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <img src={bookingDetail.fault_photo_url || '/item_image.svg'} alt="Supporting Media" style={{ width: '80%', height: '80%', objectFit: 'contain' }} />
+                                {/* expand icon top-left */}
+                                <div style={{ position: 'absolute', top: '5px', left: '5px', background: 'rgba(255,255,255,0.82)', borderRadius: '4px', padding: '3px' }}>
+                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#374151" strokeWidth="2.2">
+                                    <polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/>
+                                    <line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/>
+                                  </svg>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Audio Note */}
+                        <AudioNotePlayer src={bookingDetail.fault_voice_url} />
+
+                      </div>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         )}
 
@@ -1089,7 +1324,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
 
             {/* Content Switch: Empty state or Quotes List */}
-            {(!sentNotification && (orderStatus === 'BidLive' || orderStatus === 'BidEnded')) ? (
+            {quotes.length === 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '5rem 2rem', gap: '1rem', border: '1px solid #e5e7eb', borderRadius: '12px' }}>
                 <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#1f2937' }}>No Quotes Received</span>
                 <button
