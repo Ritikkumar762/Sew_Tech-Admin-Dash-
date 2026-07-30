@@ -12,28 +12,54 @@ interface FilterSidebarProps {
 }
 
 export function FilterSidebar({ filters, setFilters, onClear, onClose, categoriesList = [], brandsList = [] }: FilterSidebarProps) {
+  const [categorySearch, setCategorySearch] = React.useState('');
+  const [isCategoryOpen, setIsCategoryOpen] = React.useState(false);
+  const categoryRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
+        setIsCategoryOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const categoryOptions = React.useMemo(() => {
-    const defaults = ['Electronics', 'Lubrication Oils', 'Fabrics', 'Belts & Gears', 'Needles', 'Rotary Hook', 'Hookset', 'Knives'];
+    const defaults = [
+      'Accessories', 'Belts & Gears', 'Bobbins & Cases', 'Car Spares', 'Clutch Motors', 
+      'Domestic Sewing', 'Dyes & Inks', 'Electronics', 'Fabrics', 'Hemming Feet', 
+      'Home Appliances', 'Hookset', 'Industrial Sewing', 'Knives', 'Leather Needles', 
+      'Lights & Attachments', 'Lubrication Oils', 'Machines', 'Maintenance Kits', 'Needles', 'Rotary Hook'
+    ];
     const merged = Array.from(new Set([...defaults, ...categoriesList])).filter(Boolean);
     return merged.sort();
   }, [categoriesList]);
+
+  const filteredCategories = React.useMemo(() => {
+    if (!categorySearch.trim()) return categoryOptions;
+    return categoryOptions.filter(cat =>
+      cat.toLowerCase().includes(categorySearch.toLowerCase())
+    );
+  }, [categoryOptions, categorySearch]);
+
+  const selectCategory = (cat: string) => {
+    if (cat && !filters.categories.includes(cat)) {
+      setFilters(prev => ({
+        ...prev,
+        categories: [...prev.categories, cat]
+      }));
+    }
+    setCategorySearch('');
+    setIsCategoryOpen(false);
+  };
 
   const brandOptions = React.useMemo(() => {
     const defaults = ['Samsung', 'Apple', 'Bosch', 'Juki', 'Singer', 'Brother'];
     const merged = Array.from(new Set([...defaults, ...brandsList])).filter(Boolean);
     return merged.sort();
   }, [brandsList]);
-
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    if (value && value !== 'Select Category' && !filters.categories.includes(value)) {
-      setFilters(prev => ({
-        ...prev,
-        categories: [...prev.categories, value]
-      }));
-    }
-    e.target.value = 'Select Category';
-  };
 
   const removeCategory = (cat: string) => {
     setFilters(prev => ({
@@ -94,12 +120,90 @@ export function FilterSidebar({ filters, setFilters, onClear, onClose, categorie
         <div className={styles.sectionTitle}>
           Category <span className={styles.chevron}>▼</span>
         </div>
-        <select className={styles.filterSelect} onChange={handleCategoryChange} value="Select Category">
-          <option value="Select Category">Select Category</option>
-          {categoryOptions.map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
-          ))}
-        </select>
+        <div ref={categoryRef} style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+            <input
+              type="text"
+              className={styles.filterSelect}
+              placeholder="Search / Select Category"
+              value={categorySearch}
+              onFocus={() => setIsCategoryOpen(true)}
+              onChange={(e) => {
+                setCategorySearch(e.target.value);
+                setIsCategoryOpen(true);
+              }}
+              style={{ paddingRight: '2rem', cursor: 'text' }}
+            />
+            <span
+              onClick={() => setIsCategoryOpen(prev => !prev)}
+              style={{
+                position: 'absolute',
+                right: '0.75rem',
+                cursor: 'pointer',
+                fontSize: '0.75rem',
+                color: '#6b7280',
+                userSelect: 'none'
+              }}
+            >
+              ▼
+            </span>
+          </div>
+
+          {isCategoryOpen && (
+            <div
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 4px)',
+                left: 0,
+                right: 0,
+                maxHeight: '220px',
+                overflowY: 'auto',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e5e7eb',
+                borderRadius: '6px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                zIndex: 100
+              }}
+            >
+              {filteredCategories.length > 0 ? (
+                filteredCategories.map(cat => {
+                  const isSelected = filters.categories.includes(cat);
+                  return (
+                    <div
+                      key={cat}
+                      onClick={() => selectCategory(cat)}
+                      style={{
+                        padding: '0.5rem 0.75rem',
+                        fontSize: '0.875rem',
+                        color: isSelected ? '#2563eb' : '#111827',
+                        backgroundColor: isSelected ? '#eff6ff' : 'transparent',
+                        fontWeight: isSelected ? 600 : 400,
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = '#f3f4f6';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = isSelected ? '#eff6ff' : 'transparent';
+                      }}
+                    >
+                      <span>{cat}</span>
+                      {isSelected && <span style={{ fontSize: '0.75rem', color: '#2563eb' }}>✓</span>}
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ padding: '0.5rem 0.75rem', fontSize: '0.875rem', color: '#9ca3af' }}>
+                  No categories found
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className={styles.pills}>
           {filters.categories.map(cat => (
             <span key={cat} className={styles.pill} onClick={() => removeCategory(cat)}>
