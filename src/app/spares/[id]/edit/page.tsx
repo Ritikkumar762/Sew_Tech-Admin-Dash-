@@ -132,7 +132,9 @@ export default function EditSparePage() {
   ]);
   const [selectedBrandId, setSelectedBrandId] = useState<number>(5004);
   const [material, setMaterial] = useState<string>('High-Carbon Steel');
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>(['High-Carbon Steel']);
   const [materialInput, setMaterialInput] = useState<string>('');
+  const [isMaterialOpen, setIsMaterialOpen] = useState<boolean>(false);
   const [warranty, setWarranty] = useState<string>('1 Yr');
   const [compatibility, setCompatibility] = useState<string>('Single Needle Lockstitch Machine');
   const [tagsList, setTagsList] = useState<string[]>(['Rotary Hook', 'Spare Part']);
@@ -272,7 +274,11 @@ export default function EditSparePage() {
           setSelectedCategories([{ category_id: Number(product.category_id), name: catName }]);
         }
         if (product.brand_id) setSelectedBrandId(product.brand_id);
-        if (product.specifications?.['Material']) setMaterial(product.specifications['Material']);
+        if (product.specifications?.['Material']) {
+          const matVal = product.specifications['Material'];
+          setMaterial(matVal);
+          setSelectedMaterials(matVal.split(',').map((s: string) => s.trim()).filter(Boolean));
+        }
         if (product.specifications?.['Warranty']) setWarranty(product.specifications['Warranty']);
         if (product.tags && Array.isArray(product.tags) && product.tags.length > 0) {
           setTagsList(product.tags.map((t: any) => (t && typeof t === 'object') ? t.name : String(t)));
@@ -729,6 +735,17 @@ export default function EditSparePage() {
                     }}
                     onFocus={() => setIsCategoryOpen(true)}
                     onBlur={() => setTimeout(() => setIsCategoryOpen(false), 200)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && categorySearchInput.trim()) {
+                        e.preventDefault();
+                        const val = categorySearchInput.trim();
+                        if (!selectedCategories.some(c => c.name.toLowerCase() === val.toLowerCase())) {
+                          setSelectedCategories([...selectedCategories, { category_id: Date.now(), name: val }]);
+                        }
+                        setCategorySearchInput('');
+                        setIsCategoryOpen(false);
+                      }
+                    }}
                   />
                 </div>
 
@@ -997,18 +1014,56 @@ export default function EditSparePage() {
 
               <div className={styles.formGroup}>
                 <label className={styles.label}>Material<span className={styles.required}>*</span></label>
-                <select 
-                  className={styles.select}
-                  value={material}
-                  onChange={(e) => setMaterial(e.target.value)}
+                <div 
+                  className={styles.tagsContainer} 
+                  style={{ flexWrap: 'wrap', gap: '6px', minHeight: '42px', padding: '6px 12px', alignItems: 'center', cursor: 'text' }}
+                  onClick={() => {
+                    const inputEl = document.getElementById('material-search-edit');
+                    if (inputEl) inputEl.focus();
+                  }}
                 >
-                  <option value="High-Carbon Steel">High-Carbon Steel</option>
-                  <option value="Stainless Steel">Stainless Steel</option>
-                  <option value="Tungsten Carbide">Tungsten Carbide</option>
-                  <option value="Alloy Steel">Alloy Steel</option>
-                  <option value="Titanium Coated">Titanium Coated</option>
-                  <option value="Cast Iron">Cast Iron</option>
-                </select>
+                  {selectedMaterials.map((mat, idx) => (
+                    <span key={idx} className={styles.tagPill}>
+                      {mat}
+                      <span 
+                        className={styles.tagClose} 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const updated = selectedMaterials.filter((_, i) => i !== idx);
+                          setSelectedMaterials(updated);
+                          setMaterial(updated.join(', '));
+                        }}
+                      >
+                        ×
+                      </span>
+                    </span>
+                  ))}
+                  
+                  <input 
+                    id="material-search-edit"
+                    type="text"
+                    style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.85rem', flex: 1, minWidth: '100px' }}
+                    placeholder={selectedMaterials.length > 0 ? "+ Add material..." : "Search/enter material..."}
+                    value={materialInput}
+                    onChange={(e) => setMaterialInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && materialInput.trim()) {
+                        e.preventDefault();
+                        const val = materialInput.trim();
+                        if (!selectedMaterials.some(m => m.toLowerCase() === val.toLowerCase())) {
+                          const updated = [...selectedMaterials, val];
+                          setSelectedMaterials(updated);
+                          setMaterial(updated.join(', '));
+                        }
+                        setMaterialInput('');
+                      } else if (e.key === 'Backspace' && !materialInput && selectedMaterials.length > 0) {
+                        const updated = selectedMaterials.slice(0, -1);
+                        setSelectedMaterials(updated);
+                        setMaterial(updated.join(', '));
+                      }
+                    }}
+                  />
+                </div>
               </div>
 
               <div className={styles.formGroup}>

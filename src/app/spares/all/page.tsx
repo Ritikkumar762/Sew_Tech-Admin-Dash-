@@ -530,9 +530,10 @@ export default function ProductsInventoryPage() {
         }}
       />
 
-      <BulkUploadFlow 
-        isOpen={isBulkUploadOpen} 
-        onClose={() => setIsBulkUploadOpen(false)} 
+      <BulkUploadFlow
+        isOpen={isBulkUploadOpen}
+        onClose={() => setIsBulkUploadOpen(false)}
+        onUploaded={fetchSpares}
       />
     </>
   );

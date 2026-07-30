@@ -5,6 +5,7 @@
  */
 
 export const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
+export const temp = 'http://localhost:8000/api/v1';
 export const MARKETING_BASE_URL = BASE_URL;
 // Alerts backend — change this URL once deployed; everything else uses BASE_URL
 export const ALERTS_BASE_URL = BASE_URL;
@@ -32,16 +33,19 @@ export const ENDPOINTS = {
 
   // ── Spares ───────────────────────────────────────────────────
   spares: {
-    list:       `${BASE_URL}/spares`,
-    byId:       (id: string) => `${BASE_URL}/spares/${id}`,
-    create:     `${BASE_URL}/spares`,
-    update:     (id: string) => `${BASE_URL}/spares/${id}`,
-    delete:     (id: string) => `${BASE_URL}/spares/${id}`,
-    orders:     `${BASE_URL}/admin/spares/orders`,
-    orderById:  (id: string) => `${BASE_URL}/admin/spares/orders/${id}`,
-    requests:   `${BASE_URL}/spares/requests`,
-    inventory:  `${BASE_URL}/admin/products`,
-    updateVariant: (productId: string, variantId: string) => `${BASE_URL}/admin/products/${productId}/variants/${variantId}`,
+    list:              `${BASE_URL}/spares`,
+    byId:              (id: string) => `${BASE_URL}/spares/${id}`,
+    create:            `${BASE_URL}/spares`,
+    update:            (id: string) => `${BASE_URL}/spares/${id}`,
+    delete:            (id: string) => `${BASE_URL}/spares/${id}`,
+    orders:            `${BASE_URL}/admin/spares/orders`,
+    orderById:         (id: string) => `${BASE_URL}/admin/spares/orders/${id}`,
+    requests:          `${BASE_URL}/spares/requests`,
+    inventory:         `${BASE_URL}/admin/products`,
+    updateVariant:     (productId: string, variantId: string) => `${BASE_URL}/admin/products/${productId}/variants/${variantId}`,
+    bulkUploadPreview: `${temp}/admin/products/bulk-upload/preview`,
+    bulkUploadConfirm: `${temp}/admin/products/bulk-upload/confirm`,
+    bulkEdit:          `${temp}/admin/products/bulk-edit`,
   },
 
   // ── Orders & Invoices ─────────────────────────────────────────

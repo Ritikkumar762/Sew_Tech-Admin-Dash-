@@ -1,7 +1,9 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './BulkEdit.module.css';
 import { useRouter } from 'next/navigation';
+import { apiClient } from '@/lib/api';
+import { ENDPOINTS } from '@/lib/endpoints';
 
 interface SpreadsheetRow {
   rowNum: number;
@@ -17,38 +19,149 @@ interface SpreadsheetRow {
   m: string; // Returnable (Yes/No)
   n: string; // Visibility (Live/Draft)
   o: string; // Material
+  p: string; // Warranty
+  q: string; // Description
 }
 
 const INITIAL_ROWS: SpreadsheetRow[] = [
-  { rowNum: 1, d: 'HC3000', e: 'Industrial Sewing Needle', f: 'Needles', g: 'Juki', h: 'Juki Single', i: '100', j: '12', k: '1850', l: '1850', m: 'Yes', n: 'Live', o: 'Steel' },
-  { rowNum: 2, d: 'STH-RH-2045', e: 'High-Speed Rotary Hook Assembly', f: 'Rotary Hook', g: 'Juki', h: 'Juki Single', i: '10', j: '12', k: '15000', l: '15000', m: 'Yes', n: 'Live', o: 'Alloy' },
-  { rowNum: 3, d: 'NBTG-90', e: 'Needle Bar Thread Guide', f: 'Guides', g: 'Brother', h: 'Brother Lock', i: '45', j: '10', k: '450', l: '450', m: 'No', n: 'Draft', o: 'Steel' },
-  { rowNum: 4, d: 'TTLA-20', e: 'Thread Take-up Lever Assembly', f: 'Levers', g: 'Singer', h: 'Singer Pro', i: '25', j: '5', k: '1200', l: '1200', m: 'Yes', n: 'Live', o: 'Alloy' },
+  { rowNum: 1, d: 'HC3000', e: 'Industrial Sewing Needle', f: 'Needles', g: 'Juki', h: 'Juki Single', i: '100', j: '12', k: '1850', l: '1850', m: 'Yes', n: 'Live', o: 'Steel', p: '1 Yr', q: 'High precision industrial sewing needle' },
+  { rowNum: 2, d: 'STH-RH-2045', e: 'High-Speed Rotary Hook Assembly', f: 'Rotary Hook', g: 'Juki', h: 'Juki Single', i: '10', j: '12', k: '15000', l: '15000', m: 'Yes', n: 'Live', o: 'Alloy Steel', p: '1 Yr', q: 'Durable rotary hook assembly' },
+  { rowNum: 3, d: 'NBTG-90', e: 'Needle Bar Thread Guide', f: 'Guides', g: 'Brother', h: 'Brother Lock', i: '45', j: '10', k: '450', l: '450', m: 'No', n: 'Draft', o: 'Steel', p: '6 Months', q: 'Thread guide for needle bar' },
+  { rowNum: 4, d: 'TTLA-20', e: 'Thread Take-up Lever Assembly', f: 'Levers', g: 'Singer', h: 'Singer Pro', i: '25', j: '5', k: '1200', l: '1200', m: 'Yes', n: 'Live', o: 'Alloy Steel', p: '1 Yr', q: 'Take-up lever assembly' },
   ...Array.from({ length: 24 }).map((_, idx) => ({
     rowNum: idx + 5,
-    d: '',
-    e: '',
-    f: '',
-    g: '',
-    h: '',
-    i: '',
-    j: '',
-    k: '',
-    l: '',
-    m: '',
-    n: '',
-    o: '',
+    d: '', e: '', f: '', g: '', h: '', i: '', j: '', k: '', l: '', m: '', n: '', o: '', p: '', q: ''
   }))
 ];
+
+interface BulkEditResult {
+  updated: number;
+  skipped: number;
+  results: { row: number; identifier: string; status: string; reason: string | null }[];
+}
+
+function unwrap<T>(res: any): T {
+  return res && typeof res === 'object' && 'data' in res && res.data !== undefined ? (res.data as T) : (res as T);
+}
+
+const splitList = (value: string): string[] =>
+  value.split(/[,;]/).map((v) => v.trim()).filter(Boolean);
+
+const toStr = (value: any): string => {
+  if (value == null) return '';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  return String(value).trim();
+};
+
+const toNumber = (value: any): number | undefined => {
+  const str = toStr(value);
+  if (!str) return undefined;
+  const n = Number(str);
+  return Number.isFinite(n) ? n : undefined;
+};
 
 export default function BulkEditSparesPage() {
   const router = useRouter();
   const [rows, setRows] = useState<SpreadsheetRow[]>(INITIAL_ROWS);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveResult, setSaveResult] = useState<BulkEditResult | null>(null);
 
-  const handleSave = () => {
-    setShowSuccessModal(true);
+  useEffect(() => {
+    async function loadProducts() {
+      try {
+        const res = await apiClient.get<any>(ENDPOINTS.spares.inventory);
+        const data = unwrap<any>(res);
+        const items = Array.isArray(data) ? data : (data?.items || data?.products || []);
+        if (Array.isArray(items) && items.length > 0) {
+          const mappedRows: SpreadsheetRow[] = items.slice(0, 30).map((p: any, idx: number) => ({
+            rowNum: idx + 1,
+            d: toStr(p.sku),
+            e: toStr(p.name),
+            f: toStr((typeof p.category === 'object' ? p.category?.name : p.category) || 'Rotary Hook'),
+            g: toStr((typeof p.brand === 'object' ? p.brand?.name : p.brand) || 'Juki'),
+            h: Array.isArray(p.compatibility) ? p.compatibility.join('; ') : toStr(p.compatibility),
+            i: toStr(p.stock_quantity ?? 0),
+            j: toStr(p.low_stock_threshold ?? 10),
+            k: toStr(p.price ?? 0),
+            l: toStr(p.discount_price ?? p.price ?? 0),
+            m: toStr(p.specifications?.['Returnable'] ?? p.returnable ?? 'Yes'),
+            n: p.status === 'PUBLISHED' ? 'Live' : 'Draft',
+            o: toStr(p.specifications?.['Material'] ?? p.material ?? 'High-Carbon Steel'),
+            p: toStr(p.specifications?.['Warranty'] ?? p.warranty ?? '1 Yr'),
+            q: toStr(p.description)
+          }));
+          // Pad with blank rows up to 30
+          while (mappedRows.length < 30) {
+            mappedRows.push({
+              rowNum: mappedRows.length + 1,
+              d: '', e: '', f: '', g: '', h: '', i: '', j: '', k: '', l: '', m: '', n: '', o: '', p: '', q: ''
+            });
+          }
+          setRows(mappedRows);
+        }
+      } catch (err) {
+        console.error('Failed to load products for bulk edit:', err);
+      }
+    }
+    loadProducts();
+  }, []);
+
+  const handleSave = async () => {
+    const editRows = rows.filter((r) => toStr(r.d));
+    if (!editRows.length) {
+      setSaveError('Enter at least one SKU to save changes.');
+      return;
+    }
+
+    const payload = {
+      rows: editRows.map((r) => {
+        const skuStr = toStr(r.d);
+        const nameStr = toStr(r.e);
+        const catStr = toStr(r.f);
+        const brandStr = toStr(r.g);
+        const modelStr = toStr(r.h);
+        const retStr = toStr(r.m);
+        const visStr = toStr(r.n);
+        const matStr = toStr(r.o);
+        const warStr = toStr(r.p);
+        const descStr = toStr(r.q);
+
+        const row: Record<string, any> = { sku: skuStr };
+        if (nameStr) row.name = nameStr;
+        if (catStr) row.category = catStr;
+        if (brandStr) row.brand_compatibility = splitList(brandStr);
+        if (modelStr) row.model_compatibility = splitList(modelStr);
+        const stock = toNumber(r.i);
+        if (stock !== undefined) row.stock_quantity = stock;
+        const alertQty = toNumber(r.j);
+        if (alertQty !== undefined) row.low_stock_threshold = alertQty;
+        const price = toNumber(r.k);
+        if (price !== undefined) row.price = price;
+        const salePrice = toNumber(r.l);
+        if (salePrice !== undefined) row.discount_price = salePrice;
+        if (retStr) row.returnable = retStr.toLowerCase() === 'yes' || retStr === 'true';
+        if (visStr) row.visibility = visStr;
+        if (matStr) row.material = matStr;
+        if (warStr) row.warranty = warStr;
+        if (descStr) row.description = descStr;
+        return row;
+      }),
+    };
+
+    setIsSaving(true);
+    setSaveError('');
+    try {
+      const res = await apiClient.patch<BulkEditResult>(ENDPOINTS.spares.bulkEdit, payload);
+      setSaveResult(unwrap<BulkEditResult>(res));
+      setShowSuccessModal(true);
+    } catch (err: any) {
+      setSaveError(err?.message || 'Could not save changes. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCellChange = (rowNum: number, field: keyof SpreadsheetRow, value: string) => {
@@ -58,7 +171,7 @@ export default function BulkEditSparesPage() {
   const handleClearAll = () => {
     setRows(INITIAL_ROWS.map(r => ({
       rowNum: r.rowNum,
-      d: '', e: '', f: '', g: '', h: '', i: '', j: '', k: '', l: '', m: '', n: '', o: ''
+      d: '', e: '', f: '', g: '', h: '', i: '', j: '', k: '', l: '', m: '', n: '', o: '', p: '', q: ''
     })));
   };
 
@@ -75,12 +188,18 @@ export default function BulkEditSparesPage() {
             </div>
             <div className={styles.headerActions}>
               <button className={styles.btnOutlineRed} onClick={() => router.back()}>Discard Changes</button>
-              <button className={styles.btnDark} onClick={handleSave}>
-                Save & Update List
+              <button className={styles.btnDark} onClick={handleSave} disabled={isSaving}>
+                {isSaving ? 'Saving…' : 'Save & Update List'}
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" style={{ marginLeft: '0.5rem' }}><polyline points="20 6 9 17 4 12"></polyline></svg>
               </button>
             </div>
           </div>
+
+          {saveError && (
+            <div style={{ background: '#fef2f2', color: '#b91c1c', padding: '0.75rem 1rem', borderRadius: '8px', fontSize: '0.8125rem', marginBottom: '1rem' }}>
+              {saveError}
+            </div>
+          )}
 
           <div className={styles.sheetCard}>
             <div className={styles.sheetToolbar}>
@@ -124,6 +243,8 @@ export default function BulkEditSparesPage() {
                     <th className={styles.colHeader}>M</th>
                     <th className={styles.colHeader}>N</th>
                     <th className={styles.colHeader}>O</th>
+                    <th className={styles.colHeader}>P</th>
+                    <th className={styles.colHeader}>Q</th>
                   </tr>
                   {/* Field Label Headers */}
                   <tr className={styles.labelHeaderRow}>
@@ -140,6 +261,8 @@ export default function BulkEditSparesPage() {
                     <td className={styles.labelHeaderCell}>Returnable</td>
                     <td className={styles.labelHeaderCell}>Visibility</td>
                     <td className={styles.labelHeaderCell}>Material</td>
+                    <td className={styles.labelHeaderCell}>Warranty</td>
+                    <td className={styles.labelHeaderCell}>Description</td>
                   </tr>
                 </thead>
                 <tbody>
@@ -242,6 +365,22 @@ export default function BulkEditSparesPage() {
                           onChange={(e) => handleCellChange(row.rowNum, 'o', e.target.value)}
                         />
                       </td>
+                      <td>
+                        <input 
+                          type="text" 
+                          className={styles.cellInput} 
+                          value={row.p} 
+                          onChange={(e) => handleCellChange(row.rowNum, 'p', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input 
+                          type="text" 
+                          className={styles.cellInput} 
+                          value={row.q} 
+                          onChange={(e) => handleCellChange(row.rowNum, 'q', e.target.value)}
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -288,9 +427,21 @@ export default function BulkEditSparesPage() {
             
             <h3 className={styles.confirmationTitle}>List Saved & Updated!</h3>
             <p className={styles.confirmationText}>
-              All changes in the sheet have been applied successfully to your spares inventory.
+              {saveResult
+                ? `${saveResult.updated} spare${saveResult.updated === 1 ? '' : 's'} updated${saveResult.skipped > 0 ? `, ${saveResult.skipped} skipped.` : '.'}`
+                : 'All changes in the sheet have been applied successfully to your spares inventory.'}
             </p>
-            
+
+            {saveResult && saveResult.skipped > 0 && (
+              <div style={{ width: '100%', maxHeight: '140px', overflowY: 'auto', textAlign: 'left', background: '#fef2f2', borderRadius: '8px', padding: '0.75rem', fontSize: '0.75rem', color: '#b91c1c', marginBottom: '0.75rem' }}>
+                {saveResult.results
+                  .filter((r) => r.status === 'skipped')
+                  .map((r) => (
+                    <div key={r.row} style={{ marginBottom: '0.25rem' }}>{r.identifier}: {r.reason}</div>
+                  ))}
+              </div>
+            )}
+
             <button className={styles.btnViewAll} onClick={() => router.push('/spares/all')}>
               View All Spares
             </button>

@@ -61,7 +61,9 @@ export default function AddSparePage() {
   const [selectedCategories, setSelectedCategories] = useState<{ category_id: number; name: string }[]>([]);
   const [selectedBrandId, setSelectedBrandId] = useState<number>(5004);
   const [material, setMaterial] = useState<string>('');
+  const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
   const [materialInput, setMaterialInput] = useState<string>('');
+  const [isMaterialOpen, setIsMaterialOpen] = useState<boolean>(false);
   const [warranty, setWarranty] = useState<string>('1 Yr');
   const [compatibility, setCompatibility] = useState<string>('Single Needle Lockstitch Machine');
   const [tagsList, setTagsList] = useState<string[]>([]);
@@ -538,6 +540,17 @@ export default function AddSparePage() {
                   }}
                   onFocus={() => setIsCategoryOpen(true)}
                   onBlur={() => setTimeout(() => setIsCategoryOpen(false), 200)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && categorySearchInput.trim()) {
+                      e.preventDefault();
+                      const val = categorySearchInput.trim();
+                      if (!selectedCategories.some(c => c.name.toLowerCase() === val.toLowerCase())) {
+                        setSelectedCategories([...selectedCategories, { category_id: Date.now(), name: val }]);
+                      }
+                      setCategorySearchInput('');
+                      setIsCategoryOpen(false);
+                    }
+                  }}
                 />
               </div>
 
@@ -608,13 +621,56 @@ export default function AddSparePage() {
 
             <div className={styles.formGroup}>
               <label className={styles.label}>Material<span className={styles.required}>*</span></label>
-              <input 
-                type="text" 
-                className={styles.input}
-                value={material}
-                onChange={(e) => setMaterial(e.target.value)}
-                placeholder="High-Carbon Steel"
-              />
+              <div 
+                className={styles.tagsContainer} 
+                style={{ flexWrap: 'wrap', gap: '6px', minHeight: '42px', padding: '6px 12px', alignItems: 'center', cursor: 'text' }}
+                onClick={() => {
+                  const inputEl = document.getElementById('material-search-input');
+                  if (inputEl) inputEl.focus();
+                }}
+              >
+                {selectedMaterials.map((mat, idx) => (
+                  <span key={idx} className={styles.tagPill}>
+                    {mat}
+                    <span 
+                      className={styles.tagClose} 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const updated = selectedMaterials.filter((_, i) => i !== idx);
+                        setSelectedMaterials(updated);
+                        setMaterial(updated.join(', '));
+                      }}
+                    >
+                      ×
+                    </span>
+                  </span>
+                ))}
+                
+                <input 
+                  id="material-search-input"
+                  type="text"
+                  style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '0.85rem', flex: 1, minWidth: '100px' }}
+                  placeholder={selectedMaterials.length > 0 ? "+ Add material..." : "Search/enter material..."}
+                  value={materialInput}
+                  onChange={(e) => setMaterialInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && materialInput.trim()) {
+                      e.preventDefault();
+                      const val = materialInput.trim();
+                      if (!selectedMaterials.some(m => m.toLowerCase() === val.toLowerCase())) {
+                        const updated = [...selectedMaterials, val];
+                        setSelectedMaterials(updated);
+                        setMaterial(updated.join(', '));
+                      }
+                      setMaterialInput('');
+                    } else if (e.key === 'Backspace' && !materialInput && selectedMaterials.length > 0) {
+                      const updated = selectedMaterials.slice(0, -1);
+                      setSelectedMaterials(updated);
+                      setMaterial(updated.join(', '));
+                    }
+                  }}
+                />
+              </div>
             </div>
 
             <div className={styles.formGroup}>
