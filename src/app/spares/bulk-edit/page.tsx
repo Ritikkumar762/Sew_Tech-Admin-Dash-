@@ -21,16 +21,23 @@ interface SpreadsheetRow {
   o: string; // Material
   p: string; // Warranty
   q: string; // Description
+  r: string; // Product Dimensions
+  s: string; // Item Weight
+  t: string; // Net Quantity
+  u: string; // Tags
+  v: string; // Pre-order (Yes/No)
 }
 
+const BLANK_ROW_FIELDS = { d: '', e: '', f: '', g: '', h: '', i: '', j: '', k: '', l: '', m: '', n: '', o: '', p: '', q: '', r: '', s: '', t: '', u: '', v: '' };
+
 const INITIAL_ROWS: SpreadsheetRow[] = [
-  { rowNum: 1, d: 'HC3000', e: 'Industrial Sewing Needle', f: 'Needles', g: 'Juki', h: 'Juki Single', i: '100', j: '12', k: '1850', l: '1850', m: 'Yes', n: 'Live', o: 'Steel', p: '1 Yr', q: 'High precision industrial sewing needle' },
-  { rowNum: 2, d: 'STH-RH-2045', e: 'High-Speed Rotary Hook Assembly', f: 'Rotary Hook', g: 'Juki', h: 'Juki Single', i: '10', j: '12', k: '15000', l: '15000', m: 'Yes', n: 'Live', o: 'Alloy Steel', p: '1 Yr', q: 'Durable rotary hook assembly' },
-  { rowNum: 3, d: 'NBTG-90', e: 'Needle Bar Thread Guide', f: 'Guides', g: 'Brother', h: 'Brother Lock', i: '45', j: '10', k: '450', l: '450', m: 'No', n: 'Draft', o: 'Steel', p: '6 Months', q: 'Thread guide for needle bar' },
-  { rowNum: 4, d: 'TTLA-20', e: 'Thread Take-up Lever Assembly', f: 'Levers', g: 'Singer', h: 'Singer Pro', i: '25', j: '5', k: '1200', l: '1200', m: 'Yes', n: 'Live', o: 'Alloy Steel', p: '1 Yr', q: 'Take-up lever assembly' },
+  { rowNum: 1, d: 'HC3000', e: 'Industrial Sewing Needle', f: 'Needles', g: 'Juki', h: 'Juki Single', i: '100', j: '12', k: '1850', l: '1850', m: 'Yes', n: 'Live', o: 'Steel', p: '1 Yr', q: 'High precision industrial sewing needle', r: '10cm x 2cm x 2cm', s: '5g', t: '1', u: 'Best Seller', v: 'No' },
+  { rowNum: 2, d: 'STH-RH-2045', e: 'High-Speed Rotary Hook Assembly', f: 'Rotary Hook', g: 'Juki', h: 'Juki Single', i: '10', j: '12', k: '15000', l: '15000', m: 'Yes', n: 'Live', o: 'Alloy Steel', p: '1 Yr', q: 'Durable rotary hook assembly', r: '8cm x 8cm x 5cm', s: '250g', t: '1', u: '', v: 'No' },
+  { rowNum: 3, d: 'NBTG-90', e: 'Needle Bar Thread Guide', f: 'Guides', g: 'Brother', h: 'Brother Lock', i: '45', j: '10', k: '450', l: '450', m: 'No', n: 'Draft', o: 'Steel', p: '6 Months', q: 'Thread guide for needle bar', r: '', s: '', t: '', u: '', v: 'No' },
+  { rowNum: 4, d: 'TTLA-20', e: 'Thread Take-up Lever Assembly', f: 'Levers', g: 'Singer', h: 'Singer Pro', i: '25', j: '5', k: '1200', l: '1200', m: 'Yes', n: 'Live', o: 'Alloy Steel', p: '1 Yr', q: 'Take-up lever assembly', r: '', s: '', t: '', u: '', v: 'No' },
   ...Array.from({ length: 24 }).map((_, idx) => ({
     rowNum: idx + 5,
-    d: '', e: '', f: '', g: '', h: '', i: '', j: '', k: '', l: '', m: '', n: '', o: '', p: '', q: ''
+    ...BLANK_ROW_FIELDS
   }))
 ];
 
@@ -91,13 +98,18 @@ export default function BulkEditSparesPage() {
             n: p.status === 'PUBLISHED' ? 'Live' : 'Draft',
             o: toStr(p.specifications?.['Material'] ?? p.material ?? 'High-Carbon Steel'),
             p: toStr(p.specifications?.['Warranty'] ?? p.warranty ?? '1 Yr'),
-            q: toStr(p.description)
+            q: toStr(p.description),
+            r: toStr(p.specifications?.['Product Dimensions']),
+            s: toStr(p.specifications?.['Item Weight']),
+            t: toStr(p.specifications?.['Net Quantity']),
+            u: Array.isArray(p.tags) ? p.tags.map((tg: any) => tg?.name).filter(Boolean).join('; ') : toStr(p.tags),
+            v: toStr(p.is_preorder ?? false)
           }));
           // Pad with blank rows up to 30
           while (mappedRows.length < 30) {
             mappedRows.push({
               rowNum: mappedRows.length + 1,
-              d: '', e: '', f: '', g: '', h: '', i: '', j: '', k: '', l: '', m: '', n: '', o: '', p: '', q: ''
+              ...BLANK_ROW_FIELDS
             });
           }
           setRows(mappedRows);
@@ -128,6 +140,11 @@ export default function BulkEditSparesPage() {
         const matStr = toStr(r.o);
         const warStr = toStr(r.p);
         const descStr = toStr(r.q);
+        const dimStr = toStr(r.r);
+        const weightStr = toStr(r.s);
+        const netQtyStr = toStr(r.t);
+        const tagsStr = toStr(r.u);
+        const preorderStr = toStr(r.v);
 
         const row: Record<string, any> = { sku: skuStr };
         if (nameStr) row.name = nameStr;
@@ -147,6 +164,11 @@ export default function BulkEditSparesPage() {
         if (matStr) row.material = matStr;
         if (warStr) row.warranty = warStr;
         if (descStr) row.description = descStr;
+        if (dimStr) row.product_dimensions = dimStr;
+        if (weightStr) row.item_weight = weightStr;
+        if (netQtyStr) row.net_quantity = netQtyStr;
+        if (tagsStr) row.tags = splitList(tagsStr);
+        if (preorderStr) row.is_preorder = preorderStr.toLowerCase() === 'yes' || preorderStr === 'true';
         return row;
       }),
     };
@@ -171,7 +193,7 @@ export default function BulkEditSparesPage() {
   const handleClearAll = () => {
     setRows(INITIAL_ROWS.map(r => ({
       rowNum: r.rowNum,
-      d: '', e: '', f: '', g: '', h: '', i: '', j: '', k: '', l: '', m: '', n: '', o: '', p: '', q: ''
+      ...BLANK_ROW_FIELDS
     })));
   };
 
@@ -245,6 +267,11 @@ export default function BulkEditSparesPage() {
                     <th className={styles.colHeader}>O</th>
                     <th className={styles.colHeader}>P</th>
                     <th className={styles.colHeader}>Q</th>
+                    <th className={styles.colHeader}>R</th>
+                    <th className={styles.colHeader}>S</th>
+                    <th className={styles.colHeader}>T</th>
+                    <th className={styles.colHeader}>U</th>
+                    <th className={styles.colHeader}>V</th>
                   </tr>
                   {/* Field Label Headers */}
                   <tr className={styles.labelHeaderRow}>
@@ -263,6 +290,11 @@ export default function BulkEditSparesPage() {
                     <td className={styles.labelHeaderCell}>Material</td>
                     <td className={styles.labelHeaderCell}>Warranty</td>
                     <td className={styles.labelHeaderCell}>Description</td>
+                    <td className={styles.labelHeaderCell}>Product Dimensions</td>
+                    <td className={styles.labelHeaderCell}>Item Weight</td>
+                    <td className={styles.labelHeaderCell}>Net Quantity</td>
+                    <td className={styles.labelHeaderCell}>Tags</td>
+                    <td className={styles.labelHeaderCell}>Pre-order</td>
                   </tr>
                 </thead>
                 <tbody>
@@ -374,11 +406,51 @@ export default function BulkEditSparesPage() {
                         />
                       </td>
                       <td>
-                        <input 
-                          type="text" 
-                          className={styles.cellInput} 
-                          value={row.q} 
+                        <input
+                          type="text"
+                          className={styles.cellInput}
+                          value={row.q}
                           onChange={(e) => handleCellChange(row.rowNum, 'q', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          className={styles.cellInput}
+                          value={row.r}
+                          onChange={(e) => handleCellChange(row.rowNum, 'r', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          className={styles.cellInput}
+                          value={row.s}
+                          onChange={(e) => handleCellChange(row.rowNum, 's', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          className={styles.cellInput}
+                          value={row.t}
+                          onChange={(e) => handleCellChange(row.rowNum, 't', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          className={styles.cellInput}
+                          value={row.u}
+                          onChange={(e) => handleCellChange(row.rowNum, 'u', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          className={styles.cellInput}
+                          value={row.v}
+                          onChange={(e) => handleCellChange(row.rowNum, 'v', e.target.value)}
                         />
                       </td>
                     </tr>
