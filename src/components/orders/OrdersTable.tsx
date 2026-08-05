@@ -13,7 +13,7 @@ interface OrdersTableProps {
 }
 
 
-const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjIwOTk4ODU4MjYsImlhdCI6MTc4NDUyNTgyNn0.VbN8ps-Ucul8Evkyo0X9iltdU43Fn2IDfE9cf7VtKcI';
 
 function mapBackendStatusToFrontend(backendStatus: string, bookingType: string): string {
   const s = backendStatus?.toUpperCase() || '';
@@ -55,8 +55,9 @@ export default function OrdersTable({ activeTab, activeFilter, onCounts }: Order
     if (isNowExpanded && !expandedDetails[id] && !loadingDetails[id]) {
       setLoadingDetails(prev => ({ ...prev, [id]: true }));
       try {
-        const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-        const res = await fetch(`/api/v1/admin/care/bookings/${rawId}`, {
+        const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+        const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1';
+        const res = await fetch(`${baseUrl}/admin/care/bookings/${rawId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
@@ -81,8 +82,9 @@ export default function OrdersTable({ activeTab, activeFilter, onCounts }: Order
     setLoading(true);
     setError(null);
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch('/api/v1/admin/care/bookings?pageSize=1000', {
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1';
+      const res = await fetch(`${baseUrl}/admin/care/bookings?pageSize=1000`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'

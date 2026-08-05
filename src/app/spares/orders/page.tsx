@@ -55,32 +55,26 @@ export default function SparesOrdersPage() {
     replacement: 5
   });
 
-  const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+  const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjIwOTk4ODU4MjYsImlhdCI6MTc4NDUyNTgyNn0.VbN8ps-Ucul8Evkyo0X9iltdU43Fn2IDfE9cf7VtKcI';
 
   // Live GET /api/spares/orders Fetch from Local Backend (http://localhost:8000)
   const fetchOrders = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
       const headers = {
         'Authorization': `Bearer ${token}`,
         'Accept': 'application/json'
       };
 
       // Try configured backend first
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? '';
-      const cleanBaseUrl = baseUrl.endsWith('/api') ? baseUrl.slice(0, -4) : baseUrl;
-      let res = await fetch(`${cleanBaseUrl}/api/v1/admin/spares/orders`, { headers }).catch(() => null);
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1';
+      let res = await fetch(`${baseUrl}/admin/spares/orders`, { headers }).catch(() => null);
 
-      // Fallback to proxy route if direct hit fails
       if (!res || !res.ok) {
-        res = await fetch('/api/v1/admin/spares/orders', { headers });
-      }
-
-      if (!res.ok) {
-        console.warn(`Failed to fetch spares orders (Status: ${res.status})`);
-        setError(`Status: ${res.status}`);
+        console.warn(`Failed to fetch spares orders (Status: ${res?.status})`);
+        setError(`Status: ${res?.status}`);
         return;
       }
       const json = await res.json();

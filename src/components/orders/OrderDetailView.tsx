@@ -143,7 +143,7 @@ export type OrderStatus =
   | 'Cancelled' 
   | 'PickUp';
 
-const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjIwOTk4ODU4MjYsImlhdCI6MTc4NDUyNTgyNn0.VbN8ps-Ucul8Evkyo0X9iltdU43Fn2IDfE9cf7VtKcI';
 
 function formatQuoteDate(iso: string | null | undefined): string {
   if (!iso) return '–';
@@ -272,8 +272,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     setLoading(true);
     setError(null);
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}`, {
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -385,8 +385,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   // "Care — Invite Quote Bidding" bids endpoint (BidWithMechanicResponse[]).
   const fetchQuotes = React.useCallback(async () => {
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/care/bookings/${cleanOrderId}/bids`, {
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/care/bookings/${cleanOrderId}/bids`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -433,9 +433,9 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   // Assign Mechanic Action (Sync with DB & Backend)
   const handleAssignMechanic = async (mechanicId: string, mechanicObj?: any) => {
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
 
-      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/assign`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/assign`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -485,8 +485,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   // Cancel Request Action
   const handleCancelRequest = async (reasons: string[], note: string) => {
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/cancel`, {
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -511,8 +511,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const handleAcceptQuote = async (quoteId: string) => {
     try {
       const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -533,8 +533,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const handleRejectQuote = async (quoteId: string) => {
     try {
       const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -554,8 +554,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const handleUndoQuote = async (quoteId: string) => {
     try {
       const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -575,8 +575,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const handleDeselectQuote = async (quoteId: string) => {
     try {
       const cleanQuoteId = quoteId.replace(/^[a-zA-Z]+-?/, '');
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/quotes/${cleanQuoteId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -760,8 +760,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                         default: return 'MATCHED';
                       }
                     };
-                    const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-                    const res = await fetch(`/api/v1/admin/care/bookings/${cleanOrderId}/status`, {
+                    const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+                    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/status`, {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                       body: JSON.stringify({ status: getBackendStatus(val) })

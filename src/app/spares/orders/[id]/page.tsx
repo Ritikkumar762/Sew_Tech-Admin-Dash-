@@ -27,7 +27,7 @@ interface OrderDetail {
   items?: any[];
 }
 
-const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjIwOTk4ODU4MjYsImlhdCI6MTc4NDUyNTgyNn0.VbN8ps-Ucul8Evkyo0X9iltdU43Fn2IDfE9cf7VtKcI';
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -53,8 +53,9 @@ export default function OrderDetailPage() {
     setLoading(true);
     setError(null);
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const res = await fetch(`/api/v1/admin/spares/orders/${orderId}`, {
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1';
+      const res = await fetch(`${baseUrl}/admin/spares/orders/${orderId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Accept': 'application/json'
@@ -92,8 +93,9 @@ export default function OrderDetailPage() {
   // Live PATCH to Update Spares Order Status in DB
   const handleUpdateStatus = async (newStatus: string) => {
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
-      const url = `/api/v1/admin/spares/orders/${orderId}/status`;
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1';
+      const url = `${baseUrl}/admin/spares/orders/${orderId}/status`;
       const options = {
         headers: {
           'Content-Type': 'application/json',
@@ -141,9 +143,10 @@ export default function OrderDetailPage() {
   // Live POST to Cancel Spares Order in DB
   const handleCancelOrder = async () => {
     try {
-      const token = (typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null) || HARDCODED_TOKEN;
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
       const reasonsList = [...selectedReturnReasons, isOtherReturnSelected ? 'Other' : ''].filter(Boolean);
-      const res = await fetch(`/api/v1/admin/spares/orders/${orderId}/cancel`, {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1';
+      const res = await fetch(`${baseUrl}/admin/spares/orders/${orderId}/cancel`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

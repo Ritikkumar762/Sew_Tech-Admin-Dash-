@@ -125,7 +125,7 @@
 
 .spreadsheetTable {
   border-collapse: collapse;
-  width: 100%;
+  min-width: 2500px;
   table-layout: fixed;
 }
 

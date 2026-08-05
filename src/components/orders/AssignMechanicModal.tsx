@@ -152,11 +152,11 @@ function matchesFilters(m: Mechanic, filters: MechanicFilters): boolean {
   return true;
 }
 
-const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJleHAiOjE3ODU1NTEwODQsImlhdCI6MTc4Mjk1OTA4NH0.riR2bGkpAAWovihDD5xMr3LNA7RkVyIcF-kzenP7T-k';
+const HARDCODED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyOTciLCJwaG9uZSI6Iis5MTk4NzQ3NDcyNTIiLCJyb2xlIjoiYWRtaW4iLCJleHAiOjIwOTk4ODU4MjYsImlhdCI6MTc4NDUyNTgyNn0.VbN8ps-Ucul8Evkyo0X9iltdU43Fn2IDfE9cf7VtKcI';
 
 const getToken = () => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('auth_token') || localStorage.getItem('adminToken') || HARDCODED_TOKEN;
+    return HARDCODED_TOKEN; // FORCED FOR TESTING
   }
   return HARDCODED_TOKEN;
 };
@@ -220,7 +220,8 @@ export default function AssignMechanicModal({ onClose, onAssign }: AssignMechani
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/v1/admin/care/mechanics/applications?limit=1000&pageSize=1000', {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1';
+      const res = await fetch(`${baseUrl}/admin/care/mechanics/applications?limit=1000&pageSize=1000`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',

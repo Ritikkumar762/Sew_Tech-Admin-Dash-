@@ -89,7 +89,7 @@ export default function BulkEditSparesPage() {
             e: toStr(p.name),
             f: toStr((typeof p.category === 'object' ? p.category?.name : p.category) || 'Rotary Hook'),
             g: toStr((typeof p.brand === 'object' ? p.brand?.name : p.brand) || 'Juki'),
-            h: Array.isArray(p.compatibility) ? p.compatibility.join('; ') : toStr(p.compatibility),
+            h: Array.isArray(p.compatibility) ? Array.from(new Set(p.compatibility)).join('; ') : toStr(p.compatibility),
             i: toStr(p.stock_quantity ?? 0),
             j: toStr(p.low_stock_threshold ?? 10),
             k: toStr(p.price ?? 0),
@@ -102,7 +102,7 @@ export default function BulkEditSparesPage() {
             r: toStr(p.specifications?.['Product Dimensions']),
             s: toStr(p.specifications?.['Item Weight']),
             t: toStr(p.specifications?.['Net Quantity']),
-            u: Array.isArray(p.tags) ? p.tags.map((tg: any) => tg?.name).filter(Boolean).join('; ') : toStr(p.tags),
+            u: Array.isArray(p.tags) ? Array.from(new Set(p.tags.map((tg: any) => tg?.name).filter(Boolean))).join('; ') : toStr(p.tags),
             v: toStr(p.is_preorder ?? false)
           }));
           // Pad with blank rows up to 30
