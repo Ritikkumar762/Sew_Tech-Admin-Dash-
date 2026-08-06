@@ -21,6 +21,18 @@ const TIMELINE_STEPS = [
   { label: 'Pick Up',             date: '21st March, 2025',             done: false, alert: false, top: true  },
 ];
 
+// Option lists for the "Adding Details (On Call)" form — no master-data endpoint exists yet for these, so they're static placeholders
+const SERVICE_TYPE_OPTIONS = ['Repair Service', 'Maintenance Service', 'Installation Service', 'AMC Service'];
+const SERVICE_PREFERENCE_OPTIONS = ['Onsite Visit', 'Pickup & Drop', 'Remote Diagnosis'];
+const LANGUAGE_OPTIONS = ['Hindi', 'English', 'Tamil', 'Telugu', 'Bengali', 'Marathi', 'Gujarati', 'Kannada'];
+const CITY_OPTIONS = ['New Delhi', 'Mumbai', 'Bengaluru', 'Chennai', 'Kolkata', 'Hyderabad', 'Pune', 'Ahmedabad'];
+const MACHINE_TYPE_OPTIONS = ['Industrial Lockstitch', 'Overlock', 'Flatlock', 'Zigzag', 'Buttonhole', 'Bartack', 'Embroidery'];
+const MACHINE_BRAND_OPTIONS = ['Juki', 'Brother', 'Singer', 'Usha', 'Merrow', 'Pegasus', 'Jack'];
+
+const fieldLabelStyle: React.CSSProperties = { fontSize: '0.72rem', color: '#9ca3af', marginBottom: '4px', fontWeight: 500 };
+const fieldInputStyle: React.CSSProperties = { width: '100%', border: '1.5px solid #e5e7eb', borderRadius: '8px', padding: '9px 12px', fontSize: '0.875rem', color: '#374151', fontFamily: 'inherit', boxSizing: 'border-box', background: '#fff' };
+const fieldSelectStyle: React.CSSProperties = { ...fieldInputStyle, appearance: 'none', paddingRight: '32px', cursor: 'pointer' };
+
 // Sewing machine SVG icon used as placeholder for media thumbnails
 const SewingMachineIcon = () => (
   <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%', padding: '12px' }}>
@@ -129,7 +141,46 @@ function AudioNotePlayer({ src }: { src?: string | null }) {
   );
 }
 
-export type OrderStatus = 
+function LabeledSelect({ label, value, onChange, options, placeholder }: { label: string; value: string; onChange: (v: string) => void; options: string[]; placeholder: string }) {
+  return (
+    <div>
+      <div style={fieldLabelStyle}>{label}<span style={{ color: '#ef4444' }}> *</span></div>
+      <div style={{ position: 'relative' }}>
+        <select value={value} onChange={(e) => onChange(e.target.value)} style={fieldSelectStyle}>
+          <option value="">{placeholder}</option>
+          {options.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}><polyline points="6 9 12 15 18 9"/></svg>
+      </div>
+    </div>
+  );
+}
+
+function LabeledInput({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder: string }) {
+  return (
+    <div>
+      <div style={fieldLabelStyle}>{label}<span style={{ color: '#ef4444' }}> *</span></div>
+      <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={fieldInputStyle} />
+    </div>
+  );
+}
+
+// Free-text field styled with a decorative chevron to match the Figma chrome for Landmark / Model / Serial / Error Code
+function LabeledChevronInput({ label, value, onChange, placeholder, icon }: { label: string; value: string; onChange: (v: string) => void; placeholder: string; icon?: React.ReactNode }) {
+  return (
+    <div>
+      <div style={fieldLabelStyle}>{label}<span style={{ color: '#ef4444' }}> *</span></div>
+      <div style={{ position: 'relative' }}>
+        <input type="text" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} style={{ ...fieldInputStyle, paddingRight: '32px' }} />
+        <div style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+          {icon || <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export type OrderStatus =
   | 'Booked' 
   | 'Requested' 
   | 'MechanicAlloted' 
@@ -193,11 +244,14 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const isVideo = bookingType === 'Video Call Assistance';
   const isAssisted = bookingType === 'Assisted Booking';
   const isInviteQuote = bookingType === 'Invite Quote';
-  const isCallRequested = isAssisted && bookingDetail?.raw_status === 'AWAITING_CALLBACK';
 
   const [orderStatus, setOrderStatus] = useState<OrderStatus>('Booked');
   const [isDiagnosisFlow, setIsDiagnosisFlow] = useState<boolean>(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
+
+  // Real bookings never carry a `raw_status: 'AWAITING_CALLBACK'` field — the backend only exposes the mapped
+  // `status`, so a PENDING ("Requested") Assisted Booking or Video Call Assistance is the actual "Call Requested" state.
+  const isCallRequested = (isAssisted || isVideo) && orderStatus === 'Requested';
 
   const getStatusLabel = (status: OrderStatus): string => {
     switch (status) {
@@ -253,7 +307,100 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const [tlOffset, setTlOffset]     = useState(0);
   const [showAssign, setShowAssign] = useState(false);
 
-  
+  // "Adding Details (On Call)" form — filled in by the admin while on a call with the customer
+  const emptyCallDetailsForm = {
+    serviceType: '', servicePreference: '', dateTime: '', language: 'Hindi',
+    address: '', city: '', pinCode: '', landmark: '',
+    machineType: '', machineBrand: '', modelNumber: '', serialNumber: '',
+    complaintDescription: '', errorCode: '',
+  };
+  const [showCallDetailsForm, setShowCallDetailsForm] = useState(false);
+  const [callDetailsForm, setCallDetailsForm] = useState(emptyCallDetailsForm);
+  const [savingCallDetails, setSavingCallDetails] = useState(false);
+
+  const updateCallDetailsField = (field: keyof typeof emptyCallDetailsForm, value: string) => {
+    setCallDetailsForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  // Video Call Assistance is a remote flow — no on-site address/pin code/landmark and no error-code/photo/audio complaint fields
+  const ASSISTED_REQUIRED_FIELDS: (keyof typeof emptyCallDetailsForm)[] = ['serviceType', 'servicePreference', 'dateTime', 'language', 'address', 'city', 'pinCode', 'landmark', 'machineType', 'machineBrand', 'modelNumber', 'serialNumber', 'complaintDescription', 'errorCode'];
+  const VIDEO_REQUIRED_FIELDS: (keyof typeof emptyCallDetailsForm)[] = ['serviceType', 'servicePreference', 'dateTime', 'language', 'machineType', 'machineBrand', 'modelNumber', 'serialNumber', 'complaintDescription'];
+
+  const openCallDetailsForm = () => {
+    setCallDetailsForm((prev) => ({
+      ...prev,
+      address: !isVideo ? (bookingDetail?.location || prev.address) : prev.address,
+      complaintDescription: isVideo
+        ? ((bookingDetail?.complaints && bookingDetail.complaints.join(', ')) || prev.complaintDescription)
+        : (bookingDetail?.machine?.description || prev.complaintDescription),
+      machineBrand: bookingDetail?.machine?.brand || prev.machineBrand,
+      modelNumber: bookingDetail?.machine?.model || prev.modelNumber,
+    }));
+    setShowCallDetailsForm(true);
+  };
+
+  const handleDiscardCallDetails = () => {
+    setCallDetailsForm(emptyCallDetailsForm);
+    setShowCallDetailsForm(false);
+  };
+
+  const handleSaveCallDetails = async () => {
+    const f = callDetailsForm;
+    const requiredFields = isVideo ? VIDEO_REQUIRED_FIELDS : ASSISTED_REQUIRED_FIELDS;
+    const allFilled = requiredFields.every((k) => f[k].trim().length > 0);
+    if (!allFilled) {
+      showToastMsg('Please fill in all required fields.', 'error');
+      return;
+    }
+    setSavingCallDetails(true);
+    try {
+      const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/details`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({
+          service_type: f.serviceType,
+          service_preference: f.servicePreference,
+          selected_datetime: f.dateTime,
+          language_preference: f.language,
+          ...(isVideo ? {} : { address: f.address, city: f.city, pin_code: f.pinCode, landmark: f.landmark }),
+          machine_type: f.machineType,
+          machine_brand: f.machineBrand,
+          model_number: f.modelNumber,
+          serial_number: f.serialNumber,
+          complaint_description: f.complaintDescription,
+          ...(isVideo ? {} : { error_code: f.errorCode }),
+        }),
+      });
+    } catch (err) {
+      console.error('Error saving call details:', err);
+    } finally {
+      // No refetch here — the /details endpoint above is best-effort and may not persist these fields server-side,
+      // so we move the UI forward optimistically instead of risking a refetch reverting back to "Call Requested".
+      setBookingDetail((prev: any) => ({
+        ...prev,
+        language: f.language,
+        location: isVideo ? prev?.location : `${f.address}\n${f.city} - ${f.pinCode}\n${f.landmark}`,
+        complaints: isVideo ? f.complaintDescription.split(',').map((s) => s.trim()).filter(Boolean) : prev?.complaints,
+        machine: {
+          ...prev?.machine,
+          issue: f.serviceType,
+          type: f.machineType,
+          brand: f.machineBrand,
+          model: f.modelNumber,
+          serial: f.serialNumber,
+          description: isVideo ? prev?.machine?.description : f.complaintDescription,
+          error_code: isVideo ? prev?.machine?.error_code : f.errorCode,
+        },
+      }));
+      setOrderStatus('Booked');
+      setShowCallDetailsForm(false);
+      setSavingCallDetails(false);
+      showToastMsg('Details saved & payment link sent to customer!', 'success');
+    }
+  };
+
+
   const [quotes, setQuotes] = useState<any[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<string | null>(null);
   
@@ -828,17 +975,17 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
             ] : [
               { label: 'Order Value:',   value: bookingDetail.order_value ? `₹${bookingDetail.order_value.toLocaleString('en-IN')}` : '₹1,600', type: 'text' }
             ]),
-            { label: 'Status:',          value: getStatusLabel(orderStatus), type: 'badge' },
+            { label: 'Status:',          value: isCallRequested ? 'Call Requested' : getStatusLabel(orderStatus), type: 'badge' },
           ].map((col, i) => (
             <div key={i} style={{ paddingRight: i < 4 ? '1.5rem' : 0, borderRight: i < 4 ? '1px solid #f0f0f0' : 'none', paddingLeft: i > 0 ? '1.5rem' : 0 }}>
               <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginBottom: '5px', fontWeight: 400 }}>{col.label}</div>
               {col.type === 'badge' ? (
-                <span style={{ 
-                  display: 'inline-block', 
-                  background: getStatusStyles(orderStatus).bg, 
-                  color: getStatusStyles(orderStatus).color, 
-                  border: `1px solid ${getStatusStyles(orderStatus).border}`, 
-                  borderRadius: '20px', padding: '2px 10px', fontSize: '0.78rem', fontWeight: 600 
+                <span style={{
+                  display: 'inline-block',
+                  background: isCallRequested ? '#fef3c7' : getStatusStyles(orderStatus).bg,
+                  color: isCallRequested ? '#d97706' : getStatusStyles(orderStatus).color,
+                  border: `1px solid ${isCallRequested ? '#fde68a' : getStatusStyles(orderStatus).border}`,
+                  borderRadius: '20px', padding: '2px 10px', fontSize: '0.78rem', fontWeight: 600
                 }}>
                   {col.value}
                 </span>
@@ -923,24 +1070,146 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
           <div style={{ padding: '1.5rem', animation: 'odFade .3s ease' }}>
 
             {isCallRequested ? (
-              /* ── Assisted Booking: pre-details "Call Requested" wizard ── */
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                {[
-                  { label: 'Enter Service Details', height: '180px' },
-                  { label: 'Enter Machine Details', height: '180px' },
-                  { label: 'Enter Machine Complaint', height: '150px' },
-                ].map((panel) => (
-                  <div key={panel.label} style={{ border: '1.5px dashed #93c5fd', background: '#eff6ff', borderRadius: '8px', minHeight: panel.height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              showCallDetailsForm ? (
+                /* ── Assisted Booking: "Adding Details (On Call)" form ── */
+                <div>
+                  {/* Service Details */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <span style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827' }}>Service Details</span>
+                    {!assignedMechanic && (
+                      <button
+                        className="od-hov"
+                        onClick={() => setShowAssign(true)}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '7px 16px', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        Assign Mechanic
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.25rem' }} />
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem 2rem', marginBottom: '1.75rem' }}>
+                    <LabeledSelect label="Service Type" placeholder="Select Service Preferences" value={callDetailsForm.serviceType} onChange={(v) => updateCallDetailsField('serviceType', v)} options={SERVICE_TYPE_OPTIONS} />
+                    <LabeledSelect label="Service Preferences" placeholder="Select Service Preferences" value={callDetailsForm.servicePreference} onChange={(v) => updateCallDetailsField('servicePreference', v)} options={SERVICE_PREFERENCE_OPTIONS} />
+
+                    <div>
+                      <div style={fieldLabelStyle}>Selected Date &amp; Time<span style={{ color: '#ef4444' }}> *</span></div>
+                      <div style={{ position: 'relative' }}>
+                        <input
+                          type="text"
+                          value={callDetailsForm.dateTime}
+                          onChange={(e) => updateCallDetailsField('dateTime', e.target.value)}
+                          placeholder="28.02.2026, 01:00 – 02:00 PM"
+                          style={{ ...fieldInputStyle, paddingRight: '36px' }}
+                        />
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                      </div>
+                    </div>
+                    <LabeledSelect label="Language Preference" placeholder="Select Language Preference" value={callDetailsForm.language} onChange={(v) => updateCallDetailsField('language', v)} options={LANGUAGE_OPTIONS} />
+
+                    {!isVideo && (
+                      <>
+                        <LabeledInput label="Address" placeholder="Enter Address" value={callDetailsForm.address} onChange={(v) => updateCallDetailsField('address', v)} />
+                        <LabeledSelect label="City" placeholder="Select City" value={callDetailsForm.city} onChange={(v) => updateCallDetailsField('city', v)} options={CITY_OPTIONS} />
+
+                        <LabeledInput label="Pin Code" placeholder="Enter Pin Code" value={callDetailsForm.pinCode} onChange={(v) => updateCallDetailsField('pinCode', v)} />
+                        <LabeledChevronInput label="Landmark" placeholder="Select City" value={callDetailsForm.landmark} onChange={(v) => updateCallDetailsField('landmark', v)} />
+                      </>
+                    )}
+                  </div>
+
+                  {/* Machine Details */}
+                  <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Machine Details</div>
+                  <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.25rem' }} />
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem', marginBottom: '1.75rem' }}>
+                    <LabeledSelect label="Machine Type" placeholder="Select Machine Type" value={callDetailsForm.machineType} onChange={(v) => updateCallDetailsField('machineType', v)} options={MACHINE_TYPE_OPTIONS} />
+                    <LabeledSelect label="Machine Brand" placeholder="Select Machine Brand" value={callDetailsForm.machineBrand} onChange={(v) => updateCallDetailsField('machineBrand', v)} options={MACHINE_BRAND_OPTIONS} />
+                    <LabeledChevronInput label="Model Number" placeholder="Select Model Number" value={callDetailsForm.modelNumber} onChange={(v) => updateCallDetailsField('modelNumber', v)} />
+                    <LabeledChevronInput label="Serial Number" placeholder="Select Serial Number" value={callDetailsForm.serialNumber} onChange={(v) => updateCallDetailsField('serialNumber', v)} />
+                  </div>
+
+                  {/* Machine Complaint */}
+                  <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Machine Complaint</div>
+                  <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.25rem' }} />
+                  {isVideo ? (
+                    <div style={{ marginBottom: '2rem' }}>
+                      <LabeledInput label="Complaint Selected" placeholder="e.g. Installation, Guided Repair Service" value={callDetailsForm.complaintDescription} onChange={(v) => updateCallDetailsField('complaintDescription', v)} />
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+                      <div style={{ flex: '1 1 380px' }}>
+                        <div style={fieldLabelStyle}>Description<span style={{ color: '#ef4444' }}> *</span></div>
+                        <div style={{ border: '1.5px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '8px 10px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', color: '#9ca3af', fontSize: '0.7rem' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>14<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg></span>
+                            <span style={{ width: '1px', height: '14px', background: '#e5e7eb' }} />
+                            <span style={{ fontWeight: 700 }}>T</span>
+                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#374151', display: 'inline-block' }} />
+                            <span style={{ width: '1px', height: '14px', background: '#e5e7eb' }} />
+                            {['B', 'I', 'U', 'S'].map((l) => <span key={l} style={{ fontWeight: 700, width: '12px', textAlign: 'center' }}>{l}</span>)}
+                            <span style={{ width: '1px', height: '14px', background: '#e5e7eb' }} />
+                            {['☰', '≣'].map((s, i) => <span key={i}>{s}</span>)}
+                            <span>1,2</span>
+                            <span>☷</span>
+                          </div>
+                          <textarea
+                            value={callDetailsForm.complaintDescription}
+                            onChange={(e) => updateCallDetailsField('complaintDescription', e.target.value.slice(0, 200))}
+                            placeholder="Add Body to your post"
+                            rows={4}
+                            maxLength={200}
+                            style={{ width: '100%', border: 'none', padding: '10px 12px', fontSize: '0.875rem', color: '#374151', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' }}
+                          />
+                          <div style={{ textAlign: 'right', fontSize: '0.7rem', color: '#9ca3af', padding: '0 10px 8px' }}>{callDetailsForm.complaintDescription.length}/200</div>
+                        </div>
+                      </div>
+                      <div style={{ flex: '0 1 200px', minWidth: '160px' }}>
+                        <LabeledChevronInput label="Error Code" placeholder="Enter Error Code" value={callDetailsForm.errorCode} onChange={(v) => updateCallDetailsField('errorCode', v)} />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid #e5e7eb', paddingTop: '1.25rem' }}>
                     <button
                       className="od-hov"
-                      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '8px', background: '#2563eb', color: '#fff', fontSize: '0.9375rem', fontWeight: 600, cursor: 'pointer' }}
+                      onClick={handleDiscardCallDetails}
+                      style={{ padding: '9px 20px', border: '1.5px solid #fca5a5', borderRadius: '8px', background: '#fff', color: '#ef4444', fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer' }}
                     >
-                      {panel.label}
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      Discard Changes
+                    </button>
+                    <button
+                      className="od-hov"
+                      onClick={handleSaveCallDetails}
+                      disabled={savingCallDetails}
+                      style={{ padding: '9px 20px', border: 'none', borderRadius: '8px', background: '#111827', color: '#fff', fontSize: '0.8125rem', fontWeight: 600, cursor: savingCallDetails ? 'default' : 'pointer', opacity: savingCallDetails ? 0.7 : 1 }}
+                    >
+                      {savingCallDetails ? 'Saving...' : 'Save & Send Payment Link'}
                     </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                /* ── Assisted Booking: pre-details "Call Requested" wizard ── */
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {[
+                    { label: 'Enter Service Details', height: '180px' },
+                    { label: 'Enter Machine Details', height: '180px' },
+                    { label: 'Enter Machine Complaint', height: '150px' },
+                  ].map((panel) => (
+                    <div key={panel.label} style={{ border: '1.5px dashed #93c5fd', background: '#eff6ff', borderRadius: '8px', minHeight: panel.height, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <button
+                        className="od-hov"
+                        onClick={openCallDetailsForm}
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '0.75rem 1.5rem', border: 'none', borderRadius: '8px', background: '#2563eb', color: '#fff', fontSize: '0.9375rem', fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        {panel.label}
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )
             ) : (
               <>
                 {/* Service Details heading row */}
