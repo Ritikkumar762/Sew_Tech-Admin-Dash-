@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com';
 
 export interface UserProfile {
   user_id: number;

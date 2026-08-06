@@ -3,8 +3,7 @@ import { useRouter } from 'next/navigation';
 
 export type LoginMode = 'otp' | 'password' | 'verify_otp';
 
-// Backend base URL — reads from env, falls back to relative (proxied via next.config)
-const API = process.env.NEXT_PUBLIC_API_URL ?? '';
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com';
 
 export function useLogin() {
   const router = useRouter();
@@ -31,14 +30,14 @@ export function useLogin() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API}/api/v1/auth/request-otp`, {
+      const res = await fetch(`${API}/api/v1/auth/authenticate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ phone_number: formattedPhone }),
       });
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.detail || 'Failed to send OTP');
+      if (!res.ok || data.success === false) {
+        throw new Error(data.message || data.detail || 'Failed to send OTP');
       }
       setMode('verify_otp');
     } catch (err: any) {
@@ -61,30 +60,21 @@ export function useLogin() {
     setLoading(true);
     setError(null);
     try {
-      // Step 1: verify OTP → get verified_otp_token
-      const verifyRes = await fetch(`${API}/api/v1/auth/verify-otp`, {
+      const res = await fetch(`${API}/api/v1/auth/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone_number: formattedPhone, otp: otpValue }),
+        body: JSON.stringify({ phone_number: formattedPhone, otp_code: otpValue }),
       });
-      const verifyData = await verifyRes.json().catch(() => ({}));
-      if (!verifyRes.ok) {
-        throw new Error(verifyData.detail || 'Incorrect OTP');
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || data.success === false) {
+        throw new Error(data.message || data.detail || 'Incorrect OTP');
       }
 
-      // Step 2: If user is already onboarded (admin), get access token via login endpoint
-      const loginRes = await fetch(`${API}/api/v1/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone_number: formattedPhone, otp: otpValue }),
-      });
-      const loginData = await loginRes.json().catch(() => ({}));
-
-      if (loginRes.ok && loginData.access_token) {
+      if (data.access_token) {
         // Store token — all hooks read 'auth_token'
-        localStorage.setItem('auth_token', loginData.access_token);
-        if (loginData.refresh_token) {
-          localStorage.setItem('refresh_token', loginData.refresh_token);
+        localStorage.setItem('auth_token', data.access_token);
+        if (data.refresh_token) {
+          localStorage.setItem('refresh_token', data.refresh_token);
         }
         router.push('/dashboard');
       } else {

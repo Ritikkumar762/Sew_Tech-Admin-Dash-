@@ -3,8 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { User } from '../../../types';
 
-// NEXT_PUBLIC_API_URL = /api/v1  →  proxy rewrites to http://127.0.0.1:8000/api/v1
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? '/api/v1';
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1';
 
 // ── Correct API paths (no double /api/v1) ────────────────────────────────────
 const ADMIN_USERS_URL  = `${BASE}/admin/users`;   // GET list, GET detail, PATCH, violations, wallet

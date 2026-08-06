@@ -4,7 +4,7 @@
  * All API routes are defined here. Never hardcode URLs in hooks.
  */
 
-export const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '/api';
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1';
 export const temp = 'http://localhost:8000/api/v1';
 export const MARKETING_BASE_URL = BASE_URL;
 // Alerts backend — change this URL once deployed; everything else uses BASE_URL

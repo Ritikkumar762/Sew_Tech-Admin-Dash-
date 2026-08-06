@@ -250,8 +250,11 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const [showStatusMenu, setShowStatusMenu] = useState(false);
 
   // Real bookings never carry a `raw_status: 'AWAITING_CALLBACK'` field — the backend only exposes the mapped
-  // `status`, so a PENDING ("Requested") Assisted Booking or Video Call Assistance is the actual "Call Requested" state.
-  const isCallRequested = (isAssisted || isVideo) && orderStatus === 'Requested';
+  // `status`, so a PENDING ("Requested") Assisted Booking is the actual "Call Requested" state. Video Call
+  // Assistance has no such state in Figma — it starts straight at "Booked" with full details already present.
+  const isCallRequested = isAssisted && orderStatus === 'Requested';
+  // Figinma's Video Assistance flow has no "Requested" state — its initial PENDING booking displays as "Booked"
+  const videoShowsAsBooked = isVideo && orderStatus === 'Requested';
 
   const getStatusLabel = (status: OrderStatus): string => {
     switch (status) {
@@ -322,17 +325,11 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     setCallDetailsForm((prev) => ({ ...prev, [field]: value }));
   };
 
-  // Video Call Assistance is a remote flow — no on-site address/pin code/landmark and no error-code/photo/audio complaint fields
-  const ASSISTED_REQUIRED_FIELDS: (keyof typeof emptyCallDetailsForm)[] = ['serviceType', 'servicePreference', 'dateTime', 'language', 'address', 'city', 'pinCode', 'landmark', 'machineType', 'machineBrand', 'modelNumber', 'serialNumber', 'complaintDescription', 'errorCode'];
-  const VIDEO_REQUIRED_FIELDS: (keyof typeof emptyCallDetailsForm)[] = ['serviceType', 'servicePreference', 'dateTime', 'language', 'machineType', 'machineBrand', 'modelNumber', 'serialNumber', 'complaintDescription'];
-
   const openCallDetailsForm = () => {
     setCallDetailsForm((prev) => ({
       ...prev,
-      address: !isVideo ? (bookingDetail?.location || prev.address) : prev.address,
-      complaintDescription: isVideo
-        ? ((bookingDetail?.complaints && bookingDetail.complaints.join(', ')) || prev.complaintDescription)
-        : (bookingDetail?.machine?.description || prev.complaintDescription),
+      address: bookingDetail?.location || prev.address,
+      complaintDescription: bookingDetail?.machine?.description || prev.complaintDescription,
       machineBrand: bookingDetail?.machine?.brand || prev.machineBrand,
       modelNumber: bookingDetail?.machine?.model || prev.modelNumber,
     }));
@@ -346,8 +343,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
 
   const handleSaveCallDetails = async () => {
     const f = callDetailsForm;
-    const requiredFields = isVideo ? VIDEO_REQUIRED_FIELDS : ASSISTED_REQUIRED_FIELDS;
-    const allFilled = requiredFields.every((k) => f[k].trim().length > 0);
+    const allFilled = Object.values(f).every((v) => v.trim().length > 0);
     if (!allFilled) {
       showToastMsg('Please fill in all required fields.', 'error');
       return;
@@ -363,13 +359,16 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
           service_preference: f.servicePreference,
           selected_datetime: f.dateTime,
           language_preference: f.language,
-          ...(isVideo ? {} : { address: f.address, city: f.city, pin_code: f.pinCode, landmark: f.landmark }),
+          address: f.address,
+          city: f.city,
+          pin_code: f.pinCode,
+          landmark: f.landmark,
           machine_type: f.machineType,
           machine_brand: f.machineBrand,
           model_number: f.modelNumber,
           serial_number: f.serialNumber,
           complaint_description: f.complaintDescription,
-          ...(isVideo ? {} : { error_code: f.errorCode }),
+          error_code: f.errorCode,
         }),
       });
     } catch (err) {
@@ -380,8 +379,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
       setBookingDetail((prev: any) => ({
         ...prev,
         language: f.language,
-        location: isVideo ? prev?.location : `${f.address}\n${f.city} - ${f.pinCode}\n${f.landmark}`,
-        complaints: isVideo ? f.complaintDescription.split(',').map((s) => s.trim()).filter(Boolean) : prev?.complaints,
+        location: `${f.address}\n${f.city} - ${f.pinCode}\n${f.landmark}`,
         machine: {
           ...prev?.machine,
           issue: f.serviceType,
@@ -389,8 +387,8 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
           brand: f.machineBrand,
           model: f.modelNumber,
           serial: f.serialNumber,
-          description: isVideo ? prev?.machine?.description : f.complaintDescription,
-          error_code: isVideo ? prev?.machine?.error_code : f.errorCode,
+          description: f.complaintDescription,
+          error_code: f.errorCode,
         },
       }));
       setOrderStatus('Booked');
@@ -527,13 +525,12 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
     fetchBookingDetail();
   }, [fetchBookingDetail]);
 
-  // Fetch real bids placed on this Invite Quote booking.
-  // There is no admin-prefixed list endpoint for this — the real one is the
-  // "Care — Invite Quote Bidding" bids endpoint (BidWithMechanicResponse[]).
+  // Fetch quotes/bids placed on this Invite Quote booking via the real admin endpoint
+  // GET /admin/care/bookings/{id}/quotes — status is already lowercased server-side.
   const fetchQuotes = React.useCallback(async () => {
     try {
       const token = HARDCODED_TOKEN; // FORCED FOR TESTING
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/care/bookings/${cleanOrderId}/bids`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/quotes`, {
         method: 'GET',
         headers: {
           'Accept': 'application/json',
@@ -541,30 +538,22 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
         },
       });
       if (!res.ok) {
-        // 403 = booking not owned by the caller (backend ownership check on this
-        // customer-scoped endpoint), 404 = no bids yet — both are expected, non-error states
         setQuotes([]);
         return;
       }
-      const items: any[] = await res.json();
-
-      const BID_STATUS_MAP: Record<string, string> = {
-        SUBMITTED: 'pending',
-        SELECTED: 'accepted',
-        REJECTED: 'rejected',
-        WITHDRAWN: 'withdrawn',
-      };
+      const json = await res.json();
+      const items: any[] = json?.data || [];
 
       const formattedQuotes = items
-        .filter((q) => q.status !== 'WITHDRAWN')
+        .filter((q) => q.status !== 'withdrawn')
         .map((q) => ({
-          id: String(q.bid_id),
+          id: String(q.quoteId),
           name: q.mechanic_name || 'Unknown Mechanic',
-          price: q.amount ? Number(q.amount) : 0,
+          price: q.price ? Number(q.price) : 0,
           proximity: q.mechanic_rating ? `${q.mechanic_rating}★ rated` : '–',
-          submitted: formatQuoteDate(q.created_at),
-          available: formatQuoteDate(q.earliest_available_date),
-          status: BID_STATUS_MAP[q.status] || 'pending',
+          submitted: formatQuoteDate(q.submitted),
+          available: formatQuoteDate(q.available),
+          status: q.status || 'pending',
         }));
       setQuotes(formattedQuotes);
     } catch (err) {
@@ -581,6 +570,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const handleAssignMechanic = async (mechanicId: string, mechanicObj?: any) => {
     try {
       const token = HARDCODED_TOKEN; // FORCED FOR TESTING
+      const cleanMechanicId = mechanicId.replace(/^[a-zA-Z]+-?/, '');
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/assign`, {
         method: 'PATCH',
@@ -590,7 +580,7 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          mechanic_id: mechanicId
+          user_id: cleanMechanicId
         })
       });
 
@@ -975,16 +965,16 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
             ] : [
               { label: 'Order Value:',   value: bookingDetail.order_value ? `₹${bookingDetail.order_value.toLocaleString('en-IN')}` : '₹1,600', type: 'text' }
             ]),
-            { label: 'Status:',          value: isCallRequested ? 'Call Requested' : getStatusLabel(orderStatus), type: 'badge' },
+            { label: 'Status:',          value: isCallRequested ? 'Call Requested' : videoShowsAsBooked ? 'Booked' : getStatusLabel(orderStatus), type: 'badge' },
           ].map((col, i) => (
             <div key={i} style={{ paddingRight: i < 4 ? '1.5rem' : 0, borderRight: i < 4 ? '1px solid #f0f0f0' : 'none', paddingLeft: i > 0 ? '1.5rem' : 0 }}>
               <div style={{ fontSize: '0.7rem', color: '#9ca3af', marginBottom: '5px', fontWeight: 400 }}>{col.label}</div>
               {col.type === 'badge' ? (
                 <span style={{
                   display: 'inline-block',
-                  background: isCallRequested ? '#fef3c7' : getStatusStyles(orderStatus).bg,
-                  color: isCallRequested ? '#d97706' : getStatusStyles(orderStatus).color,
-                  border: `1px solid ${isCallRequested ? '#fde68a' : getStatusStyles(orderStatus).border}`,
+                  background: isCallRequested || videoShowsAsBooked ? '#fef3c7' : getStatusStyles(orderStatus).bg,
+                  color: isCallRequested || videoShowsAsBooked ? '#d97706' : getStatusStyles(orderStatus).color,
+                  border: `1px solid ${isCallRequested || videoShowsAsBooked ? '#fde68a' : getStatusStyles(orderStatus).border}`,
                   borderRadius: '20px', padding: '2px 10px', fontSize: '0.78rem', fontWeight: 600
                 }}>
                   {col.value}
@@ -1108,15 +1098,11 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                     </div>
                     <LabeledSelect label="Language Preference" placeholder="Select Language Preference" value={callDetailsForm.language} onChange={(v) => updateCallDetailsField('language', v)} options={LANGUAGE_OPTIONS} />
 
-                    {!isVideo && (
-                      <>
-                        <LabeledInput label="Address" placeholder="Enter Address" value={callDetailsForm.address} onChange={(v) => updateCallDetailsField('address', v)} />
-                        <LabeledSelect label="City" placeholder="Select City" value={callDetailsForm.city} onChange={(v) => updateCallDetailsField('city', v)} options={CITY_OPTIONS} />
+                    <LabeledInput label="Address" placeholder="Enter Address" value={callDetailsForm.address} onChange={(v) => updateCallDetailsField('address', v)} />
+                    <LabeledSelect label="City" placeholder="Select City" value={callDetailsForm.city} onChange={(v) => updateCallDetailsField('city', v)} options={CITY_OPTIONS} />
 
-                        <LabeledInput label="Pin Code" placeholder="Enter Pin Code" value={callDetailsForm.pinCode} onChange={(v) => updateCallDetailsField('pinCode', v)} />
-                        <LabeledChevronInput label="Landmark" placeholder="Select City" value={callDetailsForm.landmark} onChange={(v) => updateCallDetailsField('landmark', v)} />
-                      </>
-                    )}
+                    <LabeledInput label="Pin Code" placeholder="Enter Pin Code" value={callDetailsForm.pinCode} onChange={(v) => updateCallDetailsField('pinCode', v)} />
+                    <LabeledChevronInput label="Landmark" placeholder="Select City" value={callDetailsForm.landmark} onChange={(v) => updateCallDetailsField('landmark', v)} />
                   </div>
 
                   {/* Machine Details */}
@@ -1132,43 +1118,37 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                   {/* Machine Complaint */}
                   <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', marginBottom: '12px' }}>Machine Complaint</div>
                   <div style={{ height: '1px', background: '#e5e7eb', marginBottom: '1.25rem' }} />
-                  {isVideo ? (
-                    <div style={{ marginBottom: '2rem' }}>
-                      <LabeledInput label="Complaint Selected" placeholder="e.g. Installation, Guided Repair Service" value={callDetailsForm.complaintDescription} onChange={(v) => updateCallDetailsField('complaintDescription', v)} />
-                    </div>
-                  ) : (
-                    <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
-                      <div style={{ flex: '1 1 380px' }}>
-                        <div style={fieldLabelStyle}>Description<span style={{ color: '#ef4444' }}> *</span></div>
-                        <div style={{ border: '1.5px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '8px 10px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', color: '#9ca3af', fontSize: '0.7rem' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>14<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg></span>
-                            <span style={{ width: '1px', height: '14px', background: '#e5e7eb' }} />
-                            <span style={{ fontWeight: 700 }}>T</span>
-                            <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#374151', display: 'inline-block' }} />
-                            <span style={{ width: '1px', height: '14px', background: '#e5e7eb' }} />
-                            {['B', 'I', 'U', 'S'].map((l) => <span key={l} style={{ fontWeight: 700, width: '12px', textAlign: 'center' }}>{l}</span>)}
-                            <span style={{ width: '1px', height: '14px', background: '#e5e7eb' }} />
-                            {['☰', '≣'].map((s, i) => <span key={i}>{s}</span>)}
-                            <span>1,2</span>
-                            <span>☷</span>
-                          </div>
-                          <textarea
-                            value={callDetailsForm.complaintDescription}
-                            onChange={(e) => updateCallDetailsField('complaintDescription', e.target.value.slice(0, 200))}
-                            placeholder="Add Body to your post"
-                            rows={4}
-                            maxLength={200}
-                            style={{ width: '100%', border: 'none', padding: '10px 12px', fontSize: '0.875rem', color: '#374151', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' }}
-                          />
-                          <div style={{ textAlign: 'right', fontSize: '0.7rem', color: '#9ca3af', padding: '0 10px 8px' }}>{callDetailsForm.complaintDescription.length}/200</div>
+                  <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+                    <div style={{ flex: '1 1 380px' }}>
+                      <div style={fieldLabelStyle}>Description<span style={{ color: '#ef4444' }}> *</span></div>
+                      <div style={{ border: '1.5px solid #e5e7eb', borderRadius: '8px', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '9px', padding: '8px 10px', borderBottom: '1px solid #e5e7eb', background: '#f9fafb', color: '#9ca3af', fontSize: '0.7rem' }}>
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>14<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="6 9 12 15 18 9"/></svg></span>
+                          <span style={{ width: '1px', height: '14px', background: '#e5e7eb' }} />
+                          <span style={{ fontWeight: 700 }}>T</span>
+                          <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: '#374151', display: 'inline-block' }} />
+                          <span style={{ width: '1px', height: '14px', background: '#e5e7eb' }} />
+                          {['B', 'I', 'U', 'S'].map((l) => <span key={l} style={{ fontWeight: 700, width: '12px', textAlign: 'center' }}>{l}</span>)}
+                          <span style={{ width: '1px', height: '14px', background: '#e5e7eb' }} />
+                          {['☰', '≣'].map((s, i) => <span key={i}>{s}</span>)}
+                          <span>1,2</span>
+                          <span>☷</span>
                         </div>
-                      </div>
-                      <div style={{ flex: '0 1 200px', minWidth: '160px' }}>
-                        <LabeledChevronInput label="Error Code" placeholder="Enter Error Code" value={callDetailsForm.errorCode} onChange={(v) => updateCallDetailsField('errorCode', v)} />
+                        <textarea
+                          value={callDetailsForm.complaintDescription}
+                          onChange={(e) => updateCallDetailsField('complaintDescription', e.target.value.slice(0, 200))}
+                          placeholder="Add Body to your post"
+                          rows={4}
+                          maxLength={200}
+                          style={{ width: '100%', border: 'none', padding: '10px 12px', fontSize: '0.875rem', color: '#374151', resize: 'none', fontFamily: 'inherit', boxSizing: 'border-box', outline: 'none' }}
+                        />
+                        <div style={{ textAlign: 'right', fontSize: '0.7rem', color: '#9ca3af', padding: '0 10px 8px' }}>{callDetailsForm.complaintDescription.length}/200</div>
                       </div>
                     </div>
-                  )}
+                    <div style={{ flex: '0 1 200px', minWidth: '160px' }}>
+                      <LabeledChevronInput label="Error Code" placeholder="Enter Error Code" value={callDetailsForm.errorCode} onChange={(v) => updateCallDetailsField('errorCode', v)} />
+                    </div>
+                  </div>
 
                   {/* Actions */}
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid #e5e7eb', paddingTop: '1.25rem' }}>

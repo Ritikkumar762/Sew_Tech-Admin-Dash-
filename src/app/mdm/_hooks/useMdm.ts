@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { apiClient as baseApiClient } from '@/lib/api';
 import { ENDPOINTS } from '@/lib/endpoints';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://project-sewtech-mart.onrender.com/api/v1';
 
 const formatUrl = (url: string) => {
   if (!url) return '';
