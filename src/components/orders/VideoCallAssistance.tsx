@@ -5,23 +5,22 @@ import OrdersTable from './OrdersTable';
 
 interface FilterOption {
   label: string;
-  count: number | null;
+  key: string | null;
 }
 
 export default function VideoCallAssistance({ onCounts }: { onCounts?: (counts: Record<string, number>) => void }) {
   const [activeFilter, setActiveFilter] = useState('All');
+  const [filterCounts, setFilterCounts] = useState<Record<string, number>>({});
 
-
+  // Video Call Assistance is a remote diagnosis flow — no mechanic dispatch/allotment
+  // pill here, but Diagnosis Available is the key deliverable of the call.
   const filters: FilterOption[] = [
-    { label: 'All', count: null },
-    { label: 'Mechanic Allotted', count: 767 },
-    { label: 'Ongoing', count: null },
-    { label: 'Completed', count: null },
-    { label: 'Diagnosis Available', count: null },
-    { label: 'Cancelled', count: null },
-    { label: 'Flagged', count: 767 },
-    { label: 'Delayed', count: null },
-    { label: 'Support Required', count: 34 }
+    { label: 'All', key: null },
+    { label: 'Ongoing', key: 'ongoing' },
+    { label: 'Diagnosis Available', key: 'diagnosis available' },
+    { label: 'Completed', key: 'completed' },
+    { label: 'Cancelled', key: 'cancelled' },
+    { label: 'Support Required', key: 'support required' }
   ];
 
   return (
@@ -50,7 +49,7 @@ export default function VideoCallAssistance({ onCounts }: { onCounts?: (counts: 
                 whiteSpace: 'nowrap'
               }}
             >
-              {filter.label} {filter.count !== null && <span style={{ color: isFilterActive ? '#9ca3af' : '#9ca3af' }}>({filter.count})</span>}
+              {filter.label} {filter.key !== null && <span style={{ color: isFilterActive ? '#9ca3af' : '#9ca3af' }}>({filterCounts[filter.key] ?? 0})</span>}
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
             </button>
           );
@@ -59,7 +58,7 @@ export default function VideoCallAssistance({ onCounts }: { onCounts?: (counts: 
 
       {/* Table Container */}
       <div style={{ marginTop: '0', margin: '0 -1.5rem -1.5rem -1.5rem' }}>
-        <OrdersTable activeTab="Video Call Assistance" activeFilter={activeFilter} onCounts={onCounts} />
+        <OrdersTable activeTab="Video Call Assistance" activeFilter={activeFilter} onCounts={onCounts} onFilterCounts={setFilterCounts} />
 
       </div>
     </div>

@@ -10,6 +10,23 @@ interface OrdersTableProps {
   activeTab: TabType;
   activeFilter: string;
   onCounts?: (counts: Record<string, number>) => void;
+  onFilterCounts?: (counts: Record<string, number>) => void;
+}
+
+const KNOWN_FILTER_KEYS = [
+  'mechanic allotted', 'ongoing', 'completed', 'diagnosis available', 'cancelled',
+  'flagged', 'delayed', 'support required', 'requested', 'bid live', 'bid ended', 'mechanic selected'
+];
+
+function matchesFilter(row: { status: string; id: string }, filter: string): boolean {
+  const status = row.status.toLowerCase();
+  const f = filter.toLowerCase();
+  if (f === 'mechanic allotted') return ['mechanic allotted', 'mechanic assigned', 'mechanic selected'].includes(status);
+  if (f === 'ongoing') return ['ongoing', 'ongoing service'].includes(status);
+  if (f === 'flagged') return row.id.endsWith('1') || row.id.endsWith('3') || row.id.endsWith('5') || row.id.endsWith('7');
+  if (f === 'delayed') return row.id.endsWith('0') || row.id.endsWith('2') || row.id.endsWith('4') || row.id.endsWith('6');
+  if (f === 'support required') return row.id.endsWith('2') || row.id.endsWith('5') || row.id.endsWith('8');
+  return status === f;
 }
 
 
@@ -35,7 +52,7 @@ function mapBackendStatusToFrontend(backendStatus: string, bookingType: string):
   return backendStatus.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ');
 }
 
-export default function OrdersTable({ activeTab, activeFilter, onCounts }: OrdersTableProps) {
+export default function OrdersTable({ activeTab, activeFilter, onCounts, onFilterCounts }: OrdersTableProps) {
   const router = useRouter();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -124,8 +141,8 @@ export default function OrdersTable({ activeTab, activeFilter, onCounts }: Order
   }, [activeTab, activeFilter]);
 
 
-  // Map and filter care bookings for the table UI
-  const getMappedData = () => {
+  // Map bookings to table rows and apply tab-type filtering (shared by table + filter-pill counts)
+  const getTabItems = () => {
     let items = bookings.map((item: any, idx: number) => {
       const id = item.booking_reference || `REQ-${item.booking_id}`;
       const status = mapBackendStatusToFrontend(item.status, item.booking_type);
@@ -154,33 +171,28 @@ export default function OrdersTable({ activeTab, activeFilter, onCounts }: Order
       items = items.filter(row => row.serviceType.toLowerCase() === activeTab.toLowerCase());
     }
 
-    // Filter pill logic
-    if (!activeFilter || activeFilter === 'All') {
-      return items;
-    }
+    return items;
+  };
 
-    return items.filter(row => {
-      const status = row.status.toLowerCase();
-      const filter = activeFilter.toLowerCase();
-      
-      if (filter === 'mechanic allotted') {
-        return ['mechanic allotted', 'mechanic assigned', 'mechanic selected'].includes(status);
-      }
-      if (filter === 'ongoing') {
-        return ['ongoing', 'ongoing service'].includes(status);
-      }
-      if (filter === 'flagged') {
-        return row.id.endsWith('1') || row.id.endsWith('3') || row.id.endsWith('5') || row.id.endsWith('7');
-      }
-      if (filter === 'delayed') {
-        return row.id.endsWith('0') || row.id.endsWith('2') || row.id.endsWith('4') || row.id.endsWith('6');
-      }
-      if (filter === 'support required') {
-        return row.id.endsWith('2') || row.id.endsWith('5') || row.id.endsWith('8');
-      }
-      
-      return status === filter;
+  // Compute live counts for every known filter pill within the current tab, so
+  // each tab can show real numbers instead of hardcoded placeholders.
+  useEffect(() => {
+    if (!onFilterCounts) return;
+    const tabItems = getTabItems();
+    const counts: Record<string, number> = { all: tabItems.length };
+    KNOWN_FILTER_KEYS.forEach(key => {
+      counts[key] = tabItems.filter(row => matchesFilter(row, key)).length;
     });
+    onFilterCounts(counts);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookings, activeTab]);
+
+  const getMappedData = () => {
+    const tabItems = getTabItems();
+    if (!activeFilter || activeFilter === 'All') {
+      return tabItems;
+    }
+    return tabItems.filter(row => matchesFilter(row, activeFilter));
   };
 
   const allFilteredData = getMappedData();

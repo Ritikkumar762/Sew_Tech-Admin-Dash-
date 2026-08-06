@@ -244,6 +244,37 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const isVideo = bookingType === 'Video Call Assistance';
   const isAssisted = bookingType === 'Assisted Booking';
   const isInviteQuote = bookingType === 'Invite Quote';
+  const isInstant = !isVideo && !isAssisted && !isInviteQuote;
+
+  // "Update Status" options depend on the booking flow: Invite Quote is bid-driven,
+  // Instant Smart Booking/Video Call Assistance can carry a remote diagnosis, and only
+  // physical-dispatch flows ever reach a Pick Up step.
+  const statusOptions: { value: OrderStatus; isDiag: boolean; label: string }[] = [
+    { value: 'Booked', isDiag: false, label: 'Booked' },
+    { value: 'Requested', isDiag: false, label: 'Requested' },
+    ...(isInstant || isAssisted ? [
+      { value: 'MechanicAssigned' as OrderStatus, isDiag: false, label: 'Mechanic Assigned' },
+      { value: 'MechanicAlloted' as OrderStatus, isDiag: false, label: 'Mechanic Allotted' },
+    ] : []),
+    ...(isInviteQuote ? [
+      { value: 'BidLive' as OrderStatus, isDiag: false, label: 'Bid Live' },
+      { value: 'BidEnded' as OrderStatus, isDiag: false, label: 'Bid Ended' },
+      { value: 'MechanicSelected' as OrderStatus, isDiag: false, label: 'Mechanic Selected' },
+    ] : []),
+    { value: 'Ongoing', isDiag: false, label: isVideo ? 'Ongoing Call' : 'Ongoing Service' },
+    { value: 'Completed', isDiag: false, label: 'Completed (Normal Flow)' },
+    ...(isInstant || isVideo ? [
+      { value: 'DiagnosisAvailable' as OrderStatus, isDiag: true, label: 'Diagnosis Available' },
+      { value: 'Completed' as OrderStatus, isDiag: true, label: 'Completed (After Diagnosis)' },
+    ] : []),
+    ...(isInstant || isAssisted ? [
+      { value: 'PickUp' as OrderStatus, isDiag: false, label: 'Pick Up (Normal Flow)' },
+    ] : []),
+    ...(isInstant || isVideo || isAssisted ? [
+      { value: 'PickUp' as OrderStatus, isDiag: true, label: 'Pick Up (After Diagnosis)' },
+    ] : []),
+    { value: 'Cancelled', isDiag: false, label: 'Cancelled' },
+  ];
 
   const [orderStatus, setOrderStatus] = useState<OrderStatus>('Booked');
   const [isDiagnosisFlow, setIsDiagnosisFlow] = useState<boolean>(false);
@@ -931,20 +962,9 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
                   cursor: 'pointer'
                 }}
               >
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Booked', isDiag: false })}>Booked</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Requested', isDiag: false })}>Requested</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'MechanicAssigned', isDiag: false })}>Mechanic Assigned</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'MechanicAlloted', isDiag: false })}>Mechanic Allotted</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'MechanicSelected', isDiag: false })}>Mechanic Selected</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'BidLive', isDiag: false })}>Bid Live</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'BidEnded', isDiag: false })}>Bid Ended</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Ongoing', isDiag: false })}>Ongoing Service</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Completed', isDiag: false })}>Completed (Normal Flow)</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'DiagnosisAvailable', isDiag: true })}>Diagnosis Available</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Completed', isDiag: true })}>Completed (After Diagnosis)</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'PickUp', isDiag: false })}>Pick Up (Normal Flow)</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'PickUp', isDiag: true })}>Pick Up (After Diagnosis)</option>
-                <option style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: 'Cancelled', isDiag: false })}>Cancelled</option>
+                {statusOptions.map((opt, idx) => (
+                  <option key={idx} style={{ background: '#fff', color: '#374151' }} value={JSON.stringify({ value: opt.value, isDiag: opt.isDiag })}>{opt.label}</option>
+                ))}
               </select>
             </div>
           </div>
