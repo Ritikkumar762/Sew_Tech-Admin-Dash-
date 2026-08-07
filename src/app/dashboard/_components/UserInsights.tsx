@@ -12,36 +12,42 @@ type Props = {
 };
 
 const RADIAN = Math.PI / 180;
+
+// Design fixes the Orders axis at 0–10,000 in 1,000 steps. The upper bound grows if live
+// data ever exceeds it, so a spike is never silently clipped.
+const ORDER_TICKS = Array.from({ length: 11 }, (_, i) => i * 1000);
+const ORDER_DOMAIN = [0, (dataMax: number) => Math.max(10000, dataMax)] as const;
+const ORDER_AXIS_LABEL = {
+  value: 'Orders',
+  angle: -90,
+  position: 'insideLeft' as const,
+  offset: 5,
+  style: { textAnchor: 'middle' as const, fill: '#4b5563', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif' },
+};
 const renderCustomizedLabel = ({
   cx, cy, midAngle, innerRadius, outerRadius, percent
 }: any) => {
-  const radius = outerRadius + 8;
+  const radius = outerRadius + 12;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
   const percentageVal = Math.round(percent * 100);
   if (percentageVal === 0) return null;
 
+  const pillW = 34;
+  const pillH = 18;
+
   return (
     <g>
-      <rect
-        x={x - 10}
-        y={y - 6}
-        width={20}
-        height={12}
-        rx={3}
-        fill="white"
-        stroke="#e5e7eb"
-        strokeWidth={1}
-      />
+      <rect x={x - pillW / 2} y={y - pillH / 2 + 1} width={pillW} height={pillH} rx={5} fill="rgba(0,0,0,0.08)" />
+      <rect x={x - pillW / 2} y={y - pillH / 2} width={pillW} height={pillH} rx={5} fill="#ffffff" stroke="#e5e7eb" strokeWidth={0.5} />
       <text
         x={x}
-        y={y + 0.5}
-        fill="#374151"
+        y={y}
+        fill="#1f2937"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize="7px"
-        fontWeight="bold"
+        style={{ fontSize: '10px', fontWeight: 700 }}
       >
         {`${percentageVal}%`}
       </text>
@@ -107,8 +113,8 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
                       data={donut.data} 
                       cx="50%" 
                       cy="50%" 
-                      innerRadius={36} 
-                      outerRadius={56} 
+                      innerRadius={40} 
+                      outerRadius={62} 
                       dataKey="value" 
                       startAngle={90} 
                       endAngle={-270}
@@ -136,8 +142,8 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
                   </PieChart>
                 </ResponsiveContainer>
                 <div className={styles.donutCenter}>
-                  <div className={styles.donutTotal} style={{ fontSize: '0.9rem', fontWeight: 800 }}>{donut.centerValue}</div>
-                  <div className={styles.donutSub} style={{ fontSize: '0.6rem' }}>{donut.centerLabel}</div>
+                  <div className={styles.donutTotal}>{donut.centerValue}</div>
+                  <div className={styles.donutSub}>{donut.centerLabel}</div>
                 </div>
               </div>
               
@@ -177,20 +183,17 @@ export default function UserInsights({ userDonuts, newRepeat }: Props) {
                   <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis dataKey="name" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'Inter, sans-serif' }} />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'Inter, sans-serif' }} 
-                tickFormatter={(v) => v.toLocaleString('en-IN')}
-                label={{ 
-                  value: 'Orders', 
-                  angle: -90, 
-                  position: 'insideLeft', 
-                  offset: 5, 
-                  style: { textAnchor: 'middle', fill: '#4b5563', fontSize: 11, fontWeight: 500, fontFamily: 'Inter, sans-serif' } 
-                }}
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: '#9ca3af', fontFamily: 'Inter, sans-serif' }}
+                domain={ORDER_DOMAIN}
+                ticks={ORDER_TICKS}
+                interval={0}
+                tickFormatter={(v) => Number(v).toLocaleString('en-IN')}
+                label={ORDER_AXIS_LABEL}
               />
               <Tooltip 
                 content={<CustomTooltip />}

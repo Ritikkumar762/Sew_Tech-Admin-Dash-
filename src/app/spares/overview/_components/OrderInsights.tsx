@@ -4,10 +4,12 @@ import { useState } from 'react';
 import { 
   AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   PieChart, Pie, Cell,
-  BarChart, Bar, Legend
+  BarChart, Bar
 } from 'recharts';
 import { FunnelStage, DonutData, BarChartData, ReasonChip } from '../_hooks/useOverview';
 import styles from '../Overview.module.css';
+
+const TREND_TICKS = Array.from({ length: 10 }, (_, i) => (i + 1) * 10);
 
 const renderCustomLabel = (props: any) => {
   const { cx, cy, midAngle, outerRadius, value } = props;
@@ -53,8 +55,14 @@ const renderCustomLabel = (props: any) => {
   );
 };
 
+// Order matches the design; the tooltip lists every series in the data, including
+// ones toggled off in the legend, so the breakdown always adds up.
+const TREND_SERIES = ['Total Orders', 'Return', 'Replacement', 'Cancellation'];
+
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
+    const row = payload[0]?.payload ?? {};
+    const rows = TREND_SERIES.filter((name) => row[name] !== undefined);
     return (
       <div style={{
         backgroundColor: '#ffffff',
@@ -75,10 +83,10 @@ const CustomTooltip = ({ active, payload, label }: any) => {
         
         {/* Data Rows */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
-          {payload.map((item: any) => (
-            <div key={item.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', gap: '16px' }}>
-              <span style={{ color: '#6b7280', fontWeight: 500 }}>{item.name}:</span>
-              <span style={{ color: '#111827', fontWeight: 700 }}>{item.value}</span>
+          {rows.map((name) => (
+            <div key={name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem', gap: '16px' }}>
+              <span style={{ color: '#6b7280', fontWeight: 500 }}>{name}:</span>
+              <span style={{ color: '#111827', fontWeight: 700 }}>{row[name]}</span>
             </div>
           ))}
         </div>
@@ -106,35 +114,6 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     );
   }
   return null;
-};
-
-const renderLegendText = (value: string, entry: any) => {
-  const { color } = entry;
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginRight: '16px', color: '#4b5563', fontWeight: 600, fontSize: '0.8rem' }}>
-      <span style={{ 
-        width: '24px', 
-        height: '12px', 
-        borderRadius: '6px', 
-        backgroundColor: color, 
-        position: 'relative', 
-        display: 'inline-block',
-        opacity: 0.9
-      }}>
-        <span style={{
-          width: '8px',
-          height: '8px',
-          borderRadius: '50%',
-          backgroundColor: '#ffffff',
-          position: 'absolute',
-          top: '2px',
-          left: value === 'Cancellation' ? '2px' : '14px',
-          transition: 'all 0.2s'
-        }} />
-      </span>
-      <span>{value}</span>
-    </span>
-  );
 };
 
 type Props = {
@@ -327,7 +306,8 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
             border: '1px solid #e5e7eb',
             borderRadius: '12px',
             overflow: 'hidden',
-            background: 'white',
+            // Light panel behind the stage text; the funnel band paints over it.
+            background: '#f8fafc',
             marginTop: '1.5rem',
             height: '240px',
             position: 'relative',
@@ -339,7 +319,8 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
               key={`${selectedFunnel}-${idx}`} 
               style={{ 
                 padding: '24px 20px', 
-                borderRight: idx < numStages - 1 ? '1px solid rgba(211, 208, 255, 0.4)' : 'none',
+                // White gutter, drawn above the band so it separates the colours too.
+                borderRight: idx < numStages - 1 ? '4px solid #ffffff' : 'none',
                 display: 'flex', 
                 flexDirection: 'column', 
                 gap: '8px',
@@ -421,7 +402,8 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
         {/* ── Order Outcome Overview ─────────────────────────── */}
         <div className={styles.card} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
           <h2 className={styles.cardTitle} style={{ alignSelf: 'flex-start' }}>Order Outcome Overview</h2>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', width: '100%', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '1rem', width: '100%', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', width: '100%', flexWrap: 'wrap' }}>
             {/* Donut Chart */}
             <div style={{ position: 'relative', width: 260, height: 260, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <div className={styles.donutCenter}>
@@ -459,9 +441,10 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
             </div>
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: '1rem', width: '100%' }}>
+          <div style={{ textAlign: 'center', marginTop: '0.5rem', width: '100%' }}>
             <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#111827' }}>Order Return Rate - 20%</div>
             <a href="#" style={{ fontSize: '0.8rem', color: '#3b82f6', textDecoration: 'underline' }}>View Return Reasons</a>
+          </div>
           </div>
         </div>
 
@@ -473,10 +456,10 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
             {/* Custom Interactive Legend */}
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
               {[
-                { name: 'Cancellation', color: '#9ca3af' },
-                { name: 'Replacement', color: '#fbbf24' },
+                { name: 'Total Orders', color: '#3b82f6' },
                 { name: 'Return', color: '#f87171' },
-                { name: 'Total Orders', color: '#3b82f6' }
+                { name: 'Replacement', color: '#fbbf24' },
+                { name: 'Cancellation', color: '#9ca3af' }
               ].map((item) => {
                 const isActive = visibleSeries[item.name];
                 return (
@@ -520,10 +503,18 @@ export default function OrderInsights({ funnel, orderOutcome, orderTrend, cancel
           </div>
           <div style={{ height: 220 }}>
             <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
-              <BarChart data={orderTrend} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#9ca3af" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
+              <BarChart data={orderTrend} margin={{ top: 10, right: 0, left: 0, bottom: 0 }} barGap={0}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 11, fill: '#9ca3af' }}
+                  domain={[0, 100]}
+                  ticks={TREND_TICKS}
+                  interval={0}
+                  label={{ value: 'Orders', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6b7280', fontSize: 11 } }}
+                />
                 <Tooltip 
                   trigger="click" 
                   wrapperStyle={{ pointerEvents: 'auto' }} 

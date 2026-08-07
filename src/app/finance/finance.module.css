@@ -6,34 +6,43 @@
 }
 
 /* Stat Cards */
+/* Design shows the five KPIs as one panel split by dividers, value above label. */
 .statsRow {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 1rem;
-}
-
-.statCard {
+  gap: 0;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 12px;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
+  overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
+.statCard {
+  background: transparent;
+  border: none;
+  border-right: 1px solid #e5e7eb;
+  border-radius: 0;
+  padding: 1.125rem 1.25rem;
+  display: flex;
+  /* Markup is label-then-value; reverse so the value reads first, as in the design. */
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+
+.statCard:last-child {
+  border-right: none;
+}
+
 .statCard:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.08), 0 8px 16px -8px rgba(37, 99, 235, 0.08);
-  border-color: #bfdbfe;
-  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  background: #f8fafc;
 }
 
 .statValue {
-  font-size: 1.75rem;
+  font-size: 1.375rem;
   font-weight: 700;
   color: #111827;
   display: flex;

@@ -26,6 +26,11 @@ export default function DashboardPage() {
     loading, error, refetch 
   } = useDashboard();
 
+  // Module Health is the global view ("Dashboard" + WAU/NPS style KPIs); the other two
+  // tabs are the Smart View, which has its own service-request KPIs.
+  const isModuleHealth = activeTab === 'module_health';
+  const headerMetrics = isModuleHealth ? topMetrics : performanceTopMetrics;
+
   const handleExport = () => {
     // 1. KPI Summary Block
     const kpiSummary = [
@@ -114,7 +119,7 @@ export default function DashboardPage() {
       <div className={styles.dashboardHeader}>
         <div>
           <h1 className={styles.dashboardTitle}>
-            Smart View Dashboard
+            {isModuleHealth ? 'Dashboard' : 'Smart View Dashboard'}
           </h1>
           <div className={styles.dashboardSubtitle}>
             Sewtech Spare <span style={{ margin: '0 0.5rem', color: '#d1d5db' }}>•</span> Order Management
@@ -134,7 +139,7 @@ export default function DashboardPage() {
 
       {/* Top Metrics Row */}
       <div className={styles.metricsGrid}>
-        {performanceTopMetrics.map((m) => (
+        {headerMetrics.map((m) => (
           <div key={m.label} className={styles.metricCard}>
             <div className={styles.metricLabel}>
               <span className={styles.metricIcon} style={{ color: m.iconColor, background: m.iconBg ?? `${m.iconColor}15` }}>{m.icon}</span>

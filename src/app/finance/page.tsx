@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, type CSSProperties } from 'react';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -48,6 +48,58 @@ const PROFIT_BREAKUP_DATA = [
   { name: 'ST Spares', value: 40000, label: '₹40,000' },
 ];
 const PROFIT_COLORS = ['#10b981', '#ef4444'];
+
+// Design fixes the money axis at 0–10,000 in 1,000 steps; the ceiling grows if real data
+// exceeds it so a spike is never silently clipped.
+const MONEY_TICKS = Array.from({ length: 11 }, (_, i) => i * 1000);
+const MONEY_DOMAIN = [0, (dataMax: number) => Math.max(10000, dataMax)] as const;
+const AMOUNT_AXIS_LABEL = {
+  value: 'Amount (In Rupees)',
+  angle: -90,
+  position: 'insideLeft' as const,
+  offset: 12,
+  style: { textAnchor: 'middle' as const, fontSize: 10, fill: '#64748b' },
+};
+
+const RADIAN = Math.PI / 180;
+
+// Note: `paddingAngle` on a Pie suppresses its labels entirely in this recharts version,
+// so the donuts get their segment gaps from a stroke in the panel colour instead.
+// Ring labels as white pills, positioned geometrically off each slice's mid-angle.
+const makeDonutLabel = (format: (value: number) => string) =>
+  ({ cx, cy, midAngle, outerRadius, value }: any) => {
+    const radius = outerRadius + 14;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    if (!Number(value)) return null;
+
+    const text = format(Number(value));
+    const pillW = text.length * 5.6 + 12;
+    const pillH = 18;
+
+    return (
+      <g>
+        <rect x={x - pillW / 2} y={y - pillH / 2 + 1} width={pillW} height={pillH} rx={5} fill="rgba(0,0,0,0.08)" />
+        <rect x={x - pillW / 2} y={y - pillH / 2} width={pillW} height={pillH} rx={5} fill="#ffffff" stroke="#e5e7eb" strokeWidth={0.5} />
+        <text x={x} y={y} fill="#1f2937" textAnchor="middle" dominantBaseline="central" style={{ fontSize: '10px', fontWeight: 700 }}>
+          {text}
+        </text>
+      </g>
+    );
+  };
+
+const PERCENT_LABEL = makeDonutLabel((v) => `${v}%`);
+const RUPEE_LABEL = makeDonutLabel((v) => `₹${v.toLocaleString('en-IN')}`);
+
+// Light panel that sits behind the donut, legend and caption in the design.
+const DONUT_PANEL: CSSProperties = {
+  backgroundColor: '#f8fafc',
+  borderRadius: '12px',
+  padding: '0.75rem',
+  width: '100%',
+  boxSizing: 'border-box',
+};
 
 const NET_REVENUE_DATA = [
   { name: 'Instant Smart Booking', cashIn: 9000, refunds: 3000, payouts: 6000, netProfit: 4500 },
@@ -163,7 +215,7 @@ export default function FinanceOverviewPage() {
       <div className={styles.statsRow}>
         {/* Total Revenue */}
         <div className={styles.statCard}>
-          <div className={styles.statLabel}>₹ Total Revenue (L 7D)</div>
+          <div className={styles.statLabel}>Total Revenue (L 7D)</div>
           <div className={styles.statValue}>
             ₹{totalRevenueVal.toLocaleString('en-IN')}
           </div>
@@ -243,9 +295,18 @@ export default function FinanceOverviewPage() {
                         <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#64748b' }} />
-                    <YAxis label={{ value: 'Amount (in Rupees)', angle: -90, position: 'insideLeft', offset: 12, style: { textAnchor: 'middle', fontSize: 10, fill: '#64748b' } }} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#64748b' }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="date" tickLine={false} axisLine={{ stroke: '#e5e7eb' }} tick={{ fontSize: 11, fill: '#64748b' }} />
+                    <YAxis
+                      label={AMOUNT_AXIS_LABEL}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fontSize: 11, fill: '#64748b' }}
+                      domain={MONEY_DOMAIN}
+                      ticks={MONEY_TICKS}
+                      interval={0}
+                      tickFormatter={(v) => Number(v).toLocaleString('en-IN')}
+                    />
                     <Tooltip 
                       contentStyle={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 8, fontSize: 12 }} 
                       formatter={(val: any) => [`₹${Number(val || 0).toLocaleString('en-IN')}`, 'Revenue']}
@@ -261,6 +322,7 @@ export default function FinanceOverviewPage() {
               <div className={styles.chartTitleRow}>
                 <h3 className={styles.chartTitle}>Profit Breakup</h3>
               </div>
+              <div style={DONUT_PANEL}>
               <div className={styles.chartContainer} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
                   <PieChart>
@@ -270,9 +332,11 @@ export default function FinanceOverviewPage() {
                       cy="50%"
                       innerRadius={60}
                       outerRadius={80}
-                      paddingAngle={3}
                       dataKey="value"
-                      stroke="none"
+                      stroke="#f8fafc"
+                      strokeWidth={3}
+                      label={RUPEE_LABEL}
+                      labelLine={false}
                     >
                       {PROFIT_BREAKUP_DATA.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={PROFIT_COLORS[index % PROFIT_COLORS.length]} />
@@ -282,17 +346,15 @@ export default function FinanceOverviewPage() {
                       formatter={(val: any) => `₹${Number(val || 0).toLocaleString('en-IN')}`} 
                       wrapperStyle={{ zIndex: 1000 }}
                     />
-                    <Legend 
-                      verticalAlign="middle" 
-                      align="right" 
+                    {/* Amounts live on the ring pills in the design, not in the legend */}
+                    <Legend
+                      verticalAlign="middle"
+                      align="right"
                       layout="vertical"
                       iconType="circle"
                       iconSize={8}
                       wrapperStyle={{ fontSize: 11, right: 10 }}
-                      formatter={(value, entry: any) => {
-                        const item = PROFIT_BREAKUP_DATA.find(d => d.name === value);
-                        return <span style={{ color: '#475569', fontWeight: 500 }}>{value} <b style={{ marginLeft: '4px', color: '#1e293b' }}>{item?.label}</b></span>;
-                      }}
+                      formatter={(value) => <span style={{ color: '#475569', fontWeight: 500 }}>{value}</span>}
                     />
                   </PieChart>
                 </ResponsiveContainer>
@@ -311,6 +373,7 @@ export default function FinanceOverviewPage() {
               <div className={styles.chartCaption}>
                 ST Mechanics Profit - 75%
               </div>
+              </div>
             </div>
           </div>
 
@@ -323,10 +386,19 @@ export default function FinanceOverviewPage() {
               </div>
               <div className={styles.chartContainer}>
                 <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
-                  <BarChart data={NET_REVENUE_DATA} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                    <XAxis dataKey="name" tickLine={false} axisLine={false} tick={{ fontSize: 9, fill: '#64748b' }} />
-                    <YAxis label={{ value: 'Amount (in Rupees)', angle: -90, position: 'insideLeft', offset: 12, style: { textAnchor: 'middle', fontSize: 10, fill: '#64748b' } }} tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: '#64748b' }} />
+                  <BarChart data={NET_REVENUE_DATA} margin={{ top: 10, right: 10, left: -10, bottom: 0 }} barGap={0}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="name" tickLine={false} axisLine={{ stroke: '#e5e7eb' }} tick={{ fontSize: 9, fill: '#64748b' }} />
+                    <YAxis
+                      label={AMOUNT_AXIS_LABEL}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fontSize: 11, fill: '#64748b' }}
+                      domain={MONEY_DOMAIN}
+                      ticks={MONEY_TICKS}
+                      interval={0}
+                      tickFormatter={(v) => Number(v).toLocaleString('en-IN')}
+                    />
                     <Tooltip content={<CustomNetRevenueTooltip />} />
                     <Legend 
                       verticalAlign="top" 
@@ -349,6 +421,7 @@ export default function FinanceOverviewPage() {
               <div className={styles.chartTitleRow}>
                 <h3 className={styles.chartTitle}>Transaction Insights</h3>
               </div>
+              <div style={DONUT_PANEL}>
               <div className={styles.chartContainer} style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
                 <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
                   <PieChart>
@@ -358,9 +431,11 @@ export default function FinanceOverviewPage() {
                       cy="50%"
                       innerRadius={60}
                       outerRadius={80}
-                      paddingAngle={3}
                       dataKey="value"
-                      stroke="none"
+                      stroke="#f8fafc"
+                      strokeWidth={3}
+                      label={PERCENT_LABEL}
+                      labelLine={false}
                     >
                       {TRANSACTION_INSIGHTS_DATA.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={INSIGHTS_COLORS[index % INSIGHTS_COLORS.length]} />
@@ -396,13 +471,10 @@ export default function FinanceOverviewPage() {
                   <div style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b' }}>400</div>
                   <div style={{ fontSize: '10px', color: '#64748b' }}>Orders</div>
                 </div>
-                {/* Text Percentages labels floating */}
-                <div style={{ position: 'absolute', left: '16%', top: '24%', fontSize: '10px', fontWeight: 700, color: '#475569' }}>20%</div>
-                <div style={{ position: 'absolute', left: '56%', top: '24%', fontSize: '10px', fontWeight: 700, color: '#475569' }}>20%</div>
-                <div style={{ position: 'absolute', left: '26%', top: '74%', fontSize: '10px', fontWeight: 700, color: '#475569' }}>60%</div>
               </div>
               <div className={styles.chartCaption}>
                 Payment Success Rate - 75%
+              </div>
               </div>
             </div>
           </div>

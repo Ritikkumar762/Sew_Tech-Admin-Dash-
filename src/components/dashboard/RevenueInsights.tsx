@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
 
 const RADIAN = Math.PI / 180;
 const renderCustomizedLabel = ({
@@ -36,6 +36,108 @@ const renderCustomizedLabel = ({
         {`${percentageVal}%`}
       </text>
     </g>
+  );
+};
+
+const formatINR = (value: unknown) => `₹${Number(value || 0).toLocaleString('en-IN')}`;
+
+// Cash-flow segments show the rupee amount, not a percentage — so it needs its own
+// renderer instead of the shared percentage one used by Transaction Insights.
+const renderCurrencyLabel = ({
+  cx, cy, midAngle, outerRadius, value
+}: any) => {
+  const radius = outerRadius + 10;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  if (!Number(value)) return null;
+
+  const text = formatINR(value);
+  const width = text.length * 4.4 + 10;
+
+  return (
+    <g>
+      <rect
+        x={x - width / 2}
+        y={y - 8}
+        width={width}
+        height={16}
+        rx={4}
+        fill="white"
+        stroke="#e5e7eb"
+        strokeWidth={1}
+      />
+      <text
+        x={x}
+        y={y + 0.5}
+        fill="#374151"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize="8px"
+        fontWeight="bold"
+      >
+        {text}
+      </text>
+    </g>
+  );
+};
+
+// Single source of truth for the Revenue by Service series, so the legend, the bars
+// and the tooltip rows can never drift out of sync.
+const SERVICES = [
+  { key: 'Instant', label: 'Instant Smart Booking', color: '#3b82f6' },
+  { key: 'Assisted', label: 'Assisted Booking', color: '#f87171' },
+  { key: 'Invite', label: 'Invite Quotes', color: '#fbbf24' },
+  { key: 'Video', label: 'Video Assistance', color: '#22d3ee' },
+  { key: 'Direct', label: 'Direct Booking', color: '#a78bfa' },
+];
+
+const MONEY_TICKS = Array.from({ length: 11 }, (_, i) => i * 1000);
+const formatTick = (value: unknown) => Number(value).toLocaleString('en-IN');
+
+type ServiceTooltipProps = {
+  active?: boolean;
+  label?: unknown;
+  payload?: ReadonlyArray<{ dataKey?: unknown; value?: unknown }>;
+};
+
+const renderServiceTooltip = ({ active, payload, label }: ServiceTooltipProps) => {
+  if (!active || !payload?.length) return null;
+
+  const total = payload.reduce((acc, p) => acc + Number(p.value || 0), 0);
+  const row = (name: string, value: number, bold?: boolean) => (
+    <div key={name} style={{ display: 'flex', justifyContent: 'space-between', gap: '1.5rem', fontSize: '0.8125rem' }}>
+      <span style={{ color: '#4b5563' }}>{name}:</span>
+      <span style={{ color: '#111827', fontWeight: bold ? 700 : 600 }}>{formatINR(value)}</span>
+    </div>
+  );
+
+  return (
+    <div style={{
+      backgroundColor: '#ffffff',
+      borderRadius: '0.75rem',
+      boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.18)',
+      padding: '0.875rem 1.125rem',
+      minWidth: '235px'
+    }}>
+      <div style={{ fontSize: '0.9375rem', fontWeight: 700, color: '#111827', paddingBottom: '0.625rem' }}>{String(label ?? '')}</div>
+      <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {row('Total Revenue', total, true)}
+        {payload.map(p => {
+          const key = String(p.dataKey ?? '');
+          return row(SERVICES.find(s => s.key === key)?.label ?? key, Number(p.value || 0));
+        })}
+      </div>
+      <div style={{
+        marginTop: '0.75rem',
+        fontSize: '0.8125rem',
+        fontWeight: 600,
+        color: '#2563eb',
+        textDecoration: 'underline'
+      }}>
+        View Requests
+      </div>
+    </div>
   );
 };
 
@@ -83,6 +185,11 @@ export default function RevenueInsights() {
               grid-template-columns: 1fr;
             }
           }
+          /* Rupee labels sit wider than the old percentage pills, so let them
+             spill into the gap instead of being clipped at the SVG edge. */
+          .cashflow-donut .recharts-surface {
+            overflow: visible;
+          }
         `}
       </style>
       {/* Left Column */}
@@ -96,15 +203,42 @@ export default function RevenueInsights() {
           </div>
           <div style={{ height: '280px', width: '100%' }}>
             <ResponsiveContainer minWidth={0} minHeight={0}>
-              <LineChart data={lineData} margin={{ top: 20, right: 20, left: 20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} label={{ value: 'Amount (in Rupees)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6b7280', fontSize: 10 } }} />
-                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} formatter={(value: any) => [`₹${Number(value || 0).toLocaleString()}`, 'Revenue']} />
-                <Line type="linear" dataKey="Revenue" stroke="#f59e0b" strokeWidth={2} dot={{ fill: '#f59e0b', strokeWidth: 2, r: 4 }} activeDot={{ r: 6 }} />
-                {/* Simulated background shaded area could be an Area chart with same data */}
-                <Line type="linear" dataKey="Revenue" stroke="none" fill="#fef3c7" fillOpacity={0.5} />
-              </LineChart>
+              <AreaChart data={lineData} margin={{ top: 20, right: 20, left: 20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="revenueTrendFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.35} />
+                    <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.02} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: '#6b7280' }}
+                  domain={[0, 10000]}
+                  ticks={MONEY_TICKS}
+                  tickFormatter={formatTick}
+                  label={{ value: 'Amount (In Rupees)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6b7280', fontSize: 10 } }}
+                />
+                <Tooltip
+                  cursor={false}
+                  separator=""
+                  labelStyle={{ display: 'none' }}
+                  contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', fontWeight: 700 }}
+                  formatter={(value: any) => [formatINR(value), '']}
+                />
+                <Area
+                  type="linear"
+                  dataKey="Revenue"
+                  stroke="#f59e0b"
+                  strokeWidth={2}
+                  strokeDasharray="5 4"
+                  fill="url(#revenueTrendFill)"
+                  dot={{ fill: '#f59e0b', stroke: '#ffffff', strokeWidth: 2, r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
@@ -114,25 +248,32 @@ export default function RevenueInsights() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#1f2937', margin: 0 }}>Revenue by Service</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.5rem 1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#3b82f6' }}></div>Instant Smart Booking</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#ef4444' }}></div>Assisted Booking</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#f59e0b' }}></div>Invite Quotes</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#06b6d4' }}></div>Video Assistance</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}><div style={{ width: '16px', height: '6px', borderRadius: '3px', backgroundColor: '#8b5cf6' }}></div>Direct Booking</div>
+              {SERVICES.map(s => (
+                <div key={s.key} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.75rem', color: '#4b5563' }}>
+                  <div style={{ width: '18px', height: '8px', borderRadius: '999px', backgroundColor: s.color, flexShrink: 0 }}></div>
+                  {s.label}
+                </div>
+              ))}
             </div>
           </div>
           <div style={{ height: '280px', width: '100%' }}>
             <ResponsiveContainer minWidth={0} minHeight={0}>
-              <BarChart data={barData} margin={{ top: 0, right: 0, left: 20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} label={{ value: 'Amount (in Rupees)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6b7280', fontSize: 10 } }} />
-                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '0.5rem', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                <Bar dataKey="Instant" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={8} />
-                <Bar dataKey="Assisted" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={8} />
-                <Bar dataKey="Invite" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={8} />
-                <Bar dataKey="Video" fill="#06b6d4" radius={[4, 4, 0, 0]} barSize={8} />
-                <Bar dataKey="Direct" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={8} />
+              <BarChart data={barData} margin={{ top: 0, right: 0, left: 20, bottom: 0 }} barGap={0}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="date" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 10, fill: '#6b7280' }} dy={10} />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: '#6b7280' }}
+                  domain={[0, 10000]}
+                  ticks={MONEY_TICKS}
+                  tickFormatter={formatTick}
+                  label={{ value: 'Amount (In Rupees)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6b7280', fontSize: 10 } }}
+                />
+                <Tooltip cursor={{ fill: 'transparent' }} content={renderServiceTooltip} />
+                {SERVICES.map(s => (
+                  <Bar key={s.key} dataKey={s.key} fill={s.color} radius={[4, 4, 0, 0]} barSize={12} />
+                ))}
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -150,7 +291,7 @@ export default function RevenueInsights() {
             
             <div style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
               {/* Doughnut Wrapper */}
-              <div style={{ position: 'relative', width: '151px', height: '151px', flexShrink: 0 }}>
+              <div className="cashflow-donut" style={{ position: 'relative', width: '151px', height: '151px', flexShrink: 0 }}>
                 <div style={{
                   position: 'absolute',
                   textAlign: 'center',
@@ -161,20 +302,22 @@ export default function RevenueInsights() {
                   pointerEvents: 'none',
                   zIndex: 10
                 }}>
-                  <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#111827', lineHeight: 1.2 }}>₹1L</div>
+                  <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#111827', lineHeight: 1.2, whiteSpace: 'nowrap' }}>
+                    {formatINR(cashflowData.reduce((acc, curr) => acc + curr.value, 0))}
+                  </div>
                 </div>
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie 
-                      data={cashflowData} 
-                      cx="50%" 
-                      cy="50%" 
-                      innerRadius={36} 
-                      outerRadius={56} 
-                      dataKey="value" 
-                      startAngle={90} 
+                      data={cashflowData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={42}
+                      outerRadius={62}
+                      dataKey="value"
+                      startAngle={90}
                       endAngle={-270}
-                      label={renderCustomizedLabel}
+                      label={renderCurrencyLabel}
                       labelLine={false}
                       stroke="none"
                     >

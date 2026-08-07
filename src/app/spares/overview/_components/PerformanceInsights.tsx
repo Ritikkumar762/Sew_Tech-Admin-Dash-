@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area
+import {
+  ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area
 } from 'recharts';
 import { InsightCard, LineChartData } from '../_hooks/useOverview';
 import styles from '../Overview.module.css';
@@ -42,9 +42,47 @@ const MOCK_PERF_TREND_COMPARE = [
   { name: '7 Feb', 'Category 1': 6000, 'Category 2': 8800 },
 ];
 
-// Custom Tooltip to display currency in ₹ formatted amount
+const PERF_TICKS = Array.from({ length: 11 }, (_, i) => i * 1000);
+const PERF_AXIS_TICK = { fontSize: 11, fill: '#9ca3af' };
+const ORDERS_LABEL = {
+  value: 'Orders',
+  angle: -90,
+  position: 'insideLeft' as const,
+  style: { textAnchor: 'middle' as const, fill: '#9ca3af', fontSize: 10, fontWeight: 500 },
+};
+
+const formatRupees = (value: unknown) => `₹ ${Number(value || 0).toLocaleString('en-IN')}`;
+
+// Custom Tooltip to display currency in ₹ formatted amount. A single series shows just
+// the value, as in the design; comparing two categories needs their names to disambiguate.
 const ChartTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
+    // Each series is drawn twice (Area for the fill, Line for the stroke), so collapse
+    // duplicates by dataKey — otherwise every row appears twice.
+    const seen = new Set<string>();
+    const rows = payload.filter((p: { dataKey?: unknown; name?: unknown }) => {
+      const key = String(p.dataKey ?? p.name ?? '');
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    if (rows.length === 1) {
+      return (
+        <div style={{
+          backgroundColor: 'white',
+          padding: '8px 16px',
+          border: 'none',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+          fontSize: '12px',
+          fontWeight: 700,
+          color: '#1f2937'
+        }}>
+          {formatRupees(rows[0].value)}
+        </div>
+      );
+    }
     return (
       <div style={{
         backgroundColor: 'white',
@@ -61,9 +99,8 @@ const ChartTooltip = ({ active, payload }: any) => {
         <div style={{ fontWeight: 500, color: '#6b7280', marginBottom: '2px' }}>
           {payload[0].payload.name} 2026
         </div>
-        {payload.map((item: any, idx: number) => {
-          const val = item.value;
-          const formatted = typeof val === 'number' ? `₹ ${val.toLocaleString('en-IN')}` : val;
+        {rows.map((item: any, idx: number) => {
+          const formatted = formatRupees(item.value);
           return (
             <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: item.color }} />
@@ -107,14 +144,14 @@ export default function PerformanceInsights({ perfInsights }: Props) {
         ₹5,00,000 
         <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 500 }}>(500 Units)</span>
       </div>
-      <div style={{ 
-        position: 'absolute', 
-        right: '-10px', 
-        bottom: '-25px', 
-        fontSize: '7.5rem', 
-        fontWeight: 900, 
-        color: '#3b82f6', 
-        opacity: 0.08, 
+      <div style={{
+        position: 'absolute',
+        right: '4px',
+        bottom: '-28px',
+        fontSize: '7.5rem',
+        fontWeight: 900,
+        color: '#3b82f6',
+        opacity: 0.18,
         lineHeight: 1,
         userSelect: 'none',
         pointerEvents: 'none'
@@ -291,9 +328,9 @@ export default function PerformanceInsights({ perfInsights }: Props) {
         </div>
         <div style={{ height: '257px', width: '100%', position: 'relative' }}>
           <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
-            <LineChart 
-              data={isComparing ? MOCK_PERF_TREND_COMPARE : MOCK_PERF_TREND} 
-              margin={{ top: 53, right: 14, left: 30, bottom: 20 }}
+            <ComposedChart
+              data={isComparing ? MOCK_PERF_TREND_COMPARE : MOCK_PERF_TREND}
+              margin={{ top: 10, right: 14, left: 8, bottom: 20 }}
             >
               <defs>
               <linearGradient id="blue" x1="0" y1="0" x2="0" y2="1">
@@ -307,32 +344,41 @@ export default function PerformanceInsights({ perfInsights }: Props) {
               </linearGradient>
               </defs>
 
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#9ca3af" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
-              <YAxis 
-                axisLine={false} 
-                tickLine={false} 
-                tick={{ fontSize: 11, fill: '#9ca3af' }} 
-                width={40}
-                tickFormatter={(value) => value.toLocaleString('en-IN')}
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis dataKey="name" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={PERF_AXIS_TICK} />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={PERF_AXIS_TICK}
+                width={56}
+                domain={[0, 10000]}
+                ticks={PERF_TICKS}
+                interval={0}
+                tickFormatter={(value) => Number(value).toLocaleString('en-IN')}
+                label={ORDERS_LABEL}
               />
               <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#f3f4f6', strokeWidth: 1.5 }} />
               {isComparing ? (
                 <>
+                  {/* Fills only — excluded from the tooltip so rows aren't duplicated */}
                   <Area
-                  type="linear"
-                  dataKey="Category 1"
-                  stroke="none"
-                  fill="url(#blue)"
-                  fillOpacity={1}
+                    type="linear"
+                    dataKey="Category 1"
+                    stroke="none"
+                    fill="url(#blue)"
+                    fillOpacity={1}
+                    legendType="none"
+                    tooltipType="none"
                   />
 
                   <Area
-                  type="linear"
-                  dataKey="Category 2"
-                  stroke="none"
-                  fill="url(#yellow)"
-                  fillOpacity={1}
+                    type="linear"
+                    dataKey="Category 2"
+                    stroke="none"
+                    fill="url(#yellow)"
+                    fillOpacity={1}
+                    legendType="none"
+                    tooltipType="none"
                   />
 
                   <Line 
@@ -357,21 +403,29 @@ export default function PerformanceInsights({ perfInsights }: Props) {
                   />
                 </>
               ) : (
-                <Line 
-                  type="linear" 
-                  dataKey="Orders" 
-                  name="Orders"
-                  stroke="#f59e0b" 
-                  strokeWidth={2} 
-                  strokeDasharray="5 5" 
-                  dot={<CustomDot strokeColor="#f59e0b" />} 
-                  activeDot={{ r: 6, fill: '#f59e0b' }} 
-                />
+                <>
+                  <Area
+                    type="linear"
+                    dataKey="Orders"
+                    stroke="none"
+                    fill="url(#yellow)"
+                    fillOpacity={1}
+                    legendType="none"
+                    tooltipType="none"
+                  />
+                  <Line
+                    type="linear"
+                    dataKey="Orders"
+                    name="Orders"
+                    stroke="#f59e0b"
+                    strokeWidth={2}
+                    strokeDasharray="5 5"
+                    dot={<CustomDot strokeColor="#f59e0b" />}
+                    activeDot={{ r: 6, fill: '#f59e0b' }}
+                  />
+                </>
               )}
-              <text x={12} y={128} transform="rotate(-90 12 128)" textAnchor="middle" fill="#9ca3af" fontSize="10px" fontWeight="500">
-                Orders
-              </text>
-            </LineChart>
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </div>

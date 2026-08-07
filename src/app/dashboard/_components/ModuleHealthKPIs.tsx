@@ -18,8 +18,11 @@ export default function ModuleHealthKPIs({ sparesKpis, mechanicKpis }: Props) {
           {sparesKpis.map(kpi => (
             <div key={kpi.label} className={styles.kpiCard}>
               <div className={styles.kpiHeader}>
-                <span className={styles.kpiIconWrapper} style={{ background: kpi.iconBg, color: kpi.iconColor }}>{kpi.icon}</span>
-                <span className={styles.kpiLabel}>{kpi.label}</span>
+                {/* Grouped so space-between doesn't push the label to the far edge */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span className={styles.kpiIconWrapper} style={{ background: kpi.iconBg, color: kpi.iconColor }}>{kpi.icon}</span>
+                  <span className={styles.kpiLabel}>{kpi.label}</span>
+                </div>
               </div>
               <div className={styles.kpiValueRow}>
                 <div style={{ display: 'flex', alignItems: 'center' }}>

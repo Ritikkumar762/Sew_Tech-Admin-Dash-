@@ -2,7 +2,7 @@
 
 import { 
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend
+  BarChart, Bar, XAxis, YAxis, CartesianGrid
 } from 'recharts';
 import { DonutData, BarChartData, StockAlert, DeadStock } from '../_hooks/useOverview';
 import styles from '../Overview.module.css';
@@ -15,40 +15,61 @@ type Props = {
 };
 
 const RADIAN = Math.PI / 180;
+const STOCK_TICKS = Array.from({ length: 11 }, (_, i) => i * 10);
+
+// The donut values are already percentages, so read `value` directly rather than
+// deriving it from recharts' `percent`.
 const renderCustomizedLabel = ({
-  cx, cy, midAngle, innerRadius, outerRadius, percent
+  cx, cy, midAngle, outerRadius, value
 }: any) => {
-  const radius = outerRadius + 8;
+  const radius = outerRadius + 12;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-  const percentageVal = Math.round(percent * 100);
-  if (percentageVal === 0) return null;
+  if (!Number(value)) return null;
+
+  const pillW = 34;
+  const pillH = 18;
 
   return (
     <g>
-      <rect
-        x={x - 10}
-        y={y - 6}
-        width={20}
-        height={12}
-        rx={3}
-        fill="white"
-        stroke="#e5e7eb"
-        strokeWidth={1}
-      />
+      <rect x={x - pillW / 2} y={y - pillH / 2 + 1} width={pillW} height={pillH} rx={5} fill="rgba(0,0,0,0.08)" />
+      <rect x={x - pillW / 2} y={y - pillH / 2} width={pillW} height={pillH} rx={5} fill="#ffffff" stroke="#e5e7eb" strokeWidth={0.5} />
       <text
         x={x}
-        y={y + 0.5}
-        fill="#374151"
+        y={y}
+        fill="#1f2937"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize="7px"
-        fontWeight="bold"
+        style={{ fontSize: '10px', fontWeight: 700 }}
       >
-        {`${percentageVal}%`}
+        {`${value}%`}
       </text>
     </g>
+  );
+};
+
+type StockTooltipProps = {
+  active?: boolean;
+  payload?: ReadonlyArray<{ value?: unknown }>;
+};
+
+// Design shows the hovered bar's value on its own in a small white pill.
+const StockTooltip = ({ active, payload }: StockTooltipProps) => {
+  if (!active || !payload?.length) return null;
+  const entry = payload.find((p) => Number(p.value) > 0) ?? payload[0];
+  return (
+    <div style={{
+      backgroundColor: '#ffffff',
+      borderRadius: '8px',
+      boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+      padding: '0.375rem 0.75rem',
+      fontSize: '0.8125rem',
+      fontWeight: 700,
+      color: '#111827'
+    }}>
+      {Number(entry.value)}
+    </div>
   );
 };
 
@@ -72,27 +93,28 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
         }}>
           <h2 className={styles.cardTitle} style={{ margin: 0 }}>Fast vs Slow Moving Spares</h2>
           
-          <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1, gap: '12px' }}>
-            {/* Gray Container Box */}
-            <div style={{
-              position: 'relative',
-              backgroundColor: 'rgba(242, 243, 247, 0.8)',
-              borderRadius: '13.79px',
-              width: '151.01px',
-              height: '151.01px',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              boxSizing: 'border-box',
-              flexShrink: 0
-            }}>
-              <div style={{
+          {/* One light panel holds the donut, legend and footer, as in the design. */}
+          <div style={{
+            backgroundColor: '#f8fafc',
+            borderRadius: '13.79px',
+            width: '100%',
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            gap: '10px',
+            padding: '12px',
+            boxSizing: 'border-box'
+          }}>
+            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%', gap: '16px' }}>
+              <div className={styles.donutOverflow} style={{
                 position: 'relative',
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
                 width: '151.01px',
-                height: '151.01px'
+                height: '151.01px',
+                flexShrink: 0
               }}>
                 <div style={{
                   position: 'absolute',
@@ -131,24 +153,24 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+
+              {/* Custom Legend — largest share first, matching the design's order */}
+              <div style={{ flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                {[...invDonut].sort((a, b) => b.value - a.value).map(d => (
+                  <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#4b5563', whiteSpace: 'nowrap' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
+                    {d.name}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Custom Legend */}
-            <div style={{ flexShrink: 0, minWidth: '110px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              {invDonut.map(d => (
-                <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#4b5563', whiteSpace: 'nowrap' }}>
-                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: d.color, flexShrink: 0 }} />
-                  {d.name}
-                </div>
-              ))}
+            <div style={{ textAlign: 'center', width: '100%' }}>
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#111827', marginBottom: '2px' }}>
+                Order Return Rate - 20%
+              </div>
+              <a href="#" style={{ fontSize: '0.75rem', color: '#3b82f6', textDecoration: 'underline', fontWeight: 600 }}>Download List</a>
             </div>
-          </div>
-
-          <div style={{ textAlign: 'center', width: '100%', marginTop: 'auto' }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#111827', marginBottom: '2px' }}>
-              Order Return Rate - 20%
-            </div>
-            <a href="#" style={{ fontSize: '0.75rem', color: '#3b82f6', textDecoration: 'underline', fontWeight: 600 }}>Download List</a>
           </div>
         </div>
 
@@ -161,19 +183,36 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
           flexDirection: 'column',
           gap: '20px'
         }}>
-          <div className={styles.cardHeaderRow} style={{ marginBottom: 0 }}>
+          <div className={styles.cardHeaderRow} style={{ marginBottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
             <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Stock by Category</h2>
+            {/* Legend lives beside the title in the design, not inside the plot */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              {[{ name: 'In Stock', color: '#3b82f6' }, { name: 'Low-Stock', color: '#ef4444' }].map(s => (
+                <span key={s.name} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#4b5563', whiteSpace: 'nowrap' }}>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: s.color, flexShrink: 0 }} />
+                  {s.name}
+                </span>
+              ))}
+            </div>
           </div>
           <div style={{ height: '257px', width: '100%', marginTop: 'auto' }}>
             <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
-              <BarChart data={stockCategory} margin={{ top: 53, right: 14, left: 18, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#9ca3af" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} width={40} />
-                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', top: 15 }} />
-                <Bar dataKey="In Stock" fill="#3b82f6" radius={[4,4,0,0]} barSize={20} />
-                <Bar dataKey="Low-Stock" fill="#ef4444" radius={[4,4,0,0]} barSize={20} />
+              <BarChart data={stockCategory} margin={{ top: 10, right: 14, left: 18, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="4 4" stroke="#e5e7eb" />
+                <XAxis dataKey="name" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: '#9ca3af' }}
+                  width={56}
+                  domain={[0, 100]}
+                  ticks={STOCK_TICKS}
+                  interval={0}
+                  label={{ value: 'Amount (In Rupees)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: '#6b7280', fontSize: 10 } }}
+                />
+                <Tooltip cursor={{ fill: 'transparent' }} content={StockTooltip} />
+                <Bar dataKey="In Stock" fill="#3b82f6" radius={[4,4,0,0]} barSize={14} />
+                <Bar dataKey="Low-Stock" fill="#ef4444" radius={[4,4,0,0]} barSize={14} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -186,13 +225,13 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
         {/* Stock Alerts */}
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Stock Alerts</h2>
-          <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e7eb', fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', borderRadius: '8px', fontSize: '0.75rem', color: '#0f172a', fontWeight: 600 }}>
             <span>Spare Name ↓↑</span>
             <span>Stock Status ↓↑</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.25rem', maxHeight: '260px', overflowY: 'auto' }}>
             {stockAlerts.map((item, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', padding: '0.875rem 1rem', borderBottom: '1px solid #f1f5f9' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <img src="/sewing_machine _needle.svg" alt="Spare" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0 }} />
                   <div>
@@ -235,13 +274,13 @@ export default function InventoryInsights({ invDonut, stockCategory, stockAlerts
         {/* Dead Stock */}
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Dead Stock</h2>
-          <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.75rem', borderBottom: '1px solid #e5e7eb', fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem 1rem', backgroundColor: '#f8fafc', borderRadius: '8px', fontSize: '0.75rem', color: '#0f172a', fontWeight: 600 }}>
             <span>Spare Name ↓↑</span>
             <span>Idle Since ↓↑</span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.25rem', maxHeight: '260px', overflowY: 'auto' }}>
             {deadStock.map((item, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', padding: '0.875rem 1rem', borderBottom: '1px solid #f1f5f9' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <img src="/sewing_machine _needle.svg" alt="Spare" style={{ width: 40, height: 40, objectFit: 'contain', flexShrink: 0 }} />
                   <div>

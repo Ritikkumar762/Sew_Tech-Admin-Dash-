@@ -36,38 +36,42 @@ const getTransactionColor = (name: string) => {
 };
 
 const RADIAN = Math.PI / 180;
+const MONEY_TICKS = Array.from({ length: 11 }, (_, i) => i * 1000);
+const AXIS_TICK = { fontSize: 11, fill: '#9ca3af' };
+const AMOUNT_LABEL = {
+  value: 'Amount (In Rupees)',
+  angle: -90,
+  position: 'insideLeft' as const,
+  style: { textAnchor: 'middle' as const, fill: '#9ca3af', fontSize: 10, fontWeight: 500 },
+};
+
+// Both donuts carry percentage values, so read `value` directly rather than deriving
+// it from recharts' `percent`.
 const renderCustomizedLabel = ({
-  cx, cy, midAngle, innerRadius, outerRadius, percent
+  cx, cy, midAngle, outerRadius, value
 }: any) => {
-  const radius = outerRadius + 8;
+  const radius = outerRadius + 12;
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-  const percentageVal = Math.round(percent * 100);
-  if (percentageVal === 0) return null;
+  if (!Number(value)) return null;
+
+  const pillW = 34;
+  const pillH = 18;
 
   return (
     <g>
-      <rect
-        x={x - 12}
-        y={y - 6}
-        width={24}
-        height={12}
-        rx={3}
-        fill="white"
-        stroke="#e5e7eb"
-        strokeWidth={1}
-      />
+      <rect x={x - pillW / 2} y={y - pillH / 2 + 1} width={pillW} height={pillH} rx={5} fill="rgba(0,0,0,0.08)" />
+      <rect x={x - pillW / 2} y={y - pillH / 2} width={pillW} height={pillH} rx={5} fill="#ffffff" stroke="#e5e7eb" strokeWidth={0.5} />
       <text
         x={x}
-        y={y + 0.5}
-        fill="#374151"
+        y={y}
+        fill="#1f2937"
         textAnchor="middle"
         dominantBaseline="central"
-        fontSize="8px"
-        fontWeight="bold"
+        style={{ fontSize: '10px', fontWeight: 700 }}
       >
-        {`${percentageVal}%`}
+        {`${value}%`}
       </text>
     </g>
   );
@@ -133,7 +137,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
           flexDirection: 'column',
           gap: '20px'
         }}>
-          <div className={styles.cardHeaderRow} style={{ marginBottom: 0 }}>
+          <div className={styles.cardHeaderRow} style={{ marginBottom: 0, paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
             <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Revenue Trend</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#4b5563', fontWeight: 600 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b' }} />
@@ -142,27 +146,28 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
           </div>
           <div style={{ height: '257px', width: '100%', marginTop: 'auto', position: 'relative' }}>
             <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
-              <AreaChart data={revenueTrend} margin={{ top: 53, right: 14, left: 30, bottom: 20 }}>
+              <AreaChart data={revenueTrend} margin={{ top: 10, right: 14, left: 8, bottom: 20 }}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.2}/>
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
+                    <stop offset="0%" stopColor="#f59e0b" stopOpacity={0.35}/>
+                    <stop offset="100%" stopColor="#f59e0b" stopOpacity={0.02}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#9ca3af" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: '#9ca3af' }} />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 11, fill: '#9ca3af' }} 
-                  width={40}
-                  tickFormatter={(value) => value.toLocaleString('en-IN')}
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={AXIS_TICK} />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={AXIS_TICK}
+                  width={62}
+                  domain={[0, 10000]}
+                  ticks={MONEY_TICKS}
+                  interval={0}
+                  tickFormatter={(value) => Number(value).toLocaleString('en-IN')}
+                  label={AMOUNT_LABEL}
                 />
                 <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#f3f4f6', strokeWidth: 1.5 }} />
                 <Area type="linear" dataKey="Revenue" stroke="#f59e0b" strokeWidth={2} strokeDasharray="5 5" fill="url(#colorRev)" dot={<CustomDot />} activeDot={{ r: 6, fill: '#f59e0b' }} />
-                <text x={12} y={128} transform="rotate(-90 12 128)" textAnchor="middle" fill="#9ca3af" fontSize="10px" fontWeight="500">
-                  Amount (In Rupees)
-                </text>
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -195,7 +200,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
           }}>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1, gap: '12px', flexWrap: 'wrap' }}>
               {/* Pie Chart */}
-              <div style={{
+              <div className={styles.donutOverflow} style={{
                 position: 'relative',
                 width: '151.01px',
                 height: '151.01px',
@@ -226,8 +231,8 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
                       data={revenueRisk} 
                       cx="50%" 
                       cy="50%" 
-                      innerRadius={36} 
-                      outerRadius={56} 
+                      innerRadius={42} 
+                      outerRadius={62} 
                       dataKey="value" 
                       startAngle={90} 
                       endAngle={-270}
@@ -277,30 +282,31 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
           flexDirection: 'column',
           gap: '20px'
         }}>
-          <div className={styles.cardHeaderRow} style={{ marginBottom: 0 }}>
+          <div className={styles.cardHeaderRow} style={{ marginBottom: 0, paddingBottom: '12px', borderBottom: '1px solid #f1f5f9' }}>
             <h2 className={styles.cardTitle} style={{ marginBottom: 0 }}>Revenue by Category</h2>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.75rem', color: '#4b5563', fontWeight: 600 }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#3b82f6' }} />
-              Revenue/Category
+              Revenue/ Category
             </div>
           </div>
           <div style={{ height: '257px', width: '100%', marginTop: 'auto', position: 'relative' }}>
             <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%">
-              <BarChart data={revenueTrend} margin={{ top: 53, right: 14, left: 30, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#9ca3af" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fill: '#9ca3af' }} 
-                  width={40}
-                  tickFormatter={(value) => value.toLocaleString('en-IN')}
+              <BarChart data={revenueTrend} margin={{ top: 10, right: 14, left: 8, bottom: 20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis dataKey="name" axisLine={{ stroke: '#e5e7eb' }} tickLine={false} tick={{ fontSize: 10, fill: '#9ca3af' }} interval={0} />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: '#9ca3af' }}
+                  width={62}
+                  domain={[0, 10000]}
+                  ticks={MONEY_TICKS}
+                  interval={0}
+                  tickFormatter={(value) => Number(value).toLocaleString('en-IN')}
+                  label={AMOUNT_LABEL}
                 />
                 <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(243, 244, 246, 0.3)' }} />
                 <Bar dataKey="Revenue" fill="#3b82f6" radius={[4,4,0,0]} barSize={20} />
-                <text x={12} y={128} transform="rotate(-90 12 128)" textAnchor="middle" fill="#9ca3af" fontSize="10px" fontWeight="500">
-                  Amount (In Rupees)
-                </text>
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -333,7 +339,7 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
           }}>
             <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%', flex: 1, gap: '12px', flexWrap: 'wrap' }}>
               {/* Pie Chart */}
-              <div style={{
+              <div className={styles.donutOverflow} style={{
                 position: 'relative',
                 width: '151.01px',
                 height: '151.01px',
@@ -365,8 +371,8 @@ export default function RevenueInsights({ revenueTrend, revenueRisk, transaction
                       data={transactions} 
                       cx="50%" 
                       cy="50%" 
-                      innerRadius={36} 
-                      outerRadius={56} 
+                      innerRadius={42} 
+                      outerRadius={62} 
                       dataKey="value" 
                       startAngle={90} 
                       endAngle={-270}
