@@ -601,7 +601,6 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
   const handleAssignMechanic = async (mechanicId: string, mechanicObj?: any) => {
     try {
       const token = HARDCODED_TOKEN; // FORCED FOR TESTING
-      const cleanMechanicId = mechanicId.replace(/^[a-zA-Z]+-?/, '');
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'https://project-sewtech-mart.onrender.com/api/v1'}/admin/care/bookings/${cleanOrderId}/assign`, {
         method: 'PATCH',
@@ -611,11 +610,14 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
           'Accept': 'application/json'
         },
         body: JSON.stringify({
-          user_id: cleanMechanicId
+          mechanic_id: mechanicId
         })
       });
 
       const responseJson = await res.json().catch(() => null);
+      if (!res.ok) {
+        throw new Error(responseJson?.message || responseJson?.error || `API error ${res.status}: ${res.statusText}`);
+      }
       const data = responseJson?.data;
       const backendOtp = data?.start_otp || data?.service_start_otp || data?.otp || responseJson?.start_otp || responseJson?.otp;
 
@@ -644,9 +646,9 @@ export default function OrderDetailView({ orderId }: OrderDetailViewProps) {
       setOrderStatus('MechanicAssigned');
       showToastMsg(`Mechanic ${updatedMech.name} assigned! Start OTP: ${activeOtp}`, 'success');
       fetchBookingDetail();
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error assigning mechanic:', err);
-      showToastMsg('Assigned mechanic updated successfully!', 'success');
+      showToastMsg(err?.message || 'Failed to assign mechanic. Please try again.', 'error');
     }
   };
 
