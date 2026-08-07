@@ -179,20 +179,6 @@ export default function RoleManagementPage() {
               <button style={{ border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700 }}>&lt;</button>
               <button style={{ border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700 }}>&gt;</button>
             </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '1.5rem' }}>
-              <span>Rows per page:</span>
-              <select style={{ border: 'none', background: 'none', outline: 'none', fontWeight: 700, color: '#111827', cursor: 'pointer' }}>
-                <option>10</option>
-                <option>25</option>
-                <option>50</option>
-              </select>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span>1–10 of 165</span>
-              <button style={{ border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700 }}>&lt;</button>
-              <button style={{ border: 'none', background: 'none', cursor: 'pointer', fontWeight: 700 }}>&gt;</button>
-            </div>
           </div>
 
         </div>
